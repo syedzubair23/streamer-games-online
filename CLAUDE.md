@@ -120,3 +120,6 @@ Plus every bullet under the item's **Accept**, each backed by a test or an artif
   disputed issues as `disputed: <reason>`).
 - Update your row: `pnpm progress set <id> status=… notes="…"` (notes 3 lines or fewer).
 - Commits look like `<item-id>: <what>`. Link paths in notes; never paste large files.
+
+## Public repo
+This repository is public. Never write secrets, tokens, `.env` values, personal emails, or absolute local machine paths (user home dirs) into tracked files, reports or logs; use repo-relative paths. Third-party reference images stay local (gitignored). `.githooks/pre-commit` blocks likely leaks — don't bypass it.
