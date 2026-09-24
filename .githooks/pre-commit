@@ -1,0 +1,13 @@
+#!/bin/sh
+# Blocks commits that contain likely secrets or private data. Public repo.
+files=$(git diff --cached --name-only --diff-filter=ACM)
+[ -z "$files" ] && exit 0
+pattern='(AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{40,}|sk-[A-Za-z0-9_-]{20,}|sk-ant-[A-Za-z0-9_-]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|oauth:[a-z0-9]{30}|(password|secret|api[_-]?key|token)[\"'"'"']?\s*[:=]\s*[\"'"'"'][^\"'"'"' ]{8,}[\"'"'"']|C:\\Users\\|/Users/[A-Za-z]|firstclasshealthcare)'
+bad=$(echo "$files" | grep -v -E '^(pnpm-lock\.yaml|\.githooks/)' | xargs -r git grep --cached -n -I -i -E "$pattern" -- 2>/dev/null)
+if [ -n "$bad" ]; then
+  echo "pre-commit: possible secret / private data found:"; echo "$bad" | head -20
+  echo "Fix it (or move to .env, which is gitignored)."; exit 1
+fi
+big=$(echo "$files" | while read f; do [ -f "$f" ] && [ $(wc -c < "$f") -gt 2000000 ] && echo "$f"; done)
+[ -n "$big" ] && { echo "pre-commit: file >2MB: $big"; exit 1; }
+exit 0

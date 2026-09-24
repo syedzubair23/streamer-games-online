@@ -36,3 +36,25 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# --- public-repo safety ---
+# third-party reference images (press kits / store screenshots) are for local critic use only: never publish
+/docs/references/**/*.png
+/docs/references/**/*.jpg
+/docs/references/**/*.jpeg
+/docs/references/**/*.webp
+# our own golden screenshots are fine to publish
+!/docs/references/_style/golden/
+!/docs/references/_style/golden/**
+# critic reports may embed local paths/screenshots; keep JSON only
+/artifacts/critic/**/*.png
+# secrets / keys / local config
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+.npmrc
+secrets/
+*.secret.*
+.claude/settings.local.json
