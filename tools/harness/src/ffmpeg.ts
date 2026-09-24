@@ -15,14 +15,18 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 
 /** Candidate directories of Playwright's browser cache. */
-export function playwrightCacheDirs(env: NodeJS.ProcessEnv = process.env, platform = process.platform): string[] {
+export function playwrightCacheDirs(
+  env: NodeJS.ProcessEnv = process.env,
+  platform = process.platform,
+): string[] {
   const dirs: string[] = [];
   const custom = env["PLAYWRIGHT_BROWSERS_PATH"];
   if (custom !== undefined && custom !== "" && custom !== "0") dirs.push(custom);
   if (platform === "win32") {
     const local = env["LOCALAPPDATA"];
     if (local !== undefined) dirs.push(join(local, "ms-playwright"));
-  } else if (platform === "darwin") dirs.push(join(homedir(), "Library", "Caches", "ms-playwright"));
+  } else if (platform === "darwin")
+    dirs.push(join(homedir(), "Library", "Caches", "ms-playwright"));
   else dirs.push(join(env["XDG_CACHE_HOME"] ?? join(homedir(), ".cache"), "ms-playwright"));
   return dirs;
 }
@@ -30,12 +34,18 @@ export function playwrightCacheDirs(env: NodeJS.ProcessEnv = process.env, platfo
 const BINARIES = ["ffmpeg-win64.exe", "ffmpeg-linux", "ffmpeg-mac", "ffmpeg.exe", "ffmpeg"];
 
 /** Resolves an ffmpeg executable, or null when none is available. */
-export function findFfmpeg(env: NodeJS.ProcessEnv = process.env, platform = process.platform): string | null {
+export function findFfmpeg(
+  env: NodeJS.ProcessEnv = process.env,
+  platform = process.platform,
+): string | null {
   const explicit = env["SG_FFMPEG"];
   if (explicit !== undefined && explicit !== "" && existsSync(explicit)) return explicit;
   for (const dir of playwrightCacheDirs(env, platform)) {
     if (!existsSync(dir)) continue;
-    const ffDirs = readdirSync(dir).filter((d) => d.startsWith("ffmpeg")).sort().reverse();
+    const ffDirs = readdirSync(dir)
+      .filter((d) => d.startsWith("ffmpeg"))
+      .sort()
+      .reverse();
     for (const d of ffDirs)
       for (const bin of BINARIES) {
         const p = join(dir, d, bin);
@@ -66,7 +76,7 @@ function run(ffmpeg: string, args: string[]): string {
     const e = err as { status?: number; stderr?: string };
     // `ffmpeg -i file` with no output exits 1 by design; callers that probe accept that.
     if (e.stderr !== undefined && e.status === 1 && args[args.length - 2] === "-i") return e.stderr;
-    throw new Error(`ffmpeg ${args.join(" ")} failed: ${e.stderr ?? String(err)}`);
+    throw new Error(`ffmpeg ${args.join(" ")} failed: ${e.stderr ?? String(err)}`, { cause: err });
   }
 }
 
@@ -79,7 +89,12 @@ export function probeDuration(ffmpeg: string, file: string): number | null {
  * Encodes JPEG frames (in order) at `fps` into a VP8 WebM. The frames go through a temporary
  * concatenated-JPEG file (`image2pipe` demuxer): Playwright's ffmpeg build has no pipe protocol.
  */
-export function encodeJpegFrames(ffmpeg: string, frames: readonly Buffer[], fps: number, output: string): void {
+export function encodeJpegFrames(
+  ffmpeg: string,
+  frames: readonly Buffer[],
+  fps: number,
+  output: string,
+): void {
   if (frames.length === 0) throw new Error("encodeJpegFrames: no frames");
   const stream = `${output}.frames.mjpeg`;
   writeFileSync(stream, Buffer.concat(frames));
@@ -112,5 +127,7 @@ export function encodeJpegFrames(ffmpeg: string, frames: readonly Buffer[], fps:
   );
   rmSync(stream, { force: true });
   if (res.status !== 0)
-    throw new Error(`ffmpeg encode failed (${res.status ?? "?"}): ${res.stderr?.toString() ?? String(res.error)}`);
+    throw new Error(
+      `ffmpeg encode failed (${res.status ?? "?"}): ${res.stderr?.toString() ?? String(res.error)}`,
+    );
 }

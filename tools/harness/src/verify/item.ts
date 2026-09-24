@@ -65,26 +65,34 @@ export const P3_LINES_MIN = 85;
 export function readItemSpec(root: string, id: string): ItemSpec {
   const path = join(root, "tools/harness/items", `${id}.json`);
   if (!existsSync(path))
-    throw new Error(`no tools/harness/items/${id}.json: list the item's Accept bullets and their commands there`);
+    throw new Error(
+      `no tools/harness/items/${id}.json: list the item's Accept bullets and their commands there`,
+    );
   const raw = JSON.parse(readFileSync(path, "utf8")) as Partial<ItemSpec>;
   const problems: string[] = [];
   if (raw.id !== id) problems.push(`id is ${String(raw.id)}, not ${id}`);
   if (!Array.isArray(raw.coverage) || raw.coverage.some((c) => typeof c !== "string"))
     problems.push("coverage must be an array of globs");
-  if (!Array.isArray(raw.accept) || raw.accept.length === 0) problems.push("accept must list at least one check");
+  if (!Array.isArray(raw.accept) || raw.accept.length === 0)
+    problems.push("accept must list at least one check");
   else
     raw.accept.forEach((a, i) => {
-      if (typeof a?.criterion !== "string" || a.criterion.trim() === "") problems.push(`accept[${i}] has no criterion`);
-      if (typeof a?.cmd !== "string" || a.cmd.trim() === "") problems.push(`accept[${i}] has no cmd`);
+      if (typeof a?.criterion !== "string" || a.criterion.trim() === "")
+        problems.push(`accept[${i}] has no criterion`);
+      if (typeof a?.cmd !== "string" || a.cmd.trim() === "")
+        problems.push(`accept[${i}] has no cmd`);
     });
-  if (problems.length > 0) throw new Error(`tools/harness/items/${id}.json: ${problems.join("; ")}`);
+  if (problems.length > 0)
+    throw new Error(`tools/harness/items/${id}.json: ${problems.join("; ")}`);
   return raw as ItemSpec;
 }
 
 /** Whether progress.json marks the item as visual (P6 through the critic). */
 export function isVisualItem(root: string, id: string): boolean {
   try {
-    const p = JSON.parse(readFileSync(join(root, "progress.json"), "utf8")) as { items?: { id: string; visual?: boolean }[] };
+    const p = JSON.parse(readFileSync(join(root, "progress.json"), "utf8")) as {
+      items?: { id: string; visual?: boolean }[];
+    };
     return p.items?.find((i) => i.id === id)?.visual === true;
   } catch {
     return false;
@@ -104,7 +112,11 @@ export interface VerifyItemOptions {
 
 async function simple(runner: CommandRunner, root: string, args: string[]): Promise<GateResult> {
   const r = await runner("pnpm", args, { cwd: root });
-  return { ok: r.code === 0, cmd: formatCmd("pnpm", args), ...(r.code !== 0 ? { note: tailLines(r) } : {}) };
+  return {
+    ok: r.code === 0,
+    cmd: formatCmd("pnpm", args),
+    ...(r.code !== 0 ? { note: tailLines(r) } : {}),
+  };
 }
 
 /** Runs the P-gates and accept commands; writes and returns the verify JSON. */
@@ -143,9 +155,14 @@ export async function verifyItem(o: VerifyItemOptions): Promise<VerifyItemReport
   const branches = readCoveragePct(join(covDir, "coverage-summary.json"), "branches");
   const p3Problems: string[] = [];
   if (p3.code !== 0 || tests === null || tests.failed > 0 || tests.fileErrors.length > 0)
-    p3Problems.push(tests === null ? `no test report: ${tailLines(p3)}` : `${tests.failed} failing tests ${tests.fileErrors.join("; ")}`.trim());
+    p3Problems.push(
+      tests === null
+        ? `no test report: ${tailLines(p3)}`
+        : `${tests.failed} failing tests ${tests.fileErrors.join("; ")}`.trim(),
+    );
   if (lines === null) p3Problems.push("no coverage summary");
-  else if (lines < P3_LINES_MIN) p3Problems.push(`new-code line coverage ${lines}% < ${P3_LINES_MIN}%`);
+  else if (lines < P3_LINES_MIN)
+    p3Problems.push(`new-code line coverage ${lines}% < ${P3_LINES_MIN}%`);
   gates["P3"] = {
     ok: p3Problems.length === 0,
     cmd: `pnpm test (vitest run --coverage on ${spec.coverage.join(", ")})`,

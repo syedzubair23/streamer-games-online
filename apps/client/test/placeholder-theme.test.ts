@@ -20,7 +20,11 @@ describe("placeholder theme (SPEC §13 tokens)", () => {
       accent: "#F2705A",
       shadowAlpha: 0.32,
     });
-    expect(MODE_TOKENS.night).toMatchObject({ uiBg: "#1F1D33", uiInk: "#F5EDE3", glowIntensity: 1 });
+    expect(MODE_TOKENS.night).toMatchObject({
+      uiBg: "#1F1D33",
+      uiInk: "#F5EDE3",
+      glowIntensity: 1,
+    });
     expect(Object.keys(MODE_TOKENS)).toEqual(["day", "dusk", "night", "rain", "snow"]);
     expect(IDENTITY.map((c) => c.base)).toEqual([
       "#F26B5B",
@@ -70,7 +74,9 @@ describe("placeholder theme (SPEC §13 tokens)", () => {
     expect(() => relativeLuminance("red")).toThrow();
     for (const m of Object.values(MODE_TOKENS)) {
       expect(contrastRatio(m.uiInk, m.uiBg)).toBeGreaterThanOrEqual(4.5);
-      expect(contrastRatio(m.uiInk, over(m.uiSurface, m.uiSurfaceAlpha, m.uiBg))).toBeGreaterThanOrEqual(4.5);
+      expect(
+        contrastRatio(m.uiInk, over(m.uiSurface, m.uiSurfaceAlpha, m.uiBg)),
+      ).toBeGreaterThanOrEqual(4.5);
     }
   });
 });

@@ -26,4 +26,12 @@ Rules:
 
 ## Requests
 
-None yet.
+### ER-001 tictactoe fixture controller: invalid ARIA grid
+- **From:** M0-05 (harness builder)
+- **Package:** @sg/engine (`packages/engine/test/fixtures/tictactoe/client.ts`)
+- **Status:** open
+- **Need:** the controller's board uses `role="grid"` on a plain div of buttons, with no `row`/`gridcell` children.
+- **Why:** axe reports it as a critical `aria-required-children` finding, so `pnpm verify:game tictactoe` has G9 red (DOD G9: 0 serious or critical findings). The harness is right; the fixture is wrong.
+- **Proposed API:** none; use `role="group"` with `aria-label="Board"` (or add rows and gridcells).
+- **Local stub:** none needed; the gate reports it.
+- **Resolution:**

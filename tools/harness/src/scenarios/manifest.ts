@@ -48,7 +48,10 @@ export interface ScenarioManifest {
 export const manifestPath = (id: string): string => `artifacts/scenarios/${id}.json`;
 
 /** Imports a game's ScenarioRegistry and reduces it to plain data. */
-export async function loadRegistry(root: string, target: GameTarget): Promise<RegisteredScenario[]> {
+export async function loadRegistry(
+  root: string,
+  target: GameTarget,
+): Promise<RegisteredScenario[]> {
   const mod = (await import(pathToFileURL(join(root, target.scenarios.module)).href)) as Record<
     string,
     unknown
@@ -123,11 +126,20 @@ export function buildManifest(
     notes.push(`scenario "${r.id}" is registered but not in the spec table (not screenshotted)`);
     scenarios.push({ ...r, roles: [], critic: "", variants: {}, inSpec: false, registered: true });
   }
-  const anims = new Set(scenarios.flatMap((s) => (s.anim !== null && s.registered ? [s.anim.name] : [])));
+  const anims = new Set(
+    scenarios.flatMap((s) => (s.anim !== null && s.registered ? [s.anim.name] : [])),
+  );
   for (const name of spec.perfScript)
     if (!anims.has(name)) problems.push(`perf script anim "${name}" has no registered scenario`);
   if (spec.perfScript.length === 0) notes.push("the spec has no parsable perf script");
-  return { game: target.id, spec: target.spec, scenarios, perfScript: spec.perfScript, problems, notes };
+  return {
+    game: target.id,
+    spec: target.spec,
+    scenarios,
+    perfScript: spec.perfScript,
+    problems,
+    notes,
+  };
 }
 
 /** Reads the spec and registry and writes `artifacts/scenarios/<id>.json`. */
@@ -151,6 +163,7 @@ export function readManifest(root: string, id: string): ScenarioManifest {
       `cannot read ${manifestPath(id)} (run \`pnpm verify:game ${id}\` or check-scenarios first): ${
         err instanceof Error ? err.message : String(err)
       }`,
+      { cause: err },
     );
   }
 }

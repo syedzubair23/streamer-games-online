@@ -40,7 +40,9 @@ export function luminanceStdDev(img: Rgba): number {
   let sq = 0;
   for (let i = 0; i < img.data.length; i += 4) {
     const y =
-      0.2126 * (img.data[i] ?? 0) + 0.7152 * (img.data[i + 1] ?? 0) + 0.0722 * (img.data[i + 2] ?? 0);
+      0.2126 * (img.data[i] ?? 0) +
+      0.7152 * (img.data[i + 1] ?? 0) +
+      0.0722 * (img.data[i + 2] ?? 0);
     sum += y;
     sq += y * y;
   }

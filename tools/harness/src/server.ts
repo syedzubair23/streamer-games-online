@@ -15,13 +15,23 @@ export interface ScenarioServer {
 
 const pnpm = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 
-/** Builds the client in scenario mode (into `apps/client/dist/scenario`). */
+/**
+ * Output of the scenario build, relative to `apps/client` (mirrors `SCENARIO_OUT_DIR` in
+ * `apps/client/vite.config.ts`; the harness may not import app code).
+ */
+export const SCENARIO_OUT_DIR = "../../artifacts/tmp/scenario-client";
+
+/** Builds the client in scenario mode (into `artifacts/tmp/scenario-client`). */
 export function buildScenarioClient(root: string): void {
-  const res = spawnSync(pnpm, ["exec", "vite", "build", "--mode", "scenario", "--logLevel", "warn"], {
-    cwd: join(root, "apps/client"),
-    stdio: "inherit",
-    shell: process.platform === "win32",
-  });
+  const res = spawnSync(
+    pnpm,
+    ["exec", "vite", "build", "--mode", "scenario", "--logLevel", "warn"],
+    {
+      cwd: join(root, "apps/client"),
+      stdio: "inherit",
+      shell: process.platform === "win32",
+    },
+  );
   if (res.status !== 0) throw new Error(`scenario build failed (exit ${res.status ?? "?"})`);
 }
 
@@ -54,8 +64,21 @@ export async function startScenarioServer(
   if (opts.skipBuild !== true) buildScenarioClient(root);
   const child = spawn(
     pnpm,
-    ["exec", "vite", "preview", "--outDir", "dist/scenario", "--port", String(port), "--strictPort"],
-    { cwd: join(root, "apps/client"), stdio: ["ignore", "pipe", "pipe"], shell: process.platform === "win32" },
+    [
+      "exec",
+      "vite",
+      "preview",
+      "--outDir",
+      SCENARIO_OUT_DIR,
+      "--port",
+      String(port),
+      "--strictPort",
+    ],
+    {
+      cwd: join(root, "apps/client"),
+      stdio: ["ignore", "pipe", "pipe"],
+      shell: process.platform === "win32",
+    },
   );
   let log = "";
   child.stdout?.on("data", (d: Buffer) => (log += d.toString()));
@@ -65,7 +88,7 @@ export async function startScenarioServer(
     await waitForHttp(`${url}/dev/scenario?game=tictactoe&state=intro`, child, 60_000);
   } catch (err) {
     child.kill();
-    throw new Error(`${err instanceof Error ? err.message : String(err)}\n${log}`);
+    throw new Error(`${err instanceof Error ? err.message : String(err)}\n${log}`, { cause: err });
   }
   return {
     url,

@@ -6,7 +6,7 @@
  *   --round <r>      screenshot round (default: the next critic round, i.e. latest round-*.json + 1)
  *   --port <n>       port of the scenario preview server (default 4173; SG_PORT also works)
  *   --base-url <u>   use an already running scenario server instead of building one
- *   --skip-build     reuse apps/client/dist/scenario
+ *   --skip-build     reuse the last scenario build (artifacts/tmp/scenario-client)
  *   --workers <n>    Playwright workers (default 4)
  *   --only <what>    `shots` (G6 + G7) or `perf` (G8a + G8b); writes artifacts/verify/<id>-<what>.json
  *   --allow-red      exit 0 when the run completed, even with red gates (evidence runs)
@@ -36,16 +36,22 @@ try {
     },
   });
   const game = positionals[0];
-  if (game === undefined) throw new Error("usage: pnpm verify:game <id> [--round r] [--port n] [--only shots|perf]");
+  if (game === undefined)
+    throw new Error("usage: pnpm verify:game <id> [--round r] [--port n] [--only shots|perf]");
   if (values["check-outputs"]) {
     const round = values.round ?? "1";
     const problems = checkOutputs(root, game, round);
     for (const p of problems) console.error(`missing/stale: ${p}`);
-    console.log(problems.length === 0 ? `verify:game ${game}: round ${round} evidence complete for HEAD` : "verify:game: evidence incomplete");
+    console.log(
+      problems.length === 0
+        ? `verify:game ${game}: round ${round} evidence complete for HEAD`
+        : "verify:game: evidence incomplete",
+    );
     process.exit(problems.length === 0 ? 0 : 1);
   }
   const only = values.only as Only;
-  if (!["all", "shots", "perf"].includes(only)) throw new Error(`--only must be shots or perf, not ${only}`);
+  if (!["all", "shots", "perf"].includes(only))
+    throw new Error(`--only must be shots or perf, not ${only}`);
   const report = await verifyGame({
     root,
     game,
@@ -57,8 +63,11 @@ try {
     ...(values.workers !== undefined ? { workers: Number(values.workers) } : {}),
   });
   for (const [name, g] of Object.entries(report.gates))
-    console.log(`${g.ok === true ? "ok  " : g.skipped !== undefined ? "skip" : "FAIL"} ${name}${g.note !== undefined ? `  ${String(g.note).split("\n")[0]}` : ""}`);
-  for (const [name, c] of Object.entries(report.checks)) console.log(`${c.ok === true ? "ok  " : "FAIL"} ${name}`);
+    console.log(
+      `${g.ok === true ? "ok  " : g.skipped !== undefined ? "skip" : "FAIL"} ${name}${g.note !== undefined ? `  ${String(g.note).split("\n")[0]}` : ""}`,
+    );
+  for (const [name, c] of Object.entries(report.checks))
+    console.log(`${c.ok === true ? "ok  " : "FAIL"} ${name}`);
   process.exitCode = report.ok || values["allow-red"] ? 0 : 1;
 } catch (err) {
   console.error(err instanceof Error ? (err.stack ?? err.message) : err);

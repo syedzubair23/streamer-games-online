@@ -19,10 +19,13 @@ try {
     options: { "skip-accept": { type: "boolean", default: false } },
   });
   const id = positionals[0];
-  if (id === undefined || !/^M\d+-\d+[a-z]?$/.test(id)) throw new Error("usage: pnpm verify:item <item id, e.g. M0-05>");
+  if (id === undefined || !/^M\d+-\d+[a-z]?$/.test(id))
+    throw new Error("usage: pnpm verify:item <item id, e.g. M0-05>");
   const report = await verifyItem({ root, id, skipAccept: values["skip-accept"] });
   for (const [name, g] of Object.entries(report.gates))
-    console.log(`${g.ok === true ? "ok  " : "FAIL"} ${name}${g.note !== undefined && g.ok !== true ? `  ${String(g.note).split("\n")[0]}` : ""}`);
+    console.log(
+      `${g.ok === true ? "ok  " : "FAIL"} ${name}${g.note !== undefined && g.ok !== true ? `  ${String(g.note).split("\n")[0]}` : ""}`,
+    );
   for (const a of report.accept) console.log(`${a.ok ? "ok  " : "FAIL"} accept: ${a.criterion}`);
   process.exitCode = report.ok ? 0 : 1;
 } catch (err) {

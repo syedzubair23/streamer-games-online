@@ -22,7 +22,10 @@ describe("game spec parsing", () => {
     for (const f of specs) {
       const spec = parseGameSpec(read(`docs/specs/${f}`));
       expect(spec.scenarios.length, f).toBeGreaterThanOrEqual(6);
-      expect(spec.scenarios.some((s) => s.roles.includes("stage")), f).toBe(true);
+      expect(
+        spec.scenarios.some((s) => s.roles.includes("stage")),
+        f,
+      ).toBe(true);
       expect(spec.perfScript.length, `${f} perf script`).toBeGreaterThan(0);
       expect(spec.rules.length, `${f} rules`).toBeGreaterThan(0);
       expect(spec.tests.length, `${f} tests`).toBeGreaterThan(0);
@@ -33,9 +36,22 @@ describe("game spec parsing", () => {
   it("reads quip-clash exactly", () => {
     const spec = parseGameSpec(read("docs/specs/quip-clash.md"));
     expect(spec.scenarios.map((s) => s.id)).toEqual([
-      "intro", "answering", "reveal", "voting", "results", "quipout", "jinx", "last-quip", "final", "review-wait", "round-predict",
+      "intro",
+      "answering",
+      "reveal",
+      "voting",
+      "results",
+      "quipout",
+      "jinx",
+      "last-quip",
+      "final",
+      "review-wait",
+      "round-predict",
     ]);
-    expect(spec.scenarios.find((s) => s.id === "voting")).toMatchObject({ roles: ["stage", "player", "audience"], anim: { name: "hearts", durationMs: 1500 } });
+    expect(spec.scenarios.find((s) => s.id === "voting")).toMatchObject({
+      roles: ["stage", "player", "audience"],
+      anim: { name: "hearts", durationMs: 1500 },
+    });
     expect(spec.scenarios.find((s) => s.id === "intro")?.anim).toBeNull();
     expect(spec.perfScript).toEqual(["reveal", "hearts", "results", "quipout"]);
     expect(spec.rules).toContain("R3a");
@@ -47,7 +63,9 @@ describe("game spec parsing", () => {
     const spec = parseGameSpec(read("docs/specs/chess.md"));
     expect(spec.perfScript.slice(0, 4)).toEqual(["slide", "slide", "slide", "slide"]);
     const scenarios = parseScenarioTable(read("tools/harness/fixtures/tictactoe.md"));
-    expect(parsePerfScript("**Perf script:** `place`, then zoom, then `win` ×2.", scenarios)).toEqual(["place", "win", "win"]);
+    expect(
+      parsePerfScript("**Perf script:** `place`, then zoom, then `win` ×2.", scenarios),
+    ).toEqual(["place", "win", "win"]);
     expect(parsePerfScript("no script here", scenarios)).toEqual([]);
   });
 
@@ -57,20 +75,32 @@ describe("game spec parsing", () => {
     expect(parseAnim("—")).toBeNull();
     expect(parseAnim("")).toBeNull();
     expect(() => parseAnim("sometimes")).toThrow(/cannot parse anim/);
-    const table = (rows: string) => `## Scenarios\n| id | roles | description |\n|---|---|---|\n${rows}\n`;
+    const table = (rows: string) =>
+      `## Scenarios\n| id | roles | description |\n|---|---|---|\n${rows}\n`;
     expect(() => parseScenarioTable("# x")).toThrow(/no ## Scenarios/);
-    expect(() => parseScenarioTable("## Scenarios\n| a | b |\n|---|---|\n| x | y |")).toThrow(/needs id, roles/);
+    expect(() => parseScenarioTable("## Scenarios\n| a | b |\n|---|---|\n| x | y |")).toThrow(
+      /needs id, roles/,
+    );
     expect(() => parseScenarioTable(table("| Bad Id | stage | d |"))).toThrow(/bad scenario id/);
     expect(() => parseScenarioTable(table("| a | wizard | d |"))).toThrow(/unknown role/);
     expect(() => parseScenarioTable(table("| a |  | d |"))).toThrow(/no roles/);
-    expect(() => parseScenarioTable(table("| a | stage | d |\n| a | stage | d |"))).toThrow(/listed twice/);
-    expect(() => parseScenarioTable("## Scenarios\n| id | roles | description |\n|---|---|---|\n")).toThrow(/no rows/);
+    expect(() => parseScenarioTable(table("| a | stage | d |\n| a | stage | d |"))).toThrow(
+      /listed twice/,
+    );
+    expect(() =>
+      parseScenarioTable("## Scenarios\n| id | roles | description |\n|---|---|---|\n"),
+    ).toThrow(/no rows/);
     expect(section("## A\nx\n### sub\ny\n## B\nz", "a")).toBe("x\n### sub\ny");
     expect(parseGameSpec(table("| a | stage | d |")).builderNotes).toBeNull();
   });
 
   it("finds rule and test ids without a numbered test (DOD G3)", () => {
-    expect(missingNumberedTests(["R1", "R2", "T1", "R3a"], ["logic > R1: seats", "T1: assignment", "xR2: no", "R3a: predict"])).toEqual(["R2"]);
+    expect(
+      missingNumberedTests(
+        ["R1", "R2", "T1", "R3a"],
+        ["logic > R1: seats", "T1: assignment", "xR2: no", "R3a: predict"],
+      ),
+    ).toEqual(["R2"]);
   });
 });
 
@@ -80,7 +110,11 @@ describe("game targets and the scenario manifest", () => {
     expect(isKnownGame("pong")).toBe(false);
     expect(() => gameTarget(ROOT, "pong")).toThrow(/unknown game/);
     const t = gameTarget(ROOT, "tictactoe");
-    expect(t).toMatchObject({ fixture: true, pkgDir: "packages/engine", spec: "tools/harness/fixtures/tictactoe.md" });
+    expect(t).toMatchObject({
+      fixture: true,
+      pkgDir: "packages/engine",
+      spec: "tools/harness/fixtures/tictactoe.md",
+    });
     expect(t.tests.G11).toBeNull();
     for (const id of LAUNCH_GAMES) {
       const g = gameTarget(ROOT, id);
@@ -98,7 +132,12 @@ describe("game targets and the scenario manifest", () => {
     const m = await emitManifest(ROOT, t);
     expect(m.problems).toEqual([]);
     expect(m.perfScript).toEqual(["place", "win"]);
-    expect(m.scenarios.find((s) => s.id === "midgame")).toMatchObject({ roles: ["stage", "player", "audience"], anim: { name: "place", durationMs: 320 }, inSpec: true, registered: true });
+    expect(m.scenarios.find((s) => s.id === "midgame")).toMatchObject({
+      roles: ["stage", "player", "audience"],
+      anim: { name: "place", durationMs: 320 },
+      inSpec: true,
+      registered: true,
+    });
     expect(JSON.parse(read("artifacts/scenarios/tictactoe.json"))).toEqual(m);
   });
 
@@ -116,18 +155,28 @@ describe("game targets and the scenario manifest", () => {
       'scenario "c" is in the spec but not registered in scenarios.ts',
       'perf script anim "spin" has no registered scenario',
     ]);
-    expect(m.notes).toEqual(['scenario "extra" is registered but not in the spec table (not screenshotted)']);
+    expect(m.notes).toEqual([
+      'scenario "extra" is registered but not in the spec table (not screenshotted)',
+    ]);
     expect(m.scenarios.find((s) => s.id === "extra")).toMatchObject({ inSpec: false, roles: [] });
   });
 
   it("refuses a module without the registry export or with a malformed entry", async () => {
     const t = gameTarget(ROOT, "tictactoe");
-    await expect(loadRegistry(ROOT, { ...t, scenarios: { ...t.scenarios, export: "nope" } })).rejects.toThrow(/does not export/);
     await expect(
-      loadRegistry(ROOT, { ...t, scenarios: { module: "tools/harness/test/fixtures/bad-registry.ts", export: "noBuild" } }),
+      loadRegistry(ROOT, { ...t, scenarios: { ...t.scenarios, export: "nope" } }),
+    ).rejects.toThrow(/does not export/);
+    await expect(
+      loadRegistry(ROOT, {
+        ...t,
+        scenarios: { module: "tools/harness/test/fixtures/bad-registry.ts", export: "noBuild" },
+      }),
     ).rejects.toThrow(/has no build/);
     await expect(
-      loadRegistry(ROOT, { ...t, scenarios: { module: "tools/harness/test/fixtures/bad-registry.ts", export: "wrongId" } }),
+      loadRegistry(ROOT, {
+        ...t,
+        scenarios: { module: "tools/harness/test/fixtures/bad-registry.ts", export: "wrongId" },
+      }),
     ).rejects.toThrow(/has id "y"/);
   });
 });

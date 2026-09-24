@@ -26,17 +26,32 @@ const G8A = Object.freeze({ draws: 60, tris: 50_000, programs: 10, texMB: 24 });
 const G8B = Object.freeze({ p95Low: 33.3, p95High: 16.7, heapMB: 5, throttle: 4 });
 
 type Handle = {
-  info(): { drawCalls: number; tris: number; programs: number; textures: number; geometries: number; texMB: number };
+  info(): {
+    drawCalls: number;
+    tris: number;
+    programs: number;
+    textures: number;
+    geometries: number;
+    texMB: number;
+  };
   renders(): number;
   sample(ms: number): Promise<number[]>;
-  unmount(): { baseline: unknown; after: unknown; leakedGeometries: number; leakedTextures: number };
+  unmount(): {
+    baseline: unknown;
+    after: unknown;
+    leakedGeometries: number;
+    leakedTextures: number;
+  };
 };
 const scene = (page: Page) => ({
-  info: () => page.evaluate(() => (globalThis as unknown as { __SCENE__: Handle }).__SCENE__.info()),
-  renders: () => page.evaluate(() => (globalThis as unknown as { __SCENE__: Handle }).__SCENE__.renders()),
+  info: () =>
+    page.evaluate(() => (globalThis as unknown as { __SCENE__: Handle }).__SCENE__.info()),
+  renders: () =>
+    page.evaluate(() => (globalThis as unknown as { __SCENE__: Handle }).__SCENE__.renders()),
   sample: (ms: number) =>
     page.evaluate((t) => (globalThis as unknown as { __SCENE__: Handle }).__SCENE__.sample(t), ms),
-  unmount: () => page.evaluate(() => (globalThis as unknown as { __SCENE__: Handle }).__SCENE__.unmount()),
+  unmount: () =>
+    page.evaluate(() => (globalThis as unknown as { __SCENE__: Handle }).__SCENE__.unmount()),
 });
 
 /** The nearest-rank p95 of frame deltas. */
@@ -62,7 +77,16 @@ test(`G8a: ${game} midgame budgets at low tier`, async ({ browser }) => {
     const errors = collectErrors(page);
     await openScenario(
       page,
-      scenarioPath({ game, state: mid!.id, mode: "dusk", quality: "low", vp: vp.label, role: "stage", freeze: false, ambient: false }),
+      scenarioPath({
+        game,
+        state: mid!.id,
+        mode: "dusk",
+        quality: "low",
+        vp: vp.label,
+        role: "stage",
+        freeze: false,
+        ambient: false,
+      }),
     );
     const s = scene(page);
     const info = await s.info();
@@ -107,12 +131,28 @@ async function gpuRenderer(page: Page): Promise<string> {
   });
 }
 
-async function runPerf(page: Page, vp: Viewport, quality: "low" | "high", ms: number): Promise<number[]> {
-  const script = manifest.perfScript.length > 0 ? manifest.perfScript : mid?.anim ? [mid.anim.name] : [];
+async function runPerf(
+  page: Page,
+  vp: Viewport,
+  quality: "low" | "high",
+  ms: number,
+): Promise<number[]> {
+  const script =
+    manifest.perfScript.length > 0 ? manifest.perfScript : mid?.anim ? [mid.anim.name] : [];
   expect(script.length, "the spec has no perf script and midgame has no anim").toBeGreaterThan(0);
   await openScenario(
     page,
-    scenarioPath({ game, state: mid!.id, mode: "dusk", quality, vp: vp.label, role: "stage", freeze: false, play: "perf", perf: script }),
+    scenarioPath({
+      game,
+      state: mid!.id,
+      mode: "dusk",
+      quality,
+      vp: vp.label,
+      role: "stage",
+      freeze: false,
+      play: "perf",
+      perf: script,
+    }),
   );
   return scene(page).sample(ms);
 }
@@ -130,7 +170,11 @@ test(`G8b: ${game} perf script on the GPU @gpu`, async ({ browser }) => {
   }
 
   // Low tier, phone viewport, 4x CPU throttle.
-  const low = await browser.newContext({ viewport: { width: PERF_LOW.width, height: PERF_LOW.height }, isMobile: true, hasTouch: true });
+  const low = await browser.newContext({
+    viewport: { width: PERF_LOW.width, height: PERF_LOW.height },
+    isMobile: true,
+    hasTouch: true,
+  });
   const lowPage = await low.newPage();
   const cdp = await low.newCDPSession(lowPage);
   await cdp.send("Emulation.setCPUThrottlingRate", { rate: G8B.throttle });
@@ -138,7 +182,9 @@ test(`G8b: ${game} perf script on the GPU @gpu`, async ({ browser }) => {
   await low.close();
 
   // High tier, 1080p, no throttle; then the 60 s heap loop on the same page.
-  const high = await browser.newContext({ viewport: { width: PERF_HIGH.width, height: PERF_HIGH.height } });
+  const high = await browser.newContext({
+    viewport: { width: PERF_HIGH.width, height: PERF_HIGH.height },
+  });
   const highPage = await high.newPage();
   const hcdp = await high.newCDPSession(highPage);
   const highFrames = await runPerf(highPage, PERF_HIGH, "high", 10_000);

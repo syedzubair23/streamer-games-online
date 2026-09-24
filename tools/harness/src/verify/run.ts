@@ -4,6 +4,7 @@
  * @module
  */
 import { spawn } from "node:child_process";
+import { stripAnsi } from "./reports.ts";
 
 /** The outcome of one command. */
 export interface CommandResult {
@@ -23,15 +24,25 @@ export type CommandRunner = (
 const TAIL = 64 * 1024;
 const keepTail = (s: string): string => (s.length > TAIL ? s.slice(-TAIL) : s);
 
-/** The real runner: spawns the command and captures (the tail of) its output. */
+/** Quotes one argument for `cmd.exe` (used when a Windows `.cmd` shim needs a shell). */
+export function quoteWinArg(arg: string): string {
+  return /[\s"&|<>^%]/.test(arg) || arg === "" ? `"${arg.replace(/"/g, '""')}"` : arg;
+}
+
+/**
+ * The real runner: spawns the command and captures (the tail of) its output. `pnpm` on Windows is
+ * a `.cmd` shim that needs a shell; its arguments are quoted so spaces and `&` survive. With
+ * `shell: true` and no arguments, `cmd` is a whole shell command line (item accept checks).
+ */
 export const spawnRunner: CommandRunner = (cmd, args, opts) =>
   new Promise((resolve) => {
     const start = Date.now();
     const isWin = process.platform === "win32";
-    const child = spawn(isWin && cmd === "pnpm" ? "pnpm.cmd" : cmd, [...args], {
+    const viaShim = isWin && cmd === "pnpm";
+    const child = spawn(viaShim ? "pnpm.cmd" : cmd, viaShim ? args.map(quoteWinArg) : [...args], {
       cwd: opts.cwd,
       env: { ...process.env, ...opts.env },
-      shell: opts.shell === true || isWin,
+      shell: opts.shell === true || viaShim,
       stdio: ["ignore", "pipe", "pipe"],
     });
     let stdout = "";
@@ -44,8 +55,12 @@ export const spawnRunner: CommandRunner = (cmd, args, opts) =>
       stderr = keepTail(stderr + d.toString());
       if (opts.echo === true) process.stderr.write(d);
     });
-    child.on("error", (err) => resolve({ code: -1, stdout, stderr: `${stderr}${String(err)}`, ms: Date.now() - start }));
-    child.on("close", (code) => resolve({ code: code ?? -1, stdout, stderr, ms: Date.now() - start }));
+    child.on("error", (err) =>
+      resolve({ code: -1, stdout, stderr: `${stderr}${String(err)}`, ms: Date.now() - start }),
+    );
+    child.on("close", (code) =>
+      resolve({ code: code ?? -1, stdout, stderr, ms: Date.now() - start }),
+    );
   });
 
 /** Formats a command for the `cmd` field of a gate. */
@@ -56,7 +71,7 @@ export const formatCmd = (cmd: string, args: readonly string[]): string =>
 export function tailLines(r: Pick<CommandResult, "stdout" | "stderr">, n = 8): string {
   return `${r.stdout}\n${r.stderr}`
     .split(/\r?\n/)
-    .map((l) => l.replace(/\u001b\[[0-9;]*m/g, "").trimEnd())
+    .map((l) => stripAnsi(l).trimEnd())
     .filter((l) => l.trim() !== "")
     .slice(-n)
     .join("\n");

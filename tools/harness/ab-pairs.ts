@@ -83,7 +83,14 @@ export function shuffle<T>(items: readonly T[], pick: Pick): T[] {
   return a;
 }
 
-const PAIR = Object.freeze({ w: 960, h: 540, gutter: 32, label: 48, bg: "#2E2A33", ink: "#F5EDE3" });
+const PAIR = Object.freeze({
+  w: 960,
+  h: 540,
+  gutter: 32,
+  label: 48,
+  bg: "#2E2A33",
+  ink: "#F5EDE3",
+});
 
 function label(text: string): Buffer {
   return Buffer.from(
@@ -142,7 +149,9 @@ export interface AbOptions {
  * repetition while they last, the side is random per pair, and pair numbers are shuffled across
  * kinds so the file order reveals nothing.
  */
-export async function makeAbPairs(o: AbOptions): Promise<{ key: AbKey; files: string[]; notes: string[] }> {
+export async function makeAbPairs(
+  o: AbOptions,
+): Promise<{ key: AbKey; files: string[]; notes: string[] }> {
   const pick = o.pick ?? cryptoPick;
   const perKind = o.perKind ?? 6;
   const notes: string[] = [];

@@ -12,7 +12,7 @@ describe("client build pages (SPEC §14: /dev/scenario outside production only)"
   });
 
   it("builds harness bundles into their own directory", () => {
-    expect(outDirFor("scenario")).toBe("dist/scenario");
+    expect(outDirFor("scenario")).toBe("../../artifacts/tmp/scenario-client");
     expect(outDirFor("production")).toBe("dist");
   });
 });

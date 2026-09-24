@@ -88,7 +88,11 @@ export async function renderAll(
 }
 
 /** Runs G6 for a game against a running scenario server at `base`. */
-export async function checkScenarios(root: string, game: string, base: string): Promise<ScenarioCheck> {
+export async function checkScenarios(
+  root: string,
+  game: string,
+  base: string,
+): Promise<ScenarioCheck> {
   const manifest = await emitManifest(root, gameTarget(root, game));
   const browser = await chromium.launch({ args: [...SWIFTSHADER_ARGS] });
   try {

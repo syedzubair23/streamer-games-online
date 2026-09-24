@@ -55,9 +55,7 @@ export function isScenarioRegistry(v: unknown): v is ScenarioRegistry<unknown> {
 
 /** Whether a value has the GameClientModule shape. */
 export function isClientModule(v: unknown): v is GameClientModule<unknown, unknown> {
-  return (
-    isObject(v) && typeof v["id"] === "string" && isFn(v["stage"]) && isFn(v["controller"])
-  );
+  return isObject(v) && typeof v["id"] === "string" && isFn(v["stage"]) && isFn(v["controller"]);
 }
 
 /**
@@ -81,7 +79,12 @@ export function pickExport<T>(
 }
 
 /** Assembles a {@link ScenarioGame} from a game's loaded entry modules. */
-export function assembleGame(id: string, logicMod: Mod, scenarioMod: Mod, clientMod: Mod | null): ScenarioGame {
+export function assembleGame(
+  id: string,
+  logicMod: Mod,
+  scenarioMod: Mod,
+  clientMod: Mod | null,
+): ScenarioGame {
   const logic = pickExport(logicMod, "logic", isGameModule, `@sg/game-${id}/logic`);
   if (logic === null)
     throw new Error(
@@ -89,13 +92,20 @@ export function assembleGame(id: string, logicMod: Mod, scenarioMod: Mod, client
     );
   if (logic.manifest.id !== id)
     throw new Error(`game "${id}": logic.manifest.id is "${logic.manifest.id}"`);
-  const scenarios = pickExport(scenarioMod, "scenarios", isScenarioRegistry, `@sg/game-${id}/scenarios`);
+  const scenarios = pickExport(
+    scenarioMod,
+    "scenarios",
+    isScenarioRegistry,
+    `@sg/game-${id}/scenarios`,
+  );
   if (scenarios === null)
     throw new Error(
       `game "${id}" has no scenarios yet: @sg/game-${id}/scenarios must export \`scenarios: ScenarioRegistry\` (its Mx-01 item)`,
     );
   const client =
-    clientMod === null ? null : pickExport(clientMod, "client", isClientModule, `@sg/game-${id}/client`);
+    clientMod === null
+      ? null
+      : pickExport(clientMod, "client", isClientModule, `@sg/game-${id}/client`);
   return { logic, scenarios, client };
 }
 

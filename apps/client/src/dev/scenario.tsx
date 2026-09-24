@@ -28,7 +28,11 @@ import { render } from "preact";
 import { parseScenarioParams, type ScenarioParams } from "./params.ts";
 import type { FxRecord, PlaceholderShell, RendererLike, SceneInfo } from "./placeholder-shell.ts";
 import { createPlaceholderTheme, type PlaceholderTheme } from "./placeholder-theme.ts";
-import { mountController, type MountedController, type SentAction } from "./scenario-controller.tsx";
+import {
+  mountController,
+  type MountedController,
+  type SentAction,
+} from "./scenario-controller.tsx";
 import { loadScenarioGame, type ScenarioGame } from "./scenario-games.ts";
 
 /** What `window.__SCENE__` offers the harness once the scene is ready. */
@@ -224,8 +228,7 @@ async function mountStage(
   deps: ScenarioDeps,
 ): Promise<SceneHandle> {
   const client = game.client;
-  if (client === null)
-    throw new Error(`game "${p.game}" has no client yet (its Mx-03 item)`);
+  if (client === null) throw new Error(`game "${p.game}" has no client yet (its Mx-03 item)`);
   // Loaded lazily: the phone roles never fetch three.js (SPEC §10).
   const { createPlaceholderShell } = await import("./placeholder-shell.ts");
   const shell: PlaceholderShell = createPlaceholderShell({
@@ -354,7 +357,9 @@ async function mountPhone(
   const viewerId = resolved.viewer.role === "player" ? resolved.viewer.id : "audience";
   const seatSlot = (() => {
     const view = resolved.view as { players?: { id?: unknown; colorSlot?: unknown }[] };
-    const me = Array.isArray(view.players) ? view.players.find((x) => x.id === viewerId) : undefined;
+    const me = Array.isArray(view.players)
+      ? view.players.find((x) => x.id === viewerId)
+      : undefined;
     return typeof me?.colorSlot === "number" ? me.colorSlot : 0;
   })();
   host.style.overflowY = "auto";
@@ -421,7 +426,12 @@ export async function bootScenario(
       ...(p.player !== null ? { playerId: p.player } : {}),
     });
     // An explicit `player=` wins over the scenario's own viewer ("view as p2").
-    if (p.role === "player" && p.player !== null && resolved.viewer.role === "player" && resolved.viewer.id !== p.player) {
+    if (
+      p.role === "player" &&
+      p.player !== null &&
+      resolved.viewer.role === "player" &&
+      resolved.viewer.id !== p.player
+    ) {
       resolved.viewer = { role: "player", id: p.player };
       resolved.view = game.logic.view(resolved.state, resolved.viewer);
     }

@@ -218,7 +218,5 @@ export function missingNumberedTests(
   ids: readonly string[],
   testNames: readonly string[],
 ): string[] {
-  return ids.filter(
-    (id) => !testNames.some((n) => new RegExp(`(^|[^A-Za-z0-9])${id}:`).test(n)),
-  );
+  return ids.filter((id) => !testNames.some((n) => new RegExp(`(^|[^A-Za-z0-9])${id}:`).test(n)));
 }

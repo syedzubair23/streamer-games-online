@@ -17,12 +17,11 @@ export function installCanvasStub(): void {
   const gradient = { addColorStop: () => undefined };
   proto.getContext = function (this: HTMLCanvasElement, kind: string) {
     if (kind !== "2d") return null;
-    const canvas = this;
     return new Proxy(
       {},
       {
-        get(_t, prop) {
-          if (prop === "canvas") return canvas;
+        get: (_t, prop) => {
+          if (prop === "canvas") return this;
           if (prop === "createImageData")
             return (w: number, h: number) => ({
               width: w,

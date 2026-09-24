@@ -44,7 +44,8 @@ export async function streamSimRound(
   for (const state of states)
     for (const mode of STREAM_MODES) {
       const src = join(root, dir, `${state}__${mode}__1920x1080.png`);
-      if (!existsSync(src)) throw new Error(`stream-sim: missing ${dir}/${state}__${mode}__1920x1080.png`);
+      if (!existsSync(src))
+        throw new Error(`stream-sim: missing ${dir}/${state}__${mode}__1920x1080.png`);
       const rel = `${dir}/stream/${streamFile(state, mode)}`;
       await streamSim(src, join(root, rel));
       out.push(rel);

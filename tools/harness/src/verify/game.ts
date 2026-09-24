@@ -14,7 +14,15 @@
  * @module
  */
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { streamSimRound } from "../../stream-sim.ts";
 import { contactSheetsForRound } from "../../contact-sheet.ts";
@@ -25,7 +33,13 @@ import { emitManifest } from "../scenarios/manifest.ts";
 import { missingNumberedTests, parseGameSpec, section, type GameSpec } from "../scenarios/spec.ts";
 import { startScenarioServer, type ScenarioServer } from "../server.ts";
 import { chunkGzipKB } from "./chunks.ts";
-import { pwGate, readCoveragePct, readPlaywrightJson, readVitestJson, type PwTest } from "./reports.ts";
+import {
+  pwGate,
+  readCoveragePct,
+  readPlaywrightJson,
+  readVitestJson,
+  type PwTest,
+} from "./reports.ts";
 import { formatCmd, spawnRunner, tailLines, type CommandRunner } from "./run.ts";
 
 /** One gate's entry in the verify JSON. */
@@ -67,6 +81,8 @@ export interface VerifyGameOptions {
   runner?: CommandRunner;
   log?: (line: string) => void;
   now?: () => Date;
+  /** Where to write the report (repo-relative); default `artifacts/verify/<id>[-<only>].json`. */
+  out?: string;
   /** Test seams: the browser/image steps (defaults: the real implementations). */
   deps?: Partial<VerifyDeps>;
 }
@@ -98,7 +114,9 @@ const rel = (root: string, p: string): string => toPosix(relative(root, p));
 /** The short sha of HEAD, or "unknown" outside git. */
 export function headCommit(root: string): string {
   try {
-    return execFileSync("git", ["-C", root, "rev-parse", "--short", "HEAD"], { encoding: "utf8" }).trim();
+    return execFileSync("git", ["-C", root, "rev-parse", "--short", "HEAD"], {
+      encoding: "utf8",
+    }).trim();
   } catch {
     return "unknown";
   }
@@ -131,13 +149,24 @@ async function vitestGate(
     `--outputFile=${out}`,
     ...extra,
   ];
-  const res = await o.runner("pnpm", args, { cwd: inPackage === undefined ? o.root : join(o.root, inPackage) });
+  const res = await o.runner("pnpm", args, {
+    cwd: inPackage === undefined ? o.root : join(o.root, inPackage),
+  });
   const summary = readVitestJson(out);
-  const shown = args.filter((a) => !a.startsWith("--outputFile") && a !== "--reporter=json" && !a.startsWith("--coverage.reportsDirectory"));
-  const cmd = inPackage === undefined ? formatCmd("pnpm", shown) : `cd ${inPackage} && ${formatCmd("pnpm", shown)}`;
+  const shown = args.filter(
+    (a) =>
+      !a.startsWith("--outputFile") &&
+      a !== "--reporter=json" &&
+      !a.startsWith("--coverage.reportsDirectory"),
+  );
+  const cmd =
+    inPackage === undefined
+      ? formatCmd("pnpm", shown)
+      : `cd ${inPackage} && ${formatCmd("pnpm", shown)}`;
   if (summary === null)
     return { result: { ok: false, cmd, note: `no test report: ${tailLines(res)}` }, tests: [] };
-  const ok = res.code === 0 && summary.failed === 0 && summary.passed > 0 && summary.fileErrors.length === 0;
+  const ok =
+    res.code === 0 && summary.failed === 0 && summary.passed > 0 && summary.fileErrors.length === 0;
   const failedNames = summary.tests.filter((t) => t.status === "failed").map((t) => t.name);
   return {
     result: {
@@ -157,7 +186,10 @@ async function vitestGate(
   };
 }
 
-const missing = (gate: string, what: string): GateResult => ({ ok: false, note: `${gate}: ${what}` });
+const missing = (gate: string, what: string): GateResult => ({
+  ok: false,
+  note: `${gate}: ${what}`,
+});
 
 /** G3: rule tests pass, every R#/T# of the spec has a named test, logic branch coverage ≥ 90%. */
 async function gateG3(
@@ -190,7 +222,8 @@ async function gateG3(
   const problems: string[] = [];
   if (result.ok !== true) problems.push(result.note ?? "tests failed");
   if (coverage === null) problems.push("no coverage summary");
-  else if (coverage < G3_BRANCH_MIN) problems.push(`logic branch coverage ${coverage}% < ${G3_BRANCH_MIN}%`);
+  else if (coverage < G3_BRANCH_MIN)
+    problems.push(`logic branch coverage ${coverage}% < ${G3_BRANCH_MIN}%`);
   if (unnamed.length > 0) problems.push(`no test named for ${unnamed.join(", ")}`);
   return {
     ok: problems.length === 0,
@@ -213,14 +246,23 @@ function freshJson(path: string, since: number): Record<string, unknown> | null 
 }
 
 /** G14: the pacing test passes and writes a fresh `artifacts/verify/<id>-pacing.json`. */
-async function gateG14(o: Required<Pick<VerifyGameOptions, "root" | "runner">>, t: GameTarget): Promise<GateResult> {
+async function gateG14(
+  o: Required<Pick<VerifyGameOptions, "root" | "runner">>,
+  t: GameTarget,
+): Promise<GateResult> {
   if (t.tests.G14 === null) return missing("G14", `${t.pkgDir}/test/pacing.test.ts does not exist`);
   const start = Date.now() - 1000;
   const { result } = await vitestGate(o, t.id, "G14", t.tests.G14);
   const report = freshJson(join(o.root, `artifacts/verify/${t.id}-pacing.json`), start);
   if (report === null)
-    return { ...result, ok: false, note: `${result.note ?? ""} artifacts/verify/${t.id}-pacing.json was not written`.trim() };
-  const groups = Array.isArray(report["groups"]) ? (report["groups"] as { medianMs?: number; p90Ms?: number }[]) : [];
+    return {
+      ...result,
+      ok: false,
+      note: `${result.note ?? ""} artifacts/verify/${t.id}-pacing.json was not written`.trim(),
+    };
+  const groups = Array.isArray(report["groups"])
+    ? (report["groups"] as { medianMs?: number; p90Ms?: number }[])
+    : [];
   const minutes = (ms: number | undefined): number => Math.round(((ms ?? 0) / 60_000) * 100) / 100;
   return {
     ...result,
@@ -237,7 +279,9 @@ export function declaredPacks(root: string, specMd: string): string[] {
   const ids = [...body.matchAll(/`([a-z0-9][a-z0-9-]*)`/g)].map((m) => m[1] as string);
   const packsDir = join(root, "content/packs");
   const kindDirs = existsSync(packsDir) ? readdirSync(packsDir) : [];
-  return [...new Set(ids)].filter((id) => kindDirs.some((k) => existsSync(join(root, "content/packs", k, `${id}.json`))));
+  return [...new Set(ids)].filter((id) =>
+    kindDirs.some((k) => existsSync(join(root, "content/packs", k, `${id}.json`))),
+  );
 }
 
 /** Mean and minimum of a content quality-sample JSON (`scores[]` or `items[].score`). */
@@ -248,10 +292,16 @@ export function qualitySample(path: string): { mean: number; min: number; n: num
     const scores = Array.isArray(raw.scores)
       ? raw.scores.filter((s): s is number => typeof s === "number")
       : Array.isArray(raw.items)
-        ? raw.items.map((i) => (i as { score?: unknown }).score).filter((s): s is number => typeof s === "number")
+        ? raw.items
+            .map((i) => (i as { score?: unknown }).score)
+            .filter((s): s is number => typeof s === "number")
         : [];
     if (scores.length === 0) return null;
-    return { mean: scores.reduce((a, b) => a + b, 0) / scores.length, min: Math.min(...scores), n: scores.length };
+    return {
+      mean: scores.reduce((a, b) => a + b, 0) / scores.length,
+      min: Math.min(...scores),
+      n: scores.length,
+    };
   } catch {
     return null;
   }
@@ -277,10 +327,17 @@ async function gateG11(
     const q = qualitySample(join(o.root, `artifacts/content/${pack}.json`));
     samples[pack] = q;
     if (q === null) problems.push(`no quality sample at artifacts/content/${pack}.json`);
-    else if (q.mean < 3.8 || q.min <= 2) problems.push(`${pack} quality mean ${q.mean.toFixed(2)}, min ${q.min}`);
+    else if (q.mean < 3.8 || q.min <= 2)
+      problems.push(`${pack} quality mean ${q.mean.toFixed(2)}, min ${q.min}`);
   }
   if (packs.length === 0) problems.push("no declared pack found under content/packs/");
-  return { ok: problems.length === 0, cmd: result.cmd, packs, samples, ...(problems.length ? { note: problems.join("; ") } : {}) };
+  return {
+    ok: problems.length === 0,
+    cmd: result.cmd,
+    packs,
+    samples,
+    ...(problems.length ? { note: problems.join("; ") } : {}),
+  };
 }
 
 /** G13: Builder notes present and ≤ 20 lines; handoff present and ≤ 40 lines. */
@@ -297,14 +354,17 @@ export function gateG13(root: string, t: GameTarget, spec: GameSpec): GateResult
     if (!existsSync(path)) problems.push(`artifacts/handoff/${t.id}.md is missing`);
     else {
       handoffLines = readFileSync(path, "utf8").replace(/\n+$/, "").split(/\r?\n/).length;
-      if (handoffLines > G13.handoffMax) problems.push(`handoff is ${handoffLines} lines (max ${G13.handoffMax})`);
+      if (handoffLines > G13.handoffMax)
+        problems.push(`handoff is ${handoffLines} lines (max ${G13.handoffMax})`);
     }
   }
   return {
     ok: problems.length === 0,
     notesLines: spec.builderNotes?.length ?? null,
     handoffLines,
-    ...(t.fixture ? { note: "fixture: no roadmap item, so no handoff (Builder notes checked)" } : {}),
+    ...(t.fixture
+      ? { note: "fixture: no roadmap item, so no handoff (Builder notes checked)" }
+      : {}),
     ...(problems.length ? { note: problems.join("; ") } : {}),
   };
 }
@@ -353,7 +413,13 @@ async function playwright(
   o.log(`$ ${formatCmd("pnpm", args)}`);
   const res = await o.runner("pnpm", args, {
     cwd: o.root,
-    env: { SG_GAME: game, SG_ROUND: round, SG_BASE_URL: base, SG_REPORT: report, SG_WORKERS: String(workers) },
+    env: {
+      SG_GAME: game,
+      SG_ROUND: round,
+      SG_BASE_URL: base,
+      SG_REPORT: report,
+      SG_WORKERS: String(workers),
+    },
     echo: true,
   });
   const parsed = readPlaywrightJson(report);
@@ -402,16 +468,28 @@ export async function verifyGame(opts: VerifyGameOptions): Promise<VerifyGameRep
       [
         async () => {
           const r = await runner("pnpm", g1Args, { cwd: root });
-          return { ok: r.code === 0, cmd: formatCmd("pnpm", g1Args), ...(r.code ? { note: tailLines(r) } : {}) };
+          return {
+            ok: r.code === 0,
+            cmd: formatCmd("pnpm", g1Args),
+            ...(r.code ? { note: tailLines(r) } : {}),
+          };
         },
         async () => {
           const r = await runner("pnpm", g2Args, { cwd: root });
-          return { ok: r.code === 0, cmd: formatCmd("pnpm", g2Args), ...(r.code ? { note: tailLines(r) } : {}) };
+          return {
+            ok: r.code === 0,
+            cmd: formatCmd("pnpm", g2Args),
+            ...(r.code ? { note: tailLines(r) } : {}),
+          };
         },
         () => gateG3(base, t, spec),
-        async () => (t.tests.G4 === null ? missing("G4", `${t.pkgDir}/test/contract.test.ts does not exist`) : (await vitestGate(base, t.id, "G4", t.tests.G4)).result),
+        async () =>
+          t.tests.G4 === null
+            ? missing("G4", `${t.pkgDir}/test/contract.test.ts does not exist`)
+            : (await vitestGate(base, t.id, "G4", t.tests.G4)).result,
         async () => {
-          if (t.tests.G5 === null) return missing("G5", `${t.pkgDir}/test/sim.test.ts does not exist`);
+          if (t.tests.G5 === null)
+            return missing("G5", `${t.pkgDir}/test/sim.test.ts does not exist`);
           const start = Date.now() - 1000;
           const r = (await vitestGate(base, t.id, "G5", t.tests.G5)).result;
           const sim = freshJson(join(root, `artifacts/verify/${t.id}-sim.json`), start);
@@ -432,8 +510,12 @@ export async function verifyGame(opts: VerifyGameOptions): Promise<VerifyGameRep
   try {
     let url = opts.baseUrl;
     if (url === undefined) {
-      log(`verify:game ${t.id}: building and serving the scenario client on port ${opts.port ?? 4173}`);
-      server = await deps.startScenarioServer(root, opts.port ?? 4173, { skipBuild: opts.skipBuild === true });
+      log(
+        `verify:game ${t.id}: building and serving the scenario client on port ${opts.port ?? 4173}`,
+      );
+      server = await deps.startScenarioServer(root, opts.port ?? 4173, {
+        skipBuild: opts.skipBuild === true,
+      });
       url = server.url;
     }
     const manifest = await emitManifest(root, t);
@@ -456,26 +538,47 @@ export async function verifyGame(opts: VerifyGameOptions): Promise<VerifyGameRep
         ? ["tools/harness/screenshots.spec.ts", "tools/harness/clips.spec.ts"]
         : only === "perf"
           ? ["tools/harness/perf.spec.ts"]
-          : ["tools/harness/screenshots.spec.ts", "tools/harness/clips.spec.ts", "tools/harness/perf.spec.ts", "tools/harness/a11y.spec.ts"];
-    const sw = await playwright({ root, runner, log }, t.id, round, url, "swiftshader", specs, workers);
+          : [
+              "tools/harness/screenshots.spec.ts",
+              "tools/harness/clips.spec.ts",
+              "tools/harness/perf.spec.ts",
+              "tools/harness/a11y.spec.ts",
+            ];
+    const sw = await playwright(
+      { root, runner, log },
+      t.id,
+      round,
+      url,
+      "swiftshader",
+      specs,
+      workers,
+    );
     const expected = matrixCounts(manifest);
 
     if (only !== "perf") {
-      const stills = pwGate(sw.tests, "G7 stage").total + pwGate(sw.tests, "G7 controller").total + pwGate(sw.tests, "G7 snow").total;
+      const stills =
+        pwGate(sw.tests, "G7 stage").total +
+        pwGate(sw.tests, "G7 controller").total +
+        pwGate(sw.tests, "G7 snow").total;
       const g7 = pwGate(sw.tests, "G7 ");
       const problems: string[] = [...sw.errors];
       if (g7.failed.length > 0) problems.push(failNote(g7.failed));
-      if (stills !== expected.stills) problems.push(`${stills} stills ran, the matrix has ${expected.stills}`);
+      if (stills !== expected.stills)
+        problems.push(`${stills} stills ran, the matrix has ${expected.stills}`);
       const clips = pwGate(sw.tests, "G7 clip").total;
       if (clips !== expected.clips) problems.push(`${clips} clips ran, expected ${expected.clips}`);
       let stream: string[] = [];
       let sheets: string[] = [];
       try {
-        const states = manifest.scenarios.filter((s) => s.inSpec && s.registered && s.roles.includes("stage")).map((s) => s.id);
+        const states = manifest.scenarios
+          .filter((s) => s.inSpec && s.registered && s.roles.includes("stage"))
+          .map((s) => s.id);
         stream = await deps.streamSimRound(root, t.id, round, states);
         sheets = await deps.contactSheetsForRound(root, manifest, round);
       } catch (err) {
-        problems.push(`stream-sim/contact sheets: ${err instanceof Error ? err.message : String(err)}`);
+        problems.push(
+          `stream-sim/contact sheets: ${err instanceof Error ? err.message : String(err)}`,
+        );
       }
       gates["G7"] = {
         ok: problems.length === 0 && g7.total > 0,
@@ -487,12 +590,16 @@ export async function verifyGame(opts: VerifyGameOptions): Promise<VerifyGameRep
       };
       artifacts["screenshots"] = roundDir(t.id, round);
       artifacts["sheets"] = sheets;
-      artifacts["clips"] = clipScenarios(manifest).map((s) => `${roundDir(t.id, round)}/clips/${s.id}__dusk__1280x720.webm`);
+      artifacts["clips"] = clipScenarios(manifest).map(
+        (s) => `${roundDir(t.id, round)}/clips/${s.id}__dusk__1280x720.webm`,
+      );
       const det = pwGate(sw.tests, "determinism:");
       checks["determinism"] = {
         ok: det.total > 0 && det.failed.length === 0,
         scenarios: det.total,
-        note: det.failed.length ? failNote(det.failed) : "every stage scenario rendered twice is pixel-identical (pixelmatch diff = 0)",
+        note: det.failed.length
+          ? failNote(det.failed)
+          : "every stage scenario rendered twice is pixel-identical (pixelmatch diff = 0)",
       };
     }
 
@@ -503,7 +610,11 @@ export async function verifyGame(opts: VerifyGameOptions): Promise<VerifyGameRep
       const problems: string[] = [];
       if (g8a.total === 0) problems.push("the G8a test did not run");
       if (g8a.failed.length) problems.push(failNote(g8a.failed));
-      const chunk = async (entry: string | null, limit: number, name: string): Promise<number | null> => {
+      const chunk = async (
+        entry: string | null,
+        limit: number,
+        name: string,
+      ): Promise<number | null> => {
         if (entry === null) {
           problems.push(`no ${name} entry`);
           return null;
@@ -513,7 +624,11 @@ export async function verifyGame(opts: VerifyGameOptions): Promise<VerifyGameRep
         return kb;
       };
       const stageKB = await chunk(t.chunks.stage, t.chunkLimitsKB.stage, "stage");
-      const controllerKB = await chunk(t.chunks.controller, t.chunkLimitsKB.controller, "controller");
+      const controllerKB = await chunk(
+        t.chunks.controller,
+        t.chunkLimitsKB.controller,
+        "controller",
+      );
       gates["G8a"] = {
         ok: problems.length === 0,
         cmd: `${sw.cmd} (perf.spec.ts G8a) + esbuild chunk sizes`,
@@ -530,12 +645,24 @@ export async function verifyGame(opts: VerifyGameOptions): Promise<VerifyGameRep
       };
       artifacts["perf"] = `artifacts/perf/${t.id}.json`;
 
-      const gpu = await playwright({ root, runner, log }, t.id, round, url, "gpu", ["tools/harness/perf.spec.ts"], 1);
+      const gpu = await playwright(
+        { root, runner, log },
+        t.id,
+        round,
+        url,
+        "gpu",
+        ["tools/harness/perf.spec.ts"],
+        1,
+      );
       const g8b = pwGate(gpu.tests, "G8b:");
       const gp = freshJson(join(root, `artifacts/perf/${t.id}-gpu.json`), 0);
       const r = (gp?.["g8b"] ?? {}) as Record<string, unknown>;
       if (r["skipped"] === "no-gpu" && g8b.failed.length === 0)
-        gates["G8b"] = { skipped: "no-gpu", cmd: gpu.cmd, note: `renderer: ${String(r["renderer"])}` };
+        gates["G8b"] = {
+          skipped: "no-gpu",
+          cmd: gpu.cmd,
+          note: `renderer: ${String(r["renderer"])}`,
+        };
       else
         gates["G8b"] = {
           ok: g8b.total > 0 && g8b.failed.length === 0 && g8b.passed > 0,
@@ -543,7 +670,9 @@ export async function verifyGame(opts: VerifyGameOptions): Promise<VerifyGameRep
           p95Low: r["p95Low"],
           p95High: r["p95High"],
           heapGrowthMB: r["heapGrowthMB"],
-          ...(g8b.failed.length || gpu.errors.length ? { note: [...gpu.errors, failNote(g8b.failed)].filter(Boolean).join("; ") } : {}),
+          ...(g8b.failed.length || gpu.errors.length
+            ? { note: [...gpu.errors, failNote(g8b.failed)].filter(Boolean).join("; ") }
+            : {}),
         };
       artifacts["perfGpu"] = `artifacts/perf/${t.id}-gpu.json`;
     }
@@ -558,13 +687,23 @@ export async function verifyGame(opts: VerifyGameOptions): Promise<VerifyGameRep
       };
       const smoke = "tools/harness/smoke.spec.ts";
       if (existsSync(join(root, smoke))) {
-        const s = await playwright({ root, runner, log }, t.id, round, url, "swiftshader", [smoke], 1);
+        const s = await playwright(
+          { root, runner, log },
+          t.id,
+          round,
+          url,
+          "swiftshader",
+          [smoke],
+          1,
+        );
         const g10 = pwGate(s.tests, "G10");
         gates["G10"] = {
           ok: g10.total >= 2 && g10.failed.length === 0,
           cmd: s.cmd,
           runs: g10.total,
-          ...(g10.failed.length || g10.total < 2 ? { note: failNote(g10.failed) || "expected a minPlayers and a maxPlayers run" } : {}),
+          ...(g10.failed.length || g10.total < 2
+            ? { note: failNote(g10.failed) || "expected a minPlayers and a maxPlayers run" }
+            : {}),
         };
       } else {
         gates["G10"] = {
@@ -577,21 +716,42 @@ export async function verifyGame(opts: VerifyGameOptions): Promise<VerifyGameRep
     await server?.stop();
   }
 
-  const order = ["G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8a", "G8b", "G9", "G10", "G11", "G13", "G14"];
-  const sorted = Object.fromEntries(order.filter((g) => g in gates).map((g) => [g, gates[g] as GateResult]));
+  const order = [
+    "G1",
+    "G2",
+    "G3",
+    "G4",
+    "G5",
+    "G6",
+    "G7",
+    "G8a",
+    "G8b",
+    "G9",
+    "G10",
+    "G11",
+    "G13",
+    "G14",
+  ];
+  const sorted = Object.fromEntries(
+    order.filter((g) => g in gates).map((g) => [g, gates[g] as GateResult]),
+  );
   const green = (name: string, g: GateResult): boolean =>
     g.ok === true || (name === "G8b" && g.ok === undefined && g.skipped === "no-gpu");
   const report: VerifyGameReport = {
     id: t.id,
     commit: headCommit(root),
     at: (opts.now?.() ?? new Date()).toISOString().replace(/\.\d{3}Z$/, "Z"),
-    ok: Object.entries(sorted).every(([n, g]) => green(n, g)) && Object.values(checks).every((c) => c.ok === true),
+    ok:
+      Object.entries(sorted).every(([n, g]) => green(n, g)) &&
+      Object.values(checks).every((c) => c.ok === true),
     round,
     gates: sorted,
     checks,
     artifacts,
   };
-  const out = only === "all" ? `artifacts/verify/${t.id}.json` : `artifacts/verify/${t.id}-${only}.json`;
+  const out =
+    opts.out ??
+    (only === "all" ? `artifacts/verify/${t.id}.json` : `artifacts/verify/${t.id}-${only}.json`);
   mkdirSync(dirname(join(root, out)), { recursive: true });
   writeFileSync(join(root, out), `${JSON.stringify(report, null, 2)}\n`);
   log(`verify:game ${t.id}: wrote ${rel(root, join(root, out))} (ok: ${report.ok})`);

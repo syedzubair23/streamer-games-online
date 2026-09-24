@@ -54,7 +54,7 @@ export default defineConfig({
     ? {}
     : {
         webServer: {
-          command: `pnpm --filter @sg/client exec vite build --mode scenario && pnpm --filter @sg/client exec vite preview --outDir dist/scenario --port ${port} --strictPort`,
+          command: `pnpm --filter @sg/client exec vite build --mode scenario && pnpm --filter @sg/client exec vite preview --outDir ../../artifacts/tmp/scenario-client --port ${port} --strictPort`,
           url: `http://localhost:${port}/dev/scenario?game=tictactoe&state=intro`,
           reuseExistingServer: true,
           timeout: 300_000,

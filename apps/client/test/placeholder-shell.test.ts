@@ -1,5 +1,14 @@
 // @vitest-environment happy-dom
-import { Group, InstancedMesh, Mesh, BoxGeometry, DataTexture, RedFormat, Texture, Vector3 } from "three";
+import {
+  Group,
+  InstancedMesh,
+  Mesh,
+  BoxGeometry,
+  DataTexture,
+  RedFormat,
+  Texture,
+  Vector3,
+} from "three";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import {
   CAMERA_PRESETS,
@@ -46,7 +55,14 @@ function make(over: Partial<ShellOptions> = {}) {
   return { shell, sched, renderer };
 }
 
-const palette = { wood: "#B87445", felt: "#4F9488", paper: "#FBF5EA", wall: "#F0D2B6", shadow: "#7A3F5C", ink: "#3D2A33" };
+const palette = {
+  wood: "#B87445",
+  felt: "#4F9488",
+  paper: "#FBF5EA",
+  wall: "#F0D2B6",
+  shadow: "#7A3F5C",
+  ink: "#3D2A33",
+};
 
 describe("placeholder procedural textures", () => {
   it("caches per name/options, clamps sizes per tier and builds the SPEC §13.5 toon ramp", () => {
@@ -57,8 +73,24 @@ describe("placeholder procedural textures", () => {
     expect(t.api.wood({ seed: 3 })).not.toBe(a);
     const ramp = t.api.ramp() as DataTexture;
     expect([...(ramp.image.data as Uint8Array)]).toEqual([...TOON_RAMP]);
-    for (const name of ["noise", "felt", "paper", "cork", "board", "cards", "dice", "blob", "matcap", "grain"] as const)
-      expect(t.api[name]({ variant: name === "board" ? "3" : name === "matcap" ? "cool" : undefined, tint: "#ffffff" })).toBeDefined();
+    for (const name of [
+      "noise",
+      "felt",
+      "paper",
+      "cork",
+      "board",
+      "cards",
+      "dice",
+      "blob",
+      "matcap",
+      "grain",
+    ] as const)
+      expect(
+        t.api[name]({
+          variant: name === "board" ? "3" : name === "matcap" ? "cool" : undefined,
+          tint: "#ffffff",
+        }),
+      ).toBeDefined();
     expect(t.all().length).toBeGreaterThanOrEqual(12);
     t.dispose();
     expect(t.all()).toEqual([]);
@@ -83,7 +115,23 @@ describe("placeholder shell: StageContext", () => {
   it("builds the full SPEC §9.4 context over a sky, table and mat inside the environment budget", () => {
     const { shell, renderer } = make();
     const ctx = shell.ctx;
-    for (const k of ["scene", "camera", "hud", "theme", "quality", "loop", "tween", "springs", "fx", "mats", "materials", "textures", "sfx", "pick", "reducedMotion"])
+    for (const k of [
+      "scene",
+      "camera",
+      "hud",
+      "theme",
+      "quality",
+      "loop",
+      "tween",
+      "springs",
+      "fx",
+      "mats",
+      "materials",
+      "textures",
+      "sfx",
+      "pick",
+      "reducedMotion",
+    ])
       expect(ctx).toHaveProperty(k);
     expect(ctx.scene).toBe(shell.gameRoot);
     expect(ctx.hud.id).toBe("sg-hud");
@@ -134,8 +182,17 @@ describe("placeholder shell: StageContext", () => {
   it("portrait viewports use the steeper elevation", () => {
     const sched = manualScheduler();
     const shell = createPlaceholderShell({
-      host: host(360, 800), mode: "night", quality: "low", reducedMotion: false, seed: 1, hud: false,
-      ambient: false, preserveDrawingBuffer: false, renderer: fakeRenderer(), schedule: sched.schedule, unschedule: sched.unschedule,
+      host: host(360, 800),
+      mode: "night",
+      quality: "low",
+      reducedMotion: false,
+      seed: 1,
+      hud: false,
+      ambient: false,
+      preserveDrawingBuffer: false,
+      renderer: fakeRenderer(),
+      schedule: sched.schedule,
+      unschedule: sched.unschedule,
     });
     shell.renderNow();
     const p = shell.camera.position;
@@ -257,7 +314,8 @@ describe("placeholder shell: fx, mats, sfx, picking, memory", () => {
   it("setMat repaints the mat with the painter; sfx are recorded", () => {
     const { shell } = make();
     const painter = vi.fn();
-    for (const kind of ["felt", "paper", "cork", "pegboard", "inlay"] as const) shell.ctx.mats.setMat(kind, painter);
+    for (const kind of ["felt", "paper", "cork", "pegboard", "inlay"] as const)
+      shell.ctx.mats.setMat(kind, painter);
     expect(painter).toHaveBeenCalledTimes(5);
     expect(painter).toHaveBeenCalledWith(expect.anything(), { w: 1024, h: 1024 });
     shell.ctx.sfx("pop");
@@ -268,7 +326,17 @@ describe("placeholder shell: fx, mats, sfx, picking, memory", () => {
     const { shell } = make();
     shell.renderNow();
     const canvas = shell.renderer.domElement;
-    canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 1280, height: 720, right: 1280, bottom: 720, x: 0, y: 0, toJSON: () => ({}) });
+    canvas.getBoundingClientRect = () => ({
+      left: 0,
+      top: 0,
+      width: 1280,
+      height: 720,
+      right: 1280,
+      bottom: 720,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    });
     const hit = shell.ctx.pick.plane({ clientX: 640, clientY: 360 });
     expect(hit).not.toBeNull();
     expect(Math.abs(hit!.y)).toBeLessThan(1e-6);
@@ -285,7 +353,17 @@ describe("placeholder shell: fx, mats, sfx, picking, memory", () => {
     inst.updateMatrixWorld(true);
     expect(shell.ctx.pick.instance(inst, { clientX: 640, clientY: 360 })).toBe(0);
     expect(shell.ctx.pick.instance(inst, { clientX: 1, clientY: 1 })).toBeNull();
-    canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 0, height: 0, right: 0, bottom: 0, x: 0, y: 0, toJSON: () => ({}) });
+    canvas.getBoundingClientRect = () => ({
+      left: 0,
+      top: 0,
+      width: 0,
+      height: 0,
+      right: 0,
+      bottom: 0,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    });
     shell.ctx.pick.plane({ clientX: 0, clientY: 0 }, 0.5, new Vector3());
   });
 

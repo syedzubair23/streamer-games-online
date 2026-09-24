@@ -12,7 +12,7 @@
  *
  * @module
  */
-import type { Page } from "@playwright/test";
+import type { Page, Request, Response } from "@playwright/test";
 
 /** Flags that make SwiftShader output reproducible run to run. */
 export const SWIFTSHADER_ARGS: readonly string[] = Object.freeze([
@@ -61,15 +61,51 @@ export function collectErrors(page: Page): string[] {
  * @throws Error with the route's message when it set `__SCENE_ERROR__`.
  */
 export async function openScenario(page: Page, path: string): Promise<void> {
-  await page.goto(path);
-  await page.waitForFunction(
-    () => {
-      const w = globalThis as { __SCENE_READY__?: boolean; __SCENE_ERROR__?: string };
-      return w.__SCENE_READY__ === true || typeof w.__SCENE_ERROR__ === "string";
-    },
-    null,
-    { timeout: 0, polling: "raf" },
-  );
+  // The route cannot report a failure it never got to run (a script that fails to load, a
+  // crashed page), so those end the wait too, instead of it hanging until the test limit.
+  let fail: (reason: Error) => void = () => undefined;
+  const broken = new Promise<never>((_, reject) => {
+    fail = reject;
+  });
+  broken.catch(() => undefined);
+  const onResponse = (res: Response): void => {
+    const type = res.request().resourceType();
+    if (res.status() >= 400 && (type === "document" || type === "script"))
+      fail(new Error(`scenario ${path}: ${type} ${res.url()} answered ${res.status()}`));
+  };
+  const onFailed = (req: Request): void => {
+    const type = req.resourceType();
+    if (type === "document" || type === "script")
+      fail(
+        new Error(
+          `scenario ${path}: ${type} ${req.url()} failed (${req.failure()?.errorText ?? "?"})`,
+        ),
+      );
+  };
+  const onCrash = (): void => fail(new Error(`scenario ${path}: the page crashed`));
+  page.on("response", onResponse);
+  page.on("requestfailed", onFailed);
+  page.on("crash", onCrash);
+  try {
+    await Promise.race([
+      (async () => {
+        await page.goto(path);
+        await page.waitForFunction(
+          () => {
+            const w = globalThis as { __SCENE_READY__?: boolean; __SCENE_ERROR__?: string };
+            return w.__SCENE_READY__ === true || typeof w.__SCENE_ERROR__ === "string";
+          },
+          null,
+          { timeout: 0, polling: "raf" },
+        );
+      })(),
+      broken,
+    ]);
+  } finally {
+    page.off("response", onResponse);
+    page.off("requestfailed", onFailed);
+    page.off("crash", onCrash);
+  }
   const error = await page.evaluate(
     () => (globalThis as { __SCENE_ERROR__?: string }).__SCENE_ERROR__,
   );

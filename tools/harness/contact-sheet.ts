@@ -59,7 +59,10 @@ const SHEET = Object.freeze({
 });
 
 const escapeXml = (s: string): string =>
-  s.replace(/[<>&'"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" })[c] ?? c);
+  s.replace(
+    /[<>&'"]/g,
+    (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" })[c] ?? c,
+  );
 
 function textSvg(
   width: number,
@@ -88,7 +91,9 @@ export async function contactSheet(cells: readonly SheetCell[], o: SheetOptions)
     throw new Error(`contact sheet: ${cells.length} cells for ${rows}×${cols} grid`);
   const { pad, header, rowHeader, caption } = SHEET;
   const widths = o.columns.map((_, i) => o.columnWidths?.[i] ?? o.cell.width);
-  const lefts = widths.map((_, i) => pad + rowHeader + widths.slice(0, i).reduce((a, w) => a + w + pad, 0));
+  const lefts = widths.map(
+    (_, i) => pad + rowHeader + widths.slice(0, i).reduce((a, w) => a + w + pad, 0),
+  );
   const ch = o.cell.height + caption;
   const width = pad + rowHeader + widths.reduce((a, w) => a + w + pad, 0);
   const height = header + pad + 30 + rows * (ch + pad);
@@ -120,7 +125,11 @@ export async function contactSheet(cells: readonly SheetCell[], o: SheetOptions)
           .toBuffer();
         layers.push({ input: img, left, top });
       }
-      layers.push({ input: textSvg(cw, caption, cell.label, 12, SHEET.muted), left, top: top + o.cell.height });
+      layers.push({
+        input: textSvg(cw, caption, cell.label, 12, SHEET.muted),
+        left,
+        top: top + o.cell.height,
+      });
     }
   }
   return sharp({ create: { width, height, channels: 3, background: SHEET.bg } })

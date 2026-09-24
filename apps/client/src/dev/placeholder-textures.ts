@@ -212,7 +212,10 @@ export function createPlaceholderTextures(
     grain: { size: 128, tint: palette.ink },
   };
 
-  const make = (name: TextureName, o: ProceduralTextureOptions = {}): CanvasTexture | DataTexture => {
+  const make = (
+    name: TextureName,
+    o: ProceduralTextureOptions = {},
+  ): CanvasTexture | DataTexture => {
     const d = defaults[name];
     const size = Math.max(4, Math.min(max, Math.round(o.size ?? d.size)));
     const tint = css(o.tint, d.tint);

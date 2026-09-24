@@ -41,7 +41,9 @@ async function capture(browser: Browser, vp: Viewport, path: string) {
     const errors = collectErrors(page);
     await openScenario(page, path);
     const png = await page.screenshot({ animations: "disabled", caret: "hide" });
-    const info = await page.evaluate(() => (globalThis as { __SCENE_INFO__?: unknown }).__SCENE_INFO__);
+    const info = await page.evaluate(
+      () => (globalThis as { __SCENE_INFO__?: unknown }).__SCENE_INFO__,
+    );
     return { png, errors, info };
   } finally {
     await context.close();
@@ -82,7 +84,14 @@ test.describe(`M0-05 determinism: ${game}`, () => {
     .map((s) => s.id);
   for (const state of states) {
     test(`determinism: ${state} renders pixel-identical twice`, async ({ browser }) => {
-      const path = scenarioPath({ game, state, mode: "dusk", quality: vp.tier, vp: vp.label, role: "stage" });
+      const path = scenarioPath({
+        game,
+        state,
+        mode: "dusk",
+        quality: vp.tier,
+        vp: vp.label,
+        role: "stage",
+      });
       const a = await capture(browser, vp, path);
       const b = await capture(browser, vp, path);
       const d = diffImages(readPng(a.png), readPng(b.png));

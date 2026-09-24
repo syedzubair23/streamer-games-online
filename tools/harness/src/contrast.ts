@@ -35,7 +35,11 @@ export function composite(top: string, alpha: number, bottom: string): string {
   const t = parseHex(top);
   const b = parseHex(bottom);
   return `#${t
-    .map((c, i) => Math.round(c * alpha + (b[i] ?? 0) * (1 - alpha)).toString(16).padStart(2, "0"))
+    .map((c, i) =>
+      Math.round(c * alpha + (b[i] ?? 0) * (1 - alpha))
+        .toString(16)
+        .padStart(2, "0"),
+    )
     .join("")}`;
 }
 
@@ -54,7 +58,10 @@ export interface ContrastFailure {
 }
 
 /** Checks the text pairs of one mode against `min` (default 4.5). */
-export function checkTokenContrast(t: UiTokens, min = 4.5): { ok: boolean; failures: ContrastFailure[]; ratios: Record<string, number> } {
+export function checkTokenContrast(
+  t: UiTokens,
+  min = 4.5,
+): { ok: boolean; failures: ContrastFailure[]; ratios: Record<string, number> } {
   const surface = composite(t.uiSurface, t.uiSurfaceAlpha, t.uiBg);
   const ratios = {
     "ink/bg": contrast(t.uiInk, t.uiBg),

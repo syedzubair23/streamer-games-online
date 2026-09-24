@@ -90,7 +90,14 @@ test.describe(`G9 axe: ${game}`, () => {
         const { context, page, errors } = await open(
           browser,
           DESKTOP,
-          scenarioPath({ game, state: s.id, mode, role: "stage", quality: DESKTOP.tier, vp: DESKTOP.label }),
+          scenarioPath({
+            game,
+            state: s.id,
+            mode,
+            role: "stage",
+            quality: DESKTOP.tier,
+            vp: DESKTOP.label,
+          }),
         );
         const violations = await seriousAxe(page);
         await context.close();
@@ -106,7 +113,11 @@ test(`G9 token contrast: ${game} ink ≥ 4.5:1 in every mode`, async ({ browser 
   const failures: string[] = [];
   for (const mode of ALL_MODES) {
     const role = s!.roles.includes("stage") ? "stage" : (s!.roles[0] ?? "stage");
-    const { context, page } = await open(browser, DESKTOP, scenarioPath({ game, state: s!.id, mode, role }));
+    const { context, page } = await open(
+      browser,
+      DESKTOP,
+      scenarioPath({ game, state: s!.id, mode, role }),
+    );
     const tokens = await tokensOf(page);
     await context.close();
     const check = checkTokenContrast(tokens);
@@ -126,12 +137,18 @@ test.describe(`G9 tap targets: ${game}`, () => {
         scenarioPath({ game, state: s.id, mode: "dusk", role, quality: "low", vp: PHONE.label }),
       );
       const small = await page.evaluate(() => {
-        const sel = "button, a[href], input, select, textarea, [role=button], [role=slider], [role=checkbox], [tabindex]:not([tabindex='-1'])";
+        const sel =
+          "button, a[href], input, select, textarea, [role=button], [role=slider], [role=checkbox], [tabindex]:not([tabindex='-1'])";
         return [...document.querySelectorAll<HTMLElement>(sel)]
           .filter((el) => el.offsetParent !== null || getComputedStyle(el).position === "fixed")
           .map((el) => {
             const r = el.getBoundingClientRect();
-            return { tag: el.tagName, label: el.getAttribute("aria-label") ?? el.textContent ?? "", w: r.width, h: r.height };
+            return {
+              tag: el.tagName,
+              label: el.getAttribute("aria-label") ?? el.textContent ?? "",
+              w: r.width,
+              h: r.height,
+            };
           })
           .filter((r) => r.w < 44 || r.h < 44);
       });
@@ -171,17 +188,31 @@ test(`G9 keyboard: ${game} controller is playable by keyboard`, async ({ browser
   expect(players.length, "the spec lists no player scenario").toBeGreaterThan(0);
   const tried: string[] = [];
   for (const { s } of players) {
-    const first = await open(browser, DESKTOP, scenarioPath({ game, state: s.id, mode: "dusk", role: "player" }));
+    const first = await open(
+      browser,
+      DESKTOP,
+      scenarioPath({ game, state: s.id, mode: "dusk", role: "player" }),
+    );
     const ids = await playersOf(first.page);
     await first.context.close();
     for (const id of ids.length > 0 ? ids : [undefined]) {
       const { context, page } = await open(
         browser,
         DESKTOP,
-        scenarioPath({ game, state: s.id, mode: "dusk", role: "player", ...(id !== undefined ? { player: id } : {}) }),
+        scenarioPath({
+          game,
+          state: s.id,
+          mode: "dusk",
+          role: "player",
+          ...(id !== undefined ? { player: id } : {}),
+        }),
       );
       tried.push(`${s.id}${id !== undefined ? `/${id}` : ""}`);
-      const enabled = await page.locator("button:not([disabled]), input:not([disabled]), [role=button]:not([aria-disabled=true])").count();
+      const enabled = await page
+        .locator(
+          "button:not([disabled]), input:not([disabled]), [role=button]:not([aria-disabled=true])",
+        )
+        .count();
       if (enabled === 0) {
         await context.close();
         continue;
@@ -191,7 +222,10 @@ test(`G9 keyboard: ${game} controller is playable by keyboard`, async ({ browser
         await page.keyboard.press("Tab");
         focused = await page.evaluate(() => {
           const el = document.activeElement as HTMLElement | null;
-          return el !== null && el.matches("button:not([disabled]), [role=button]:not([aria-disabled=true])");
+          return (
+            el !== null &&
+            el.matches("button:not([disabled]), [role=button]:not([aria-disabled=true])")
+          );
         });
       }
       if (!focused) {

@@ -13,7 +13,12 @@ import { streamFile } from "../../stream-sim.ts";
 import { headCommit } from "./game.ts";
 
 /** Every problem with a game's last verify run (empty when complete and current). */
-export function checkOutputs(root: string, game: string, round: string, commit = headCommit(root)): string[] {
+export function checkOutputs(
+  root: string,
+  game: string,
+  round: string,
+  commit = headCommit(root),
+): string[] {
   const problems: string[] = [];
   const need = (rel: string): void => {
     if (!existsSync(join(root, rel))) problems.push(`missing ${rel}`);
@@ -25,17 +30,26 @@ export function checkOutputs(root: string, game: string, round: string, commit =
     commit?: string;
     round?: string;
     gates?: Record<string, unknown>;
+    checks?: { determinism?: { ok?: boolean; note?: string } };
   };
   if (report.id !== game) problems.push(`${verifyPath} is for ${String(report.id)}`);
-  if (report.commit !== commit) problems.push(`${verifyPath} is from commit ${String(report.commit)}, HEAD is ${commit}`);
-  if (report.round !== round) problems.push(`${verifyPath} is for round ${String(report.round)}, not ${round}`);
-  for (const g of GAME_GATES) if (!(g in (report.gates ?? {}))) problems.push(`${verifyPath} has no gate ${g}`);
+  if (report.commit !== commit)
+    problems.push(`${verifyPath} is from commit ${String(report.commit)}, HEAD is ${commit}`);
+  if (report.round !== round)
+    problems.push(`${verifyPath} is for round ${String(report.round)}, not ${round}`);
+  for (const g of GAME_GATES)
+    if (!(g in (report.gates ?? {}))) problems.push(`${verifyPath} has no gate ${g}`);
+  const det = report.checks?.determinism;
+  if (det === undefined) problems.push(`${verifyPath} has no determinism check`);
+  else if (det.ok !== true) problems.push(`determinism failed: ${det.note ?? "?"}`);
 
   const manifest = readManifest(root, game);
   const dir = roundDir(game, round);
   const stills = screenshotMatrix(manifest);
   for (const s of stills) need(`${dir}/${s.file}`);
-  for (const s of stills.filter((x) => x.set === "stage" && x.viewport.label === "1920x1080" && STREAM_MODES.includes(x.mode)))
+  for (const s of stills.filter(
+    (x) => x.set === "stage" && x.viewport.label === "1920x1080" && STREAM_MODES.includes(x.mode),
+  ))
     need(`${dir}/stream/${streamFile(s.state, s.mode)}`);
   for (const s of clipScenarios(manifest)) need(`${dir}/clips/${s.id}__dusk__1280x720.webm`);
   if (stills.some((s) => s.set === "stage")) {

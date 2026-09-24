@@ -26,10 +26,16 @@ const dir = roundDir(game, round);
 const CLIP = Object.freeze({ seconds: 5, fps: 25 });
 
 const step = (page: Page, ms: number) =>
-  page.evaluate((t) => (globalThis as unknown as { __SCENE__: { step(ms: number): void } }).__SCENE__.step(t), ms);
+  page.evaluate(
+    (t) => (globalThis as unknown as { __SCENE__: { step(ms: number): void } }).__SCENE__.step(t),
+    ms,
+  );
 
 async function rgba(jpeg: Buffer) {
-  const { data, info } = await sharp(jpeg).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const { data, info } = await sharp(jpeg)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
   return { width: info.width, height: info.height, data: new Uint8Array(data) };
 }
 
@@ -38,17 +44,33 @@ test.describe(`G7 clips: ${game}`, () => {
     test(`G7 clip: ${s.id}`, async ({ browser }) => {
       test.setTimeout(600_000);
       const ffmpeg = findFfmpeg();
-      expect(ffmpeg, "ffmpeg not found: run `npx playwright install ffmpeg` or set SG_FFMPEG").not.toBeNull();
+      expect(
+        ffmpeg,
+        "ffmpeg not found: run `npx playwright install ffmpeg` or set SG_FFMPEG",
+      ).not.toBeNull();
       const vp = CLIP_VIEWPORT;
-      const context = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, deviceScaleFactor: 1 });
+      const context = await browser.newContext({
+        viewport: { width: vp.width, height: vp.height },
+        deviceScaleFactor: 1,
+      });
       const frames: Buffer[] = [];
-      let errors: string[] = [];
+      const errors: string[] = [];
       try {
         const page = await context.newPage();
-        errors = collectErrors(page);
+        const pageErrors = collectErrors(page);
+        page.on("close", () => errors.push(...pageErrors));
         await openScenario(
           page,
-          scenarioPath({ game, state: s.id, mode: CLIP_MODE, quality: vp.tier, vp: vp.label, role: "stage", play: "anim", ambient: true }),
+          scenarioPath({
+            game,
+            state: s.id,
+            mode: CLIP_MODE,
+            quality: vp.tier,
+            vp: vp.label,
+            role: "stage",
+            play: "anim",
+            ambient: true,
+          }),
         );
         const frameMs = 1000 / CLIP.fps;
         const total = CLIP.seconds * CLIP.fps;

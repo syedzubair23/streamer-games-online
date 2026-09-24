@@ -6,6 +6,11 @@
  */
 import { existsSync, readFileSync } from "node:fs";
 
+/** Terminal colour codes (ESC [ … m). */
+const ANSI = new RegExp(`${String.fromCharCode(27)}${String.raw`\[`}[0-9;]*m`, "g");
+/** Removes terminal colour codes. */
+export const stripAnsi = (s: string): string => s.replace(ANSI, "");
+
 const isRecord = (v: unknown): v is Record<string, unknown> =>
   typeof v === "object" && v !== null && !Array.isArray(v);
 
@@ -44,23 +49,33 @@ export function readVitestJson(path: string): VitestSummary | null {
       fileErrors.push(`${String(f["name"])}: ${f["message"]}`);
     for (const a of Array.isArray(f["assertionResults"]) ? f["assertionResults"] : []) {
       if (!isRecord(a)) continue;
-      tests.push({ name: String(a["fullName"] ?? a["title"] ?? ""), status: String(a["status"] ?? "") });
+      tests.push({
+        name: String(a["fullName"] ?? a["title"] ?? ""),
+        status: String(a["status"] ?? ""),
+      });
     }
   }
   return {
     passed: tests.filter((t) => t.status === "passed").length,
     failed: tests.filter((t) => t.status === "failed").length,
-    skipped: tests.filter((t) => t.status === "skipped" || t.status === "pending" || t.status === "todo").length,
+    skipped: tests.filter(
+      (t) => t.status === "skipped" || t.status === "pending" || t.status === "todo",
+    ).length,
     tests,
     fileErrors,
   };
 }
 
 /** Reads `total.<metric>.pct` from a V8 `coverage-summary.json`. */
-export function readCoveragePct(path: string, metric: "lines" | "branches" | "functions" | "statements"): number | null {
+export function readCoveragePct(
+  path: string,
+  metric: "lines" | "branches" | "functions" | "statements",
+): number | null {
   if (!existsSync(path)) return null;
   try {
-    const raw = JSON.parse(readFileSync(path, "utf8")) as { total?: Record<string, { pct?: unknown }> };
+    const raw = JSON.parse(readFileSync(path, "utf8")) as {
+      total?: Record<string, { pct?: unknown }>;
+    };
     const pct = raw.total?.[metric]?.pct;
     return typeof pct === "number" ? pct : null;
   } catch {
@@ -81,7 +96,15 @@ export interface PwTest {
 interface PwSuite {
   title?: string;
   file?: string;
-  specs?: { title?: string; file?: string; tests?: { projectName?: string; status?: string; results?: { error?: { message?: string } }[] }[] }[];
+  specs?: {
+    title?: string;
+    file?: string;
+    tests?: {
+      projectName?: string;
+      status?: string;
+      results?: { error?: { message?: string } }[];
+    }[];
+  }[];
   suites?: PwSuite[];
 }
 
@@ -105,7 +128,7 @@ export function readPlaywrightJson(path: string): { tests: PwTest[]; errors: str
           title: spec.title ?? "",
           project: t.projectName ?? "",
           status: t.status ?? "",
-          ...(error !== undefined ? { error: error.replace(/\u001b\[[0-9;]*m/g, "").slice(0, 400) } : {}),
+          ...(error !== undefined ? { error: stripAnsi(error).slice(0, 400) } : {}),
         });
       }
     for (const child of suite.suites ?? []) walk(child, f);
@@ -115,7 +138,10 @@ export function readPlaywrightJson(path: string): { tests: PwTest[]; errors: str
 }
 
 /** Summary of the Playwright tests whose title starts with `prefix`. */
-export function pwGate(tests: readonly PwTest[], prefix: string): { total: number; passed: number; failed: PwTest[]; skipped: number } {
+export function pwGate(
+  tests: readonly PwTest[],
+  prefix: string,
+): { total: number; passed: number; failed: PwTest[]; skipped: number } {
   const mine = tests.filter((t) => t.title.startsWith(prefix));
   return {
     total: mine.length,

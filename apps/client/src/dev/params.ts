@@ -155,7 +155,10 @@ export function parseScenarioParams(search: string | URLSearchParams): ScenarioP
   const perf =
     perfRaw === null || perfRaw === ""
       ? []
-      : perfRaw.split(",").map((s) => s.trim()).filter((s) => s !== "");
+      : perfRaw
+          .split(",")
+          .map((s) => s.trim())
+          .filter((s) => s !== "");
   for (const name of perf) if (!ID.test(name)) problems.push(`perf anim ${name} is invalid`);
 
   const play = oneOf(q.get("play"), ["none", "anim", "perf"] as const, "none", "play", problems);

@@ -539,14 +539,22 @@ export function createPlaceholderShell(opts: ShellOptions): PlaceholderShell {
       camState = "focus";
       const p = presetFor("focus");
       setRig(
-        { elevation: p.elevation, fov: p.fov, distance: p.distance, tx: target.x, ty: 0, tz: target.z },
+        {
+          elevation: p.elevation,
+          fov: p.fov,
+          distance: p.distance,
+          tx: target.x,
+          ty: 0,
+          tz: target.z,
+        },
         o?.immediate === true,
       );
     },
   };
 
   // ---- Loop --------------------------------------------------------------------------------
-  const schedule = opts.schedule ?? ((cb: (now: number) => void) => (win ?? window).requestAnimationFrame(cb));
+  const schedule =
+    opts.schedule ?? ((cb: (now: number) => void) => (win ?? window).requestAnimationFrame(cb));
   const unschedule = opts.unschedule ?? ((id: number) => (win ?? window).cancelAnimationFrame(id));
   let frameId: number | null = null;
   let lastNow: number | null = null;
@@ -603,7 +611,11 @@ export function createPlaceholderShell(opts: ShellOptions): PlaceholderShell {
       };
     },
   };
-  const motion = createMotion({ springs: SPRINGS, reducedMotion, onStart: () => loop.invalidate() });
+  const motion = createMotion({
+    springs: SPRINGS,
+    reducedMotion,
+    onStart: () => loop.invalidate(),
+  });
 
   // ---- FX ----------------------------------------------------------------------------------
   const particleGeo = new PlaneGeometry(0.09, 0.13);
@@ -652,7 +664,11 @@ export function createPlaceholderShell(opts: ShellOptions): PlaceholderShell {
     p.life = LIFE[kind];
     p.p.set(origin.x, origin.y, origin.z);
     const a = rng.float() * Math.PI * 2;
-    p.v.set(Math.cos(a) * speed * rng.float(), upward * (0.6 + rng.float() * 0.4), Math.sin(a) * speed * rng.float());
+    p.v.set(
+      Math.cos(a) * speed * rng.float(),
+      upward * (0.6 + rng.float() * 0.4),
+      Math.sin(a) * speed * rng.float(),
+    );
     p.spin = (rng.float() - 0.5) * 12;
     p.angle = rng.float() * Math.PI * 2;
     p.scale = kind === "puff" ? 1.6 : 1;
@@ -743,7 +759,13 @@ export function createPlaceholderShell(opts: ShellOptions): PlaceholderShell {
       const live = pool.filter((p) => p.alive && p.kind === "reaction").length;
       const n = Math.max(0, Math.min(count, 30 - live));
       for (let i = 0; i < n; i++)
-        spawn("reaction", { x: 2.6 + rng.float() * 0.6, y: 0.3, z: 1.2 - rng.float() }, audienceColor, 0.3, 0.9);
+        spawn(
+          "reaction",
+          { x: 2.6 + rng.float() * 0.6, y: 0.3, z: 1.2 - rng.float() },
+          audienceColor,
+          0.3,
+          0.9,
+        );
       loop.invalidate();
     },
     shake(strength = 1) {
@@ -803,7 +825,12 @@ export function createPlaceholderShell(opts: ShellOptions): PlaceholderShell {
     tween: motion,
     springs: SPRINGS,
     fx,
-    mats: { setMat: (kind, painter) => { paintMat(kind, painter); loop.invalidate(); } },
+    mats: {
+      setMat: (kind, painter) => {
+        paintMat(kind, painter);
+        loop.invalidate();
+      },
+    },
     materials,
     textures: textures.api,
     sfx: (name) => {
@@ -917,7 +944,10 @@ export function createPlaceholderShell(opts: ShellOptions): PlaceholderShell {
       };
     },
     memory() {
-      return { geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures };
+      return {
+        geometries: renderer.info.memory.geometries,
+        textures: renderer.info.memory.textures,
+      };
     },
     sharedTextureCount: () => textures.all().length,
     resize(): void {
