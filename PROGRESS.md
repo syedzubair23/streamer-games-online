@@ -3,18 +3,18 @@
 > Generated from `progress.json` by `pnpm progress render`. Do not edit by hand:
 > change status with `pnpm progress set <id> status=<status>` (see CLAUDE.md).
 
-**74 items:** todo 74
+**74 items:** todo 70 · done 4
 
-## M0 (0/6 done)
+## M0 (4/6 done)
 
 | ID | Item | Status | Critic | Owner | Updated | Notes |
 |---|---|---|---|---|---|---|
-| M0-01 | Monorepo scaffold | todo | - | - | - |  |
-| M0-02 | @sg/shared foundations | todo | - | - | - |  |
-| M0-03 | Agent house rules + progress tooling | todo | - | - | - |  |
+| M0-01 | Monorepo scaffold | **done** | - | step0-sync | 2026-09-24 20:18Z | re-verified at 9922016 during M0 progress sync; artifacts/verify/M0-01.json |
+| M0-02 | @sg/shared foundations | **done** | - | step0-sync | 2026-09-24 20:18Z | re-verified at 9922016 during M0 progress sync; artifacts/verify/M0-02.json |
+| M0-03 | Agent house rules + progress tooling | **done** | - | step0-sync | 2026-09-24 20:18Z | re-verified at 9922016 during M0 progress sync; artifacts/verify/M0-03.json |
 | M0-04 | @sg/engine: module API, GameRunner, testing kit | todo | - | - | - |  |
 | M0-05 | Scenario route + Playwright harness | todo | - | - | - |  |
-| M0-06 | Critic kit + reference board | todo | - | - | - |  |
+| M0-06 | Critic kit + reference board | **done** | - | step0-sync | 2026-09-24 20:18Z | re-verified at 9922016 during M0 progress sync; artifacts/verify/M0-06.json |
 
 ## M1 (0/10 done)
 
