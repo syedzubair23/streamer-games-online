@@ -27,8 +27,10 @@
     "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.63.0",
     "@types/pngjs": "^6.0.5",
+    "ajv": "^8.20.0",
     "pixelmatch": "^7.2.0",
     "pngjs": "^7.0.0",
-    "sharp": "^0.35.4"
+    "sharp": "^0.35.4",
+    "three": "0.186.1"
   }
 }

@@ -5,3 +5,4 @@ coverage/
 artifacts/
 docs/
 *.md
+progress.json

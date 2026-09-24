@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["game", "round", "critic", "pass", "ab", "scores", "clipScores", "minScore", "issues"],
+  "properties": {
+    "game": { "type": "string" },
+    "round": { "type": "integer", "minimum": 1 },
+    "critic": { "type": "string" },
+    "pass": { "type": "boolean" },
+    "ab": { "type": "array", "items": { "type": "object", "required": ["pair", "choice", "why"],
+      "properties": { "pair": {"type": "string"}, "choice": {"enum": ["A", "B", "tie"]}, "why": {"type": "string", "maxLength": 300} } } },
+    "scores": { "type": "object", "description": "key = '<mode>/<viewport>' e.g. 'night/360x800' or 'stream/dusk'; value = map item# -> score or null (n/a)",
+      "additionalProperties": { "type": "object", "additionalProperties": { "type": ["number", "null"], "minimum": 1, "maximum": 10 } } },
+    "clipScores": { "type": "object", "properties": { "12": {"type": "number"}, "16": {"type": "number"} } },
+    "minScore": { "type": "number" },
+    "issues": { "type": "array", "items": { "type": "object",
+      "required": ["id", "item", "severity", "files", "region", "problem", "rule", "fix"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Z0-9]{2,4}-R[0-9]+-[0-9]{2}$" },
+        "item": { "type": "integer", "minimum": 1, "maximum": 18 },
+        "severity": { "enum": ["blocker", "major", "minor"] },
+        "files": { "type": "array", "items": {"type": "string"}, "minItems": 1 },
+        "region": { "type": "string", "description": "e.g. 'bottom-right 20%', 'P3 plate'" },
+        "problem": { "type": "string" },
+        "rule": { "type": "string", "description": "violated SPEC/research section or token, e.g. 'SPEC §13.3 identity P2 hex'" },
+        "fix": { "type": "string", "description": "concrete: token, px, ms, easing, value change" },
+        "regressionOf": { "type": "string" } } } }
+  }
+}

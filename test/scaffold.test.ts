@@ -1,7 +1,8 @@
 /**
  * Scaffold invariants for ROADMAP M0-01: every package and app from SPEC §9.2 exists with a
- * package.json and src/index.ts, root config matches SPEC §9.1/§9.2, and the tech-stack
- * dependencies are pinned as specified.
+ * package.json and src/index.ts, root config matches SPEC §9.1/§9.2, the tech-stack
+ * dependencies are pinned as specified, and every script's entry file exists (so `pnpm build`
+ * and `pnpm start` really run).
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
@@ -131,6 +132,98 @@ describe("root package.json (SPEC §9.1, §9.2)", () => {
     "progress",
   ])("wires the %s script", (script) => {
     expect(root.scripts?.[script], script).toBeTruthy();
+  });
+});
+
+/**
+ * Root scripts whose entry files a later ROADMAP item creates. The test fails once the file
+ * exists but is still listed here, so this list can only shrink.
+ */
+const PENDING_ENTRIES: Record<string, string> = {
+  "tools/harness/verify-game.ts": "M0-05",
+  "tools/harness/verify-item.ts": "M0-05",
+  // Not in any Files list; its inputs (shots, sheets, clips, A/B pairs) are M0-05's harness.
+  "tools/harness/critic-prep.ts": "M0-05",
+  "tools/bots/src/swarm.ts": "M1-10",
+};
+
+/** Files a script runs: the first positional argument after `tsx [watch]`, `esbuild` or `node`. */
+const scriptEntries = (script: string): string[] => {
+  const entries: string[] = [];
+  for (const command of script.split(/&&|\|\||;/)) {
+    const words = command.trim().split(/\s+/);
+    const at = words.findIndex((w) => w === "tsx" || w === "esbuild" || w === "node");
+    if (at < 0) continue;
+    const rest = words.slice(at + 1).filter((w) => !w.startsWith("-") && w !== "watch");
+    if (rest[0]) entries.push(rest[0]);
+  }
+  return entries;
+};
+
+/** `esbuild src/bin.ts ... --outdir=dist` produces `dist/bin.js`. */
+const esbuildOutputs = (build: string | undefined): string[] => {
+  if (!build?.includes("esbuild")) return [];
+  const outdir = /--outdir=(\S+)/.exec(build)?.[1] ?? ".";
+  return scriptEntries(build).map((entry) =>
+    join(outdir, entry.replace(/^.*\//, "").replace(/\.tsx?$/, ".js")).replaceAll("\\", "/"),
+  );
+};
+
+describe("script entry files exist (pnpm build/dev/start are runnable)", () => {
+  const dirs = [".", ...Object.keys(PACKAGES)];
+
+  it.each(dirs)("%s: every tsx/esbuild/node entry exists or is built", (dir) => {
+    const pkg = readPkg(dir);
+    const built = esbuildOutputs(pkg.scripts?.build);
+    for (const [name, script] of Object.entries(pkg.scripts ?? {})) {
+      for (const entry of scriptEntries(script)) {
+        const label = `${dir} ${name}: ${entry}`;
+        if (entry.startsWith("dist/")) {
+          expect(built, `${label} is not produced by the build script`).toContain(entry);
+          continue;
+        }
+        const owner = dir === "." ? PENDING_ENTRIES[entry] : undefined;
+        if (owner) {
+          expect(
+            existsSync(join(ROOT, entry)),
+            `${label} exists: drop it from PENDING_ENTRIES`,
+          ).toBe(false);
+          continue;
+        }
+        expect(existsSync(join(ROOT, dir, entry)), label).toBe(true);
+      }
+    }
+  });
+
+  it("pnpm build succeeds and the built server starts and exits 0", () => {
+    const run = (cmd: string, args: string[]): string =>
+      execFileSync(cmd, args, {
+        cwd: ROOT,
+        encoding: "utf8",
+        stdio: "pipe",
+        shell: process.platform === "win32",
+      });
+    run("pnpm", ["build"]);
+    expect(existsSync(join(ROOT, "apps/server/dist/bin.js"))).toBe(true);
+    expect(run("node", ["apps/server/dist/bin.js"])).toContain("@sg/server");
+  }, 180_000);
+});
+
+describe("game package subpath exports (SPEC §9.2)", () => {
+  const SUBPATHS: Record<string, string> = {
+    ".": "./src/index.ts",
+    "./logic": "./src/logic/index.ts",
+    "./client": "./src/client/index.ts",
+    "./scenarios": "./src/scenarios.ts",
+  };
+
+  it.each(GAMES)("%s exports ., ./logic, ./client and ./scenarios", async (id) => {
+    const dir = join("packages/games", id);
+    expect(readPkg(dir).exports).toEqual(SUBPATHS);
+    for (const file of Object.values(SUBPATHS)) {
+      const mod = (await import(join(ROOT, dir, file))) as { GAME_ID: string };
+      expect(mod.GAME_ID, `${id} ${file}`).toBe(id);
+    }
   });
 });
 

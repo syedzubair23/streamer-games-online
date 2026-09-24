@@ -88,13 +88,25 @@ File naming: `artifacts/screenshots/<id>/round-<r>/<state>__<mode>__<vp|role>.pn
 
 | Score | Meaning |
 |---|---|
-| **10** | Can't be told apart from a shipped top-tier cozy indie (Tiny Glade, A Short Hike, Alba). |
-| **8.5** | A player would screenshot it, and a streamer would feature it. |
+| **10** | The reference board's level with nothing left to point to. |
+| **9.5** | The reference board's level (`docs/references/_style/`): shipped top-tier cozy-indie craft (Tiny Glade, A Short Hike, Alba) that could sit on the board unnoticed. |
+| **9** | The reference board's level, with minor flaws you can point to. Frames of the board's calibre score 9–10. |
+| **8.5** | A player would screenshot it, and a streamer would feature it, but next to the board it visibly falls short. |
 | **7** | A decent web game. |
-| **5** | A working prototype. |
-| **3** | Broken or placeholder. |
+| **5** | A working prototype: it runs and its state can be read, but it is engine defaults (grey default materials, browser fonts and controls, primary colours) with no art direction. This band is 4–6. |
+| **3** | Broken or placeholder: rendering faults, blank or missing content, error text, or a state that cannot be read. |
 
-Do not round up. When unsure, score lower.
+Do not round up. When unsure between two bands, choose the lower one.
+
+How to apply the anchors (calibrated in ROADMAP M0-06; `pnpm critic:calibrate` re-checks them). Score every item in two steps:
+1. **Band.** Compare the item's craft with the reference board and choose its band: *reference level* (9.0–10, anchor 9.5: it would not look out of place on the board), *screenshot-worthy but visibly below the board* (8.0–8.9, anchor 8.5), *decent web game* (6.5–7.9, anchor 7), *working prototype* (4.0–6.4, anchor 5) or *broken* (below 4, anchor 3). An item leaves the reference band only for a shortfall a viewer would notice at a glance next to the board, and every item scored below 9.0 has an issue that names that shortfall. Several small flaws are never a glance-visible shortfall, and neither are nitpicks the references share.
+2. **Place.** Start at the band's anchor and move up or down for the specific strengths and flaws you can point to, without leaving the band. In the reference band, each minor flaw (a tangent, a small label, one soft texture, a stray double space, one hot accent) costs 0.1, or 0.2 if a viewer would notice it on a second look, and an item's minor flaws cost at most 0.5 in total, so such an item scores 9.0–9.5, and only an item with nothing to point to scores above 9.5. Every deduction is named, and the score follows from the issues: an item scored below 9.5 has at least one issue that says what cost it, with severity per §5. Inside the reference band those issues are minor, and an item whose issues are all minor scores at least 9.5 minus 0.2 per issue, never below 9.0 (one small label: 9.3–9.4; two minor flaws: 9.1–9.3; nothing to point to: 9.5 or more). An item below 9.0 has a major issue that names its glance-visible shortfall, and a ★ item below 8.5 a blocker.
+
+"Harsh" means refusing the reference band to work that falls short of the references, never marking the references' own level of craft down. The blind A/B against the references (§4.3.4) is the separate check that our frames really reach that level.
+- Score the craft an item asks about in what the frame is trying to show. Where an item's "10 looks like" names our own tokens, fonts, states, lighting conventions (the upper-left key, rim light plus blob shadow), numeric thresholds (22 px text, 4.5:1 contrast, 44 px targets; the automated gates measure those on our builds) or `_style/golden`, a frame that is not ours (a reference, a calibration shot) is judged on the same quality in principle (cohesion, palette discipline, typographic craft, instant legibility of whatever the frame communicates; on items 4 and 5, a different but deliberate and equally polished lighting model or form language, such as soft ambient claymation or crisp isometric pixel art, is not a fault; on item 3, neither is a deliberate, bold party-game palette whose hues are harmonised and whose saturation is controlled, as on the board's party-game frames; on item 7, neither is a deliberate crop of a larger world; on item 2, a frame with no game state is judged on how instantly its subject and any text read at 720p; on items 13 and 17, judge whether the moment or audience information the frame shows is clear, not whether it uses our conventions such as a VS beat, a burst or the purple audience UI), and is not marked down for lacking our game's states, HUD or conventions.
+- The "≤ 5 looks like" column describes the working-prototype band (4–6). Score below 4 only for broken or placeholder output (anchor 3).
+- Judge the rendered frame, not delivery compression: JPEG artefacts from the stream-sim or a store capture are not item-18 faults (item 2 already judges legibility at stream quality).
+- An item about something the frame does not show (a moment, audience UI) is `null` (n/a), not a low score. So is an item with only incidental evidence, such as a lone version label for typography or decorative swatches for accessibility.
 
 ### 4.2 Items (★ = hard gate)
 
@@ -174,8 +186,8 @@ Groups scored per round: 4 modes × 3 viewports (12) + `stream/dusk` + `stream/n
 
 Issue severity:
 - **blocker:** a ★ item is below 8.5, the state is unreadable, a secret leaks on the Stage, a visual bug breaks the flow, or a fixed issue came back.
-- **major:** any item below 8.5.
-- **minor:** everything else.
+- **major:** any item below 8.5, or the glance-visible shortfall that takes an item out of the reference band (below 9.0, §4.1).
+- **minor:** everything else, such as the named deductions inside the reference band (9.0–9.5, §4.1).
 
 ---
 

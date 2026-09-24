@@ -5,5 +5,4 @@
  * The manifest and module exports are added by the game's Mx-01 item.
  */
 
-/** Stable game id, matching `docs/specs/trivia-night.md`. */
-export const GAME_ID = "trivia-night" as const;
+export { GAME_ID } from "./logic/index.ts";

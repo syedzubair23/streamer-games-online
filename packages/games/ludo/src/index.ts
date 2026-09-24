@@ -5,5 +5,4 @@
  * The manifest and module exports are added by the game's Mx-01 item.
  */
 
-/** Stable game id, matching `docs/specs/ludo.md`. */
-export const GAME_ID = "ludo" as const;
+export { GAME_ID } from "./logic/index.ts";

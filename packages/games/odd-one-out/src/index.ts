@@ -5,5 +5,4 @@
  * The manifest and module exports are added by the game's Mx-01 item.
  */
 
-/** Stable game id, matching `docs/specs/odd-one-out.md`. */
-export const GAME_ID = "odd-one-out" as const;
+export { GAME_ID } from "./logic/index.ts";

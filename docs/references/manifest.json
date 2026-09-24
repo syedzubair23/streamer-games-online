@@ -1,0 +1,447 @@
+{
+  "$comment": "Machine-readable source list for docs/references (ROADMAP M0-06). Images are official Steam store screenshots, used for critic comparison only and never shipped or committed (see .gitignore). Fetch with `pnpm refs:fetch`; SOURCES.md is generated from this file.",
+  "size": {
+    "width": 1280,
+    "height": 720
+  },
+  "styleSelection": [
+    "Sources: the six ROADMAP M0-06 titles, official Steam store screenshots only. For Jackbox, only Quiplash 3 from The Jackbox Party Pack 7: its sculpted-clay art direction fits research 03 (\"toy-real\" clay, \"nothing fully saturated\", \"avoid neon\"); the other packs and the pack's other games are flat vector or neon.",
+    "The frame shows play: the game world, or for the party game an in-round screen (prompt, answers, vote). Excluded: title or logo cards, character or splash art, menus and settings or filter grids, and marketing overlays (stickers, stars).",
+    "No tool UI over the subject: build gizmos, selection brackets, radial menus, pickers, lighting widgets and phone-camera overlays exclude a frame. A thin HUD or toolbar strip along one edge is allowed, since it is part of the shipped look.",
+    "Day, golden-hour or dusk lighting only; night and uncoloured render modes are excluded. The board anchors the default Play look (research 03: golden hour \"is what makes everything look good\"); night modes are judged against the golden later.",
+    "Pick the first 2 qualifying screenshots per source in the store page's published order (appdetails order, recorded in each note). Two per source is the largest equal count every source can meet (Tiny Glade has exactly two qualifying shots), so no single style dominates the leave-one-out contact sheet.",
+    "Frames are never swapped because of a calibration score. A shortfall is fixed in the rubric anchors (ROADMAP M0-06 Accept)."
+  ],
+  "entries": [
+    {
+      "set": "_style",
+      "file": "a-short-hike-01.png",
+      "game": "A Short Hike",
+      "steamAppId": 1055540,
+      "storePage": "https://store.steampowered.com/app/1055540/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1055540/ss_f2123fea859e299736a3e99d130238c784d53e75.1920x1080.jpg",
+      "note": "Store shot #1. Hand-built island village: warm rim light, chunky soft forms",
+      "sha256": "46ef4f464e7554fa083a88f1d041ee8a9507c55bfc659d61f8eac1394c91c510"
+    },
+    {
+      "set": "_style",
+      "file": "a-short-hike-02.png",
+      "game": "A Short Hike",
+      "steamAppId": 1055540,
+      "storePage": "https://store.steampowered.com/app/1055540/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1055540/ss_0e864bf975bb71f238de6861fc8fd3d6ed6e4ce8.1920x1080.jpg",
+      "note": "Store shot #2. Climbing past the waterfall: friendly scale, saturated but warm palette, one small hero",
+      "sha256": "68f535877e10d69d4c3c4471d6ae2d8845d6568364b0e111a05398af9c9d27c4"
+    },
+    {
+      "set": "_style",
+      "file": "unpacking-01.png",
+      "game": "Unpacking",
+      "steamAppId": 1135690,
+      "storePage": "https://store.steampowered.com/app/1135690/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1135690/ss_b32bfdd3f68e1f9e264bd37e10a464629ca034f8.1920x1080.jpg",
+      "note": "Store shot #1. Lived-in bedroom diorama: objects that tell a story",
+      "sha256": "ede27558e4bdb05360f8e1570b738d362a771f273adfa77ce839d90d0536f32d"
+    },
+    {
+      "set": "_style",
+      "file": "unpacking-02.png",
+      "game": "Unpacking",
+      "steamAppId": 1135690,
+      "storePage": "https://store.steampowered.com/app/1135690/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1135690/ss_9b358510285a4b70e446237de5996bc434415c01.1920x1080.jpg",
+      "note": "Store shot #2. Loft-bed bedroom mid-unpack: tidy isometric diorama, readable props, soft palette",
+      "sha256": "80f9434484a8ec5579fcd66e8331313a23712e3a4e2a486ff48318e1b2dd53fd"
+    },
+    {
+      "set": "_style",
+      "file": "alba-01.png",
+      "game": "Alba: A Wildlife Adventure",
+      "steamAppId": 1337010,
+      "storePage": "https://store.steampowered.com/app/1337010/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1337010/ss_042f8b0fd51f97b7e09d0e9e658c22b3304b0a2a.1920x1080.jpg",
+      "note": "Store shot #1. Sunny coast: soft rounded forms, warm key light, clear focal character",
+      "sha256": "5066838239028af50f3e4b8c06d844823c9322d680f46f86a721591dff36e72b"
+    },
+    {
+      "set": "_style",
+      "file": "alba-02.png",
+      "game": "Alba: A Wildlife Adventure",
+      "steamAppId": 1337010,
+      "storePage": "https://store.steampowered.com/app/1337010/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1337010/ss_ce424baa7b22e8436e71b98b8c4b5c9c151ebb6c.1920x1080.jpg",
+      "note": "Store shot #2. Forest boardwalk: warm directional light, impressionist softness, atmospheric depth",
+      "sha256": "14d0c326023aa237d04add8519b417f1ee9600620f06fa0509ac082aeee13691"
+    },
+    {
+      "set": "_style",
+      "file": "tiny-glade-01.png",
+      "game": "Tiny Glade",
+      "steamAppId": 2198150,
+      "storePage": "https://store.steampowered.com/app/2198150/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2198150/ss_1a98b0d5e8111f100b3ececda8f682333337e3cb.1920x1080.jpg",
+      "note": "Store shot #1. Overgrown ruin garden: soft rounded forms, lush painterly foliage, gentle light (thin build toolbar on the bottom edge)",
+      "sha256": "1fb611bd13792db1fdd5bfcc122872a4cc64afe3f5b6c5eeed4456ec7e40c08f"
+    },
+    {
+      "set": "_style",
+      "file": "tiny-glade-02.png",
+      "game": "Tiny Glade",
+      "steamAppId": 2198150,
+      "storePage": "https://store.steampowered.com/app/2198150/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2198150/ss_533b0699cd1d6692cfa332f234ce03a36c547480.1920x1080.jpg",
+      "note": "Store shot #6 (first qualifying after #1). Castle at dusk: pastel gradient sky, impressionist foliage",
+      "sha256": "1d8a971814d327702e92f4567741f3797fd96abaa5c86d97b64fce748e85aaa6"
+    },
+    {
+      "set": "_style",
+      "file": "townscaper-01.png",
+      "game": "Townscaper",
+      "steamAppId": 1291340,
+      "storePage": "https://store.steampowered.com/app/1291340/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1291340/ss_989ff1808d9416c7b22da3e16ee54874697b1cea.1920x1080.jpg",
+      "note": "Store shot #1. Pastel island town: colour tied to mood, clean toy forms",
+      "sha256": "1422721b2517dd62dd92ba2df2e474a7f18ef0474f06c27a7b3d32d92e8bb9d1"
+    },
+    {
+      "set": "_style",
+      "file": "townscaper-02.png",
+      "game": "Townscaper",
+      "steamAppId": 1291340,
+      "storePage": "https://store.steampowered.com/app/1291340/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1291340/ss_fcd697b91c82dfd151954070ce20bda18fcb6475.1920x1080.jpg",
+      "note": "Store shot #2. Harbour-front terrace: candy palette, chunky rounded facades on calm water",
+      "sha256": "b821716fe936a1656d04f7322f785e7d0417215b50429c7bbb869734d5fee48b"
+    },
+    {
+      "set": "_style",
+      "file": "jackbox-party-pack-7-01.png",
+      "game": "The Jackbox Party Pack 7",
+      "steamAppId": 1211630,
+      "storePage": "https://store.steampowered.com/app/1211630/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1211630/ss_c508b8c68753ba872d64181c75c5c103838ceab6.1920x1080.jpg",
+      "note": "Store shot #2 (first Quiplash 3 in-round shot). Vote: two big clay answer bubbles, obvious either/or choice, clear call to action, room code",
+      "sha256": "eac07681c94a5928d307cadc0fac6f0147b46cb7e6b426179dbbe2d9960fce58"
+    },
+    {
+      "set": "_style",
+      "file": "jackbox-party-pack-7-02.png",
+      "game": "The Jackbox Party Pack 7",
+      "steamAppId": 1211630,
+      "storePage": "https://store.steampowered.com/app/1211630/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1211630/ss_fcf663fd157d91452b068b271807f5d4ea635ee9.1920x1080.jpg",
+      "note": "Store shot #3. Vote result: answers with their authors and voter tags, clay avatars, legible on stream",
+      "sha256": "6da88fff83c92a72a0e7329d2631cdab6123ebbb98504a9c7b14ccd47315551d"
+    },
+    {
+      "set": "quip-clash",
+      "file": "jackbox-party-pack-7-01.png",
+      "game": "The Jackbox Party Pack 7",
+      "steamAppId": 1211630,
+      "storePage": "https://store.steampowered.com/app/1211630/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1211630/ss_c508b8c68753ba872d64181c75c5c103838ceab6.1920x1080.jpg",
+      "note": "Quiplash 3 head-to-head answers",
+      "sha256": "eac07681c94a5928d307cadc0fac6f0147b46cb7e6b426179dbbe2d9960fce58"
+    },
+    {
+      "set": "quip-clash",
+      "file": "jackbox-party-pack-3-01.png",
+      "game": "The Jackbox Party Pack 3",
+      "steamAppId": 434170,
+      "storePage": "https://store.steampowered.com/app/434170/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/434170/ss_3a13c7dd4eaae85008207e81c982eae35af3139e.1920x1080.jpg",
+      "note": "Quiplash (Party Pack 3) vote screen",
+      "sha256": "aab8609aae12c9623de8f8d7dff4d840f54a263e2a4eddfa036accdc9e465d20"
+    },
+    {
+      "set": "quip-clash",
+      "file": "jackbox-party-pack-3-02.png",
+      "game": "The Jackbox Party Pack 3",
+      "steamAppId": 434170,
+      "storePage": "https://store.steampowered.com/app/434170/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/434170/ss_f236ee261683e4cd4c13dbd29b710af78a86392d.1920x1080.jpg",
+      "note": "Quiplash (Party Pack 3) matchup with vote counts",
+      "sha256": "93ab997f9372b35d79958e5a144caf9e2b63b79167bad61fcb1bd73e09249346"
+    },
+    {
+      "set": "tune-in",
+      "file": "jackbox-party-pack-9-01.png",
+      "game": "The Jackbox Party Pack 9",
+      "steamAppId": 1850960,
+      "storePage": "https://store.steampowered.com/app/1850960/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1850960/ss_8dce394084d9904b7223efc659d07824a461957b.1920x1080.jpg",
+      "note": "Nonsensory: two-ended scale with player markers",
+      "sha256": "64644c0f0e1e4e0f03c6aa5bce6804494efacb3c6e5d81042c35de7b90917079"
+    },
+    {
+      "set": "tune-in",
+      "file": "jackbox-party-pack-9-02.png",
+      "game": "The Jackbox Party Pack 9",
+      "steamAppId": 1850960,
+      "storePage": "https://store.steampowered.com/app/1850960/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1850960/ss_8c1a96bf83ab3b8c7efb26d3ee4aa6dc36b44dae.1920x1080.jpg",
+      "note": "Nonsensory: numeric scale and reveal",
+      "sha256": "23ef35a2a8eef3449e6debc1171639eb5559da26842e11c181bae58b554b5282"
+    },
+    {
+      "set": "tune-in",
+      "file": "jackbox-party-pack-9-03.png",
+      "game": "The Jackbox Party Pack 9",
+      "steamAppId": 1850960,
+      "storePage": "https://store.steampowered.com/app/1850960/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1850960/ss_33b6d93b4db4628398aaacd0eb6ba80a9ae1d694.1920x1080.jpg",
+      "note": "Quixort: spectrum ordering, team score",
+      "sha256": "35ab15df68f36d1a1ef6841d01d91fe2f16b9f37ec81c350bdfb4c721c32bff4"
+    },
+    {
+      "set": "tune-in",
+      "file": "jackbox-party-pack-3-01.png",
+      "game": "The Jackbox Party Pack 3",
+      "steamAppId": 434170,
+      "storePage": "https://store.steampowered.com/app/434170/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/434170/ss_d163c26c405ec2362686f4720f7e7532a8af454c.1920x1080.jpg",
+      "note": "Guesspionage: percentage dial guess",
+      "sha256": "81f7392fa5418cbc2924bc0f93f147671e55743a5f778f5fb710760eeb5f8a17"
+    },
+    {
+      "set": "trivia-night",
+      "file": "trivia-murder-party-3-01.png",
+      "game": "Trivia Murder Party 3",
+      "steamAppId": 3048060,
+      "storePage": "https://store.steampowered.com/app/3048060/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3048060/a41872c9b7d4bba61cafe37bf6749754eda18e9a/ss_a41872c9b7d4bba61cafe37bf6749754eda18e9a.1920x1080.jpg",
+      "note": "Trivia Murder Party 3: question card in a lit diorama",
+      "sha256": "fef6aa0029e39ed01dd2a3a60bc37ec2e508479ee58a665ba28ac09dec361eec"
+    },
+    {
+      "set": "trivia-night",
+      "file": "trivia-murder-party-3-02.png",
+      "game": "Trivia Murder Party 3",
+      "steamAppId": 3048060,
+      "storePage": "https://store.steampowered.com/app/3048060/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3048060/b120a0e706debff3c98eecb9daedfc9bd9d123f3/ss_b120a0e706debff3c98eecb9daedfc9bd9d123f3.1920x1080.jpg",
+      "note": "Trivia Murder Party 3: minigame with player list",
+      "sha256": "825e17414e1899dcf0dc63d73a1eece90d645100903ffcc36f69393f99579a48"
+    },
+    {
+      "set": "trivia-night",
+      "file": "jackbox-party-pack-3-01.png",
+      "game": "The Jackbox Party Pack 3",
+      "steamAppId": 434170,
+      "storePage": "https://store.steampowered.com/app/434170/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/434170/ss_4d1856b132fbef7f59c20f0f5a8de150595666ef.1920x1080.jpg",
+      "note": "Trivia Murder Party: question with numbered answers",
+      "sha256": "2de7b4062935f4cb4335b0eb7296a21cd5887624f64e30f72871373ef299e20c"
+    },
+    {
+      "set": "trivia-night",
+      "file": "jackbox-survey-scramble-01.png",
+      "game": "The Jackbox Survey Scramble",
+      "steamAppId": 2948640,
+      "storePage": "https://store.steampowered.com/app/2948640/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2948640/ss_6506be5fafcf2bad40a834044bcd5209fbb5a01f.1920x1080.jpg",
+      "note": "Survey Scramble: answer grid with score",
+      "sha256": "698f9b4ee578159bca0b0dc27beb71f64b505245c6c592504a0d6b43e59a871b"
+    },
+    {
+      "set": "doodle",
+      "file": "drawful-2-01.png",
+      "game": "Drawful 2",
+      "steamAppId": 442070,
+      "storePage": "https://store.steampowered.com/app/442070/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/442070/ss_9d292ec7f06d2d19f67cadea7063b907838bb234.1920x1080.jpg",
+      "note": "Drawful 2 lobby: room code and doodled avatars",
+      "sha256": "b84be32c5efa4a32f7eafb5f0539192de0f827505891ee59d850596efa0fbdfe"
+    },
+    {
+      "set": "doodle",
+      "file": "drawful-2-02.png",
+      "game": "Drawful 2",
+      "steamAppId": 442070,
+      "storePage": "https://store.steampowered.com/app/442070/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/442070/ss_e19d50c7aafaf684139bdc50222987e585a18c3d.1920x1080.jpg",
+      "note": "Drawful 2: drawing with guesses",
+      "sha256": "870bdda63923051683dc8d930bbca12d595beffd25b8b6e59de753f302873567"
+    },
+    {
+      "set": "doodle",
+      "file": "drawful-2-03.png",
+      "game": "Drawful 2",
+      "steamAppId": 442070,
+      "storePage": "https://store.steampowered.com/app/442070/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/442070/ss_a8f9c73f18556ee41f8055de6e4fc70408912458.1920x1080.jpg",
+      "note": "Drawful 2: scoreboard",
+      "sha256": "3bd718bfa32915019e49c9f1e18c8602365912e330cedd1767956808c04db036"
+    },
+    {
+      "set": "doodle",
+      "file": "drawful-2-04.png",
+      "game": "Drawful 2",
+      "steamAppId": 442070,
+      "storePage": "https://store.steampowered.com/app/442070/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/442070/ss_0f4df8db1d1d4e221ea3ca3fd4db7e42badcac74.1920x1080.jpg",
+      "note": "Drawful 2: most-liked reveal",
+      "sha256": "fe511829059c200cf3feb711b8c67fecbb4260c0265d4476a875ca6724ce6051"
+    },
+    {
+      "set": "odd-one-out",
+      "file": "jackbox-party-pack-3-01.png",
+      "game": "The Jackbox Party Pack 3",
+      "steamAppId": 434170,
+      "storePage": "https://store.steampowered.com/app/434170/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/434170/ss_759d8128e817d616a42d3e0105b66993a4f4b0ae.1920x1080.jpg",
+      "note": "Fakin' It: the faker is still at large",
+      "sha256": "f13232cb0aa10025d15aa146deffb94ffded4ff5b14f13c8c201a4d9b7e4a15d"
+    },
+    {
+      "set": "odd-one-out",
+      "file": "jackbox-party-pack-3-02.png",
+      "game": "The Jackbox Party Pack 3",
+      "steamAppId": 434170,
+      "storePage": "https://store.steampowered.com/app/434170/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/434170/ss_4ac83d3bbc7ac03ef9f74d84bac089f8f5ee1ec6.1920x1080.jpg",
+      "note": "Fakin' It: secret task with player voting",
+      "sha256": "d350efffd91eb6f3c41ac40f043f3fc0fb2c09eb4dc1f80fb338cb6e733917bf"
+    },
+    {
+      "set": "odd-one-out",
+      "file": "jackbox-party-pack-10-01.png",
+      "game": "The Jackbox Party Pack 10",
+      "steamAppId": 2216830,
+      "storePage": "https://store.steampowered.com/app/2216830/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2216830/ss_1b720299cedb559ebaf09078f4fd3678de59329f.1920x1080.jpg",
+      "note": "Accusation: the outlier reveal",
+      "sha256": "5dc399256ed6f9aca3db65d7423fef7abca83e9055b80882bca0877cb7faa636"
+    },
+    {
+      "set": "odd-one-out",
+      "file": "jackbox-party-pack-6-01.png",
+      "game": "The Jackbox Party Pack 6",
+      "steamAppId": 1005300,
+      "storePage": "https://store.steampowered.com/app/1005300/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1005300/ss_5a0df7906eb33342d68d12d4df2b6a54c136c9ce.1920x1080.jpg",
+      "note": "Push The Button: vote result on the ship",
+      "sha256": "54e4b7648c0aeb4472afcc94a8a2ecf0236a04c32b6c9906db94d80b023ad2c7"
+    },
+    {
+      "set": "ludo",
+      "file": "ludo-supremo-01.png",
+      "game": "Ludo Supremo",
+      "steamAppId": 487580,
+      "storePage": "https://store.steampowered.com/app/487580/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/487580/ss_26057b88fd45082ebfc528947d98dc5b7e29b4e5.1920x1080.jpg",
+      "note": "3D cross board, soft wood, home bases",
+      "sha256": "2b6e1eff11c284df91ac69590938b6b8bc3e65df494e3abf2a358781578deb7d"
+    },
+    {
+      "set": "ludo",
+      "file": "ludo-supremo-02.png",
+      "game": "Ludo Supremo",
+      "steamAppId": 487580,
+      "storePage": "https://store.steampowered.com/app/487580/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/487580/ss_0264e26aa244b65668c3d0f80edcbfa069d9e42a.1920x1080.jpg",
+      "note": "Tilted board, coloured pawns",
+      "sha256": "e62950f3d10469267f5a02f17033bac5e326d4f910b2566bd80ce7cbaedc152b"
+    },
+    {
+      "set": "ludo",
+      "file": "ludo-supremo-03.png",
+      "game": "Ludo Supremo",
+      "steamAppId": 487580,
+      "storePage": "https://store.steampowered.com/app/487580/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/487580/ss_e19954c238bd854ae70f4ec3daa5962e53116621.1920x1080.jpg",
+      "note": "Close-up: pawns, die and path",
+      "sha256": "2e97dd494edc46c26a82c1cc952f4ed17293e9fe4bd6728b0405a0ff5e671f4c"
+    },
+    {
+      "set": "ludo",
+      "file": "ludo-supremo-04.png",
+      "game": "Ludo Supremo",
+      "steamAppId": 487580,
+      "storePage": "https://store.steampowered.com/app/487580/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/487580/ss_08a7d0eced530b5e61fd456ed639cb7f295725f0.1920x1080.jpg",
+      "note": "Full board framing with dice",
+      "sha256": "1240ad828d3a723af2e89b6a4fd3760e6ea595913fa63b9a13354bd22b5c5252"
+    },
+    {
+      "set": "chess",
+      "file": "chess-ultra-01.png",
+      "game": "Chess Ultra",
+      "steamAppId": 518060,
+      "storePage": "https://store.steampowered.com/app/518060/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/518060/ss_9b62ac94aff0772124b669c3add7e14172a17257.1920x1080.jpg",
+      "note": "Board on a lived-in desk, clear framing",
+      "sha256": "fbc4bf55e7368c46507a68888740244ff8757e327a9af2c4a456dce71e99bf9f"
+    },
+    {
+      "set": "chess",
+      "file": "chess-ultra-02.png",
+      "game": "Chess Ultra",
+      "steamAppId": 518060,
+      "storePage": "https://store.steampowered.com/app/518060/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/518060/ss_b737a5f02a9e423a8d80215b0485c536b6b9e1a1.1920x1080.jpg",
+      "note": "Red and white set, warm table props",
+      "sha256": "fecc7939b0d6ddbb4bca19808e61d5db8b569ea56dc5eb60cb55251dd8ef1a0b"
+    },
+    {
+      "set": "chess",
+      "file": "chess-ultra-03.png",
+      "game": "Chess Ultra",
+      "steamAppId": 518060,
+      "storePage": "https://store.steampowered.com/app/518060/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/518060/ss_ca0ba763401dd89aa330d40f7dac704a75f471a9.1920x1080.jpg",
+      "note": "Board with info panel",
+      "sha256": "1b6c18da29c04d41526edafcb1766d69de2697dcdc21921bb44674e23cf930cf"
+    },
+    {
+      "set": "chess",
+      "file": "chess-ultra-04.png",
+      "game": "Chess Ultra",
+      "steamAppId": 518060,
+      "storePage": "https://store.steampowered.com/app/518060/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/518060/ss_15c2e9776d997c1f06acea90456f549b9f85659f.1920x1080.jpg",
+      "note": "Twitch vote: chat plays the move",
+      "sha256": "37af4243c5e6cb1143e7ad97ae0e2b31ef951bdc3796603f299bb2e51b98358a"
+    },
+    {
+      "set": "marble-rally",
+      "file": "marbles-on-stream-01.png",
+      "game": "Marbles on Stream",
+      "steamAppId": 1170970,
+      "storePage": "https://store.steampowered.com/app/1170970/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1170970/ss_865fb13885fb9aa111cca0885d5e320d1ce3ba9d.1920x1080.jpg",
+      "note": "Start pen: hundreds of marbles",
+      "sha256": "fe54344311909f08802d094e808aed9436b11f0207a3be578483871403875160"
+    },
+    {
+      "set": "marble-rally",
+      "file": "marbles-on-stream-02.png",
+      "game": "Marbles on Stream",
+      "steamAppId": 1170970,
+      "storePage": "https://store.steampowered.com/app/1170970/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1170970/ss_c367949db2a221ef39a7ba9010b8ad6f22c42ded.1920x1080.jpg",
+      "note": "Marble swirl: mass-participation spectacle",
+      "sha256": "e01abc5ab822c5c49f514deb6873f6738726f114e06291076873a1d7d4d894fb"
+    },
+    {
+      "set": "marble-rally",
+      "file": "marbles-on-stream-03.png",
+      "game": "Marbles on Stream",
+      "steamAppId": 1170970,
+      "storePage": "https://store.steampowered.com/app/1170970/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1170970/ss_2400b78c7048331fa0bca829d76c3231f9a99fd7.1920x1080.jpg",
+      "note": "Track with many marbles and hazards",
+      "sha256": "5dc9f8c55073c4096b254dfe9d7b465e28791113e80f988cd8b365d7f39dbcfd"
+    },
+    {
+      "set": "marble-rally",
+      "file": "marbles-on-stream-04.png",
+      "game": "Marbles on Stream",
+      "steamAppId": 1170970,
+      "storePage": "https://store.steampowered.com/app/1170970/",
+      "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1170970/ss_ff89691d26e3e8921fee20720e55f2768eba1aa9.1920x1080.jpg",
+      "note": "Close race on a banked track",
+      "sha256": "ea2cb6375f8dac5d60ca8d8decc44eb25924758fdc1b4e9a7eb5a2270a8203e6"
+    }
+  ]
+}

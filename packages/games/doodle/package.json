@@ -5,7 +5,10 @@
   "type": "module",
   "description": "Game module for doodle: pure logic, bot, scenarios, content loaders and stage/controller clients.",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./logic": "./src/logic/index.ts",
+    "./client": "./src/client/index.ts",
+    "./scenarios": "./src/scenarios.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p .",

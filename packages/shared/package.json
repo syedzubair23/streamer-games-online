@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "sideEffects": false,
   "description": "Shared types and utilities: protocol, room, ids, sfc32 RNG, JSON diff/patch, codecs, text normalisation and filtering, content schemas.",
   "exports": {
     ".": "./src/index.ts"

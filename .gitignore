@@ -58,3 +58,4 @@ id_rsa*
 secrets/
 *.secret.*
 .claude/settings.local.json
+/artifacts/critic/_calibration/20*.json

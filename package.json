@@ -26,7 +26,9 @@
     "perf:game": "tsx tools/harness/verify-game.ts --only perf",
     "critic:prep": "tsx tools/harness/critic-prep.ts",
     "bots": "tsx tools/bots/src/swarm.ts",
-    "progress": "tsx tools/harness/progress.ts"
+    "progress": "tsx tools/harness/progress.ts",
+    "critic:calibrate": "tsx tools/harness/calibrate-critic.ts",
+    "refs:fetch": "tsx tools/harness/fetch-references.ts"
   },
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^4.8.1",

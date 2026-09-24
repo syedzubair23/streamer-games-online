@@ -1,0 +1,126 @@
+<!doctype html>
+<!--
+  Calibration fixture for the visual critic (ROADMAP M0-06).
+
+  A deliberately rough "grey default three.js" board-game prototype: stock MeshStandardMaterial,
+  a GridHelper, primary-colour tokens, a flat grey clear colour, un-styled HTML in the browser's
+  default fonts and a default <button>. It is a *working prototype*, not a broken page, so a
+  calibrated critic should score it 4–6 against docs/critic/RUBRIC.md.
+
+  Rendered to calibration/grey-default-threejs.png by `pnpm critic:calibrate --render-fixture`.
+  The page is served from a synthetic origin by Playwright (see calibrate-critic.ts); `three` is
+  mapped to the workspace copy. This file is test data: it intentionally breaks every house rule.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>prototype</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+      }
+      canvas {
+        display: block;
+      }
+      #hud {
+        position: absolute;
+        left: 8px;
+        top: 8px;
+      }
+      #controls {
+        position: absolute;
+        right: 8px;
+        bottom: 8px;
+      }
+    </style>
+    <script type="importmap">
+      { "imports": { "three": "/three/three.module.js" } }
+    </script>
+  </head>
+  <body>
+    <div id="hud">
+      <div>Room: QWRT</div>
+      <div>Player 2's turn</div>
+      <div>Scores: P1 3 | P2 1 | P3 0 | P4 2</div>
+    </div>
+    <div id="controls">
+      <button type="button">Roll</button> <button type="button">End turn</button>
+    </div>
+    <script type="module">
+      import {
+        AmbientLight,
+        BoxGeometry,
+        Color,
+        CylinderGeometry,
+        DirectionalLight,
+        GridHelper,
+        Mesh,
+        MeshStandardMaterial,
+        PerspectiveCamera,
+        PlaneGeometry,
+        Scene,
+        SphereGeometry,
+        WebGLRenderer,
+      } from "three";
+
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const renderer = new WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
+      renderer.setPixelRatio(1);
+      renderer.setSize(w, h);
+      document.body.appendChild(renderer.domElement);
+
+      const scene = new Scene();
+      scene.background = new Color(0x808080);
+      const camera = new PerspectiveCamera(50, w / h, 0.1, 100);
+      camera.position.set(0, 9, 9);
+      camera.lookAt(0, 0, 0);
+
+      scene.add(new AmbientLight(0xffffff, 0.6));
+      const sun = new DirectionalLight(0xffffff, 1.2);
+      sun.position.set(3, 10, 4);
+      scene.add(sun);
+
+      const board = new Mesh(new PlaneGeometry(10, 10), new MeshStandardMaterial());
+      board.rotation.x = -Math.PI / 2;
+      scene.add(board);
+      const grid = new GridHelper(10, 10);
+      grid.position.y = 0.01;
+      scene.add(grid);
+
+      const tokenGeo = new CylinderGeometry(0.3, 0.3, 0.4, 16);
+      const colours = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00];
+      const corners = [
+        [-4, -4],
+        [4, -4],
+        [-4, 4],
+        [4, 4],
+      ];
+      corners.forEach(([cx, cz], i) => {
+        const mat = new MeshStandardMaterial({ color: colours[i] });
+        for (let k = 0; k < 4; k++) {
+          const t = new Mesh(tokenGeo, mat);
+          t.position.set(cx + (k % 2) * 0.8 - 0.4, 0.2, cz + Math.floor(k / 2) * 0.8 - 0.4);
+          scene.add(t);
+        }
+      });
+
+      const grey = new MeshStandardMaterial();
+      const die = new Mesh(new BoxGeometry(0.8, 0.8, 0.8), grey);
+      die.position.set(0.5, 0.4, 0.5);
+      die.rotation.y = 0.4;
+      scene.add(die);
+      const ball = new Mesh(new SphereGeometry(0.35, 12, 8), grey);
+      ball.position.set(-1.2, 0.35, 1.5);
+      scene.add(ball);
+
+      renderer.render(scene, camera);
+      requestAnimationFrame(() => {
+        window.__SCENE_READY__ = true;
+      });
+    </script>
+  </body>
+</html>

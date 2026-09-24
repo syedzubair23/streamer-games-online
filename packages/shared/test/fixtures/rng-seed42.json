@@ -1,0 +1,11 @@
+{
+  "_about": "Frozen sfc32 output for createRng(42). Changing it breaks every seeded replay, snapshot and scenario; never regenerate it to make a test pass (DOD).",
+  "seed": 42,
+  "initialState": [2390514492, 1735361397, 230096855, 13],
+  "u32": [4125875902, 3804967761, 4069362820, 3251999951, 1979328487],
+  "floats": [
+    0.9606303418986499, 0.8859130928758532, 0.947472364641726, 0.7571652417536825,
+    0.4608483256306499
+  ],
+  "int100": [2, 61, 20, 51, 87]
+}
