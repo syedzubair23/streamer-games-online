@@ -1,0 +1,596 @@
+{
+ "game": "M1-08",
+ "round": 1,
+ "critic": "fresh-visual-critic-r1",
+ "pass": false,
+ "note": "DOD §1 P6 lists only M1-05, M1-07, M1-09 and M10-01 as visual items, so this report is advisory for M1-08 (its verify JSON marks P6 skipped: not-a-visual-item). Scored surface: the /dev/audio gallery, 5 modes x 3 viewports plus stream-sim dusk/night (JPEG q60), interaction states and reduced-motion phone. External-reference A/B 0/4 (threshold 40%). No console errors in any capture. Clip item 12 n/a (no ambient scene).",
+ "ab": [
+  {
+   "pair": "pair-01",
+   "choice": "B",
+   "why": "B has a coherent painted world with material and lighting; A is a flat web form with fallback type."
+  },
+  {
+   "pair": "pair-02",
+   "choice": "A",
+   "why": "A is crafted low-poly art with a unified palette; B is a dark control panel whose main CTA is unreadable."
+  },
+  {
+   "pair": "pair-03",
+   "choice": "A",
+   "why": "A reads as a premium cozy toy world; B is stock UI chrome on a gradient."
+  },
+  {
+   "pair": "pair-04",
+   "choice": "B",
+   "why": "B has deliberate party-game art direction and bold typography; A is a generic settings page."
+  }
+ ],
+ "scores": {
+  "day/1920x1080": {
+   "1": 5.0,
+   "2": 6.0,
+   "3": 6.0,
+   "4": 6.0,
+   "5": 7.0,
+   "6": 5.5,
+   "7": 6.5,
+   "8": 4.5,
+   "9": 5.5,
+   "10": null,
+   "11": 6.5,
+   "12": null,
+   "13": null,
+   "14": null,
+   "15": 5.0,
+   "16": null,
+   "17": null,
+   "18": 6.5
+  },
+  "day/1280x720": {
+   "1": 5.0,
+   "2": 6.0,
+   "3": 6.0,
+   "4": 6.0,
+   "5": 7.0,
+   "6": 5.5,
+   "7": 6.5,
+   "8": 4.5,
+   "9": 5.5,
+   "10": null,
+   "11": 6.5,
+   "12": null,
+   "13": null,
+   "14": null,
+   "15": 5.0,
+   "16": null,
+   "17": null,
+   "18": 6.5
+  },
+  "day/360x800": {
+   "1": 5.0,
+   "2": 6.0,
+   "3": 6.0,
+   "4": 6.0,
+   "5": 7.0,
+   "6": 5.5,
+   "7": 6.5,
+   "8": 4.5,
+   "9": 5.5,
+   "10": null,
+   "11": 6.5,
+   "12": null,
+   "13": null,
+   "14": 7.0,
+   "15": 5.0,
+   "16": null,
+   "17": null,
+   "18": 6.5
+  },
+  "dusk/1920x1080": {
+   "1": 5.0,
+   "2": 6.0,
+   "3": 6.0,
+   "4": 6.0,
+   "5": 7.0,
+   "6": 5.5,
+   "7": 6.5,
+   "8": 4.5,
+   "9": 5.5,
+   "10": null,
+   "11": 6.5,
+   "12": null,
+   "13": null,
+   "14": null,
+   "15": 5.0,
+   "16": null,
+   "17": null,
+   "18": 6.5
+  },
+  "dusk/1280x720": {
+   "1": 5.0,
+   "2": 6.0,
+   "3": 6.0,
+   "4": 6.0,
+   "5": 7.0,
+   "6": 5.5,
+   "7": 6.5,
+   "8": 4.5,
+   "9": 5.5,
+   "10": null,
+   "11": 6.5,
+   "12": null,
+   "13": null,
+   "14": null,
+   "15": 5.0,
+   "16": null,
+   "17": null,
+   "18": 6.5
+  },
+  "dusk/360x800": {
+   "1": 5.0,
+   "2": 6.0,
+   "3": 6.0,
+   "4": 6.0,
+   "5": 7.0,
+   "6": 5.5,
+   "7": 6.5,
+   "8": 4.5,
+   "9": 5.5,
+   "10": null,
+   "11": 6.5,
+   "12": null,
+   "13": null,
+   "14": 7.0,
+   "15": 5.0,
+   "16": null,
+   "17": null,
+   "18": 6.5
+  },
+  "night/1920x1080": {
+   "1": 5.0,
+   "2": 5.0,
+   "3": 6.0,
+   "4": 6.0,
+   "5": 7.0,
+   "6": 4.5,
+   "7": 6.5,
+   "8": 4.5,
+   "9": 5.5,
+   "10": null,
+   "11": 3.5,
+   "12": null,
+   "13": null,
+   "14": null,
+   "15": 5.0,
+   "16": null,
+   "17": null,
+   "18": 6.5
+  },
+  "night/1280x720": {
+   "1": 5.0,
+   "2": 5.0,
+   "3": 6.0,
+   "4": 6.0,
+   "5": 7.0,
+   "6": 4.5,
+   "7": 6.5,
+   "8": 4.5,
+   "9": 5.5,
+   "10": null,
+   "11": 3.5,
+   "12": null,
+   "13": null,
+   "14": null,
+   "15": 5.0,
+   "16": null,
+   "17": null,
+   "18": 6.5
+  },
+  "night/360x800": {
+   "1": 5.0,
+   "2": 5.0,
+   "3": 6.0,
+   "4": 6.0,
+   "5": 7.0,
+   "6": 4.5,
+   "7": 6.5,
+   "8": 4.5,
+   "9": 5.5,
+   "10": null,
+   "11": 3.5,
+   "12": null,
+   "13": null,
+   "14": 7.0,
+   "15": 5.0,
+   "16": null,
+   "17": null,
+   "18": 6.5
+  },
+  "rain/1920x1080": {
+   "1": 5.0,
+   "2": 6.0,
+   "3": 6.0,
+   "4": 5.5,
+   "5": 7.0,
+   "6": 5.5,
+   "7": 6.5,
+   "8": 4.5,
+   "9": 5.5,
+   "10": null,
+   "11": 6.5,
+   "12": null,
+   "13": null,
+   "14": null,
+   "15": 5.0,
+   "16": null,
+   "17": null,
+   "18": 6.5
+  },
+  "rain/1280x720": {
+   "1": 5.0,
+   "2": 6.0,
+   "3": 6.0,
+   "4": 5.5,
+   "5": 7.0,
+   "6": 5.5,
+   "7": 6.5,
+   "8": 4.5,
+   "9": 5.5,
+   "10": null,
+   "11": 6.5,
+   "12": null,
+   "13": null,
+   "14": null,
+   "15": 5.0,
+   "16": null,
+   "17": null,
+   "18": 6.5
+  },
+  "rain/360x800": {
+   "1": 5.0,
+   "2": 6.0,
+   "3": 6.0,
+   "4": 5.5,
+   "5": 7.0,
+   "6": 5.5,
+   "7": 6.5,
+   "8": 4.5,
+   "9": 5.5,
+   "10": null,
+   "11": 6.5,
+   "12": null,
+   "13": null,
+   "14": 7.0,
+   "15": 5.0,
+   "16": null,
+   "17": null,
+   "18": 6.5
+  },
+  "snow/1920x1080": {
+   "1": 5.0,
+   "2": 6.0,
+   "3": 6.0,
+   "4": 5.5,
+   "5": 7.0,
+   "6": 5.5,
+   "7": 6.5,
+   "8": 4.5,
+   "9": 5.5,
+   "10": null,
+   "11": 6.5,
+   "12": null,
+   "13": null,
+   "14": null,
+   "15": 5.0,
+   "16": null,
+   "17": null,
+   "18": 6.5
+  },
+  "snow/1280x720": {
+   "1": 5.0,
+   "2": 6.0,
+   "3": 6.0,
+   "4": 5.5,
+   "5": 7.0,
+   "6": 5.5,
+   "7": 6.5,
+   "8": 4.5,
+   "9": 5.5,
+   "10": null,
+   "11": 6.5,
+   "12": null,
+   "13": null,
+   "14": null,
+   "15": 5.0,
+   "16": null,
+   "17": null,
+   "18": 6.5
+  },
+  "snow/360x800": {
+   "1": 5.0,
+   "2": 6.0,
+   "3": 6.0,
+   "4": 5.5,
+   "5": 7.0,
+   "6": 5.5,
+   "7": 6.5,
+   "8": 4.5,
+   "9": 5.5,
+   "10": null,
+   "11": 6.5,
+   "12": null,
+   "13": null,
+   "14": 7.0,
+   "15": 5.0,
+   "16": null,
+   "17": null,
+   "18": 6.5
+  },
+  "stream/dusk": {
+   "1": 5.0,
+   "2": 5.5,
+   "3": 6.0,
+   "4": 6.0,
+   "5": 7.0,
+   "6": 5.5,
+   "7": 6.5,
+   "8": 4.5,
+   "9": 5.5,
+   "10": null,
+   "11": 6.5,
+   "12": null,
+   "13": null,
+   "14": null,
+   "15": 5.0,
+   "16": null,
+   "17": null,
+   "18": 6.5
+  },
+  "stream/night": {
+   "1": 5.0,
+   "2": 4.5,
+   "3": 6.0,
+   "4": 6.0,
+   "5": 7.0,
+   "6": 4.5,
+   "7": 6.5,
+   "8": 4.5,
+   "9": 5.5,
+   "10": null,
+   "11": 3.5,
+   "12": null,
+   "13": null,
+   "14": null,
+   "15": 5.0,
+   "16": null,
+   "17": null,
+   "18": 6.5
+  }
+ },
+ "clipScores": {
+  "16": 5.5
+ },
+ "minScore": 3.5,
+ "issues": [
+  {
+   "id": "M108-R1-01",
+   "item": 8,
+   "severity": "blocker",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx",
+    "apps/client/dev/audio.html"
+   ],
+   "region": "whole page",
+   "problem": "No web fonts are registered at all (document.fonts.size = 0, no woff2 requests); CDP getPlatformFontsForNode reports 'Segoe UI Black' for the title, so every string renders in the OS fallback, not Fredoka/Nunito.",
+   "rule": "SPEC §13.4 fonts (Fredoka 500-700 display, Nunito 500-800 UI); SPEC §4 fontsource self-hosted",
+   "fix": "Import @fontsource-variable/fredoka and @fontsource-variable/nunito (latin subsets) in the gallery entry (or @sg/ui fonts.ts once M1-05 merges) and await document.fonts.ready before first paint."
+  },
+  {
+   "id": "M108-R1-02",
+   "item": 11,
+   "severity": "blocker",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "top 'Enable sound' bar, night mode",
+   "problem": "Night-mode primary CTA uses ui-ink #F5EDE3 on accent #FFB36B: measured 1.52:1 contrast; the label is nearly invisible, also at stream-sim q60.",
+   "rule": "DOD §4.2 item 11 contrast >= 4.5:1; SPEC §13.2 night tokens",
+   "fix": "On accent fills use a dark on-accent ink in every mode (night ui-bg #1F1D33 on #FFB36B is ~10:1); label Nunito 700 1rem."
+  },
+  {
+   "id": "M108-R1-03",
+   "item": 1,
+   "severity": "blocker",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "whole page",
+   "problem": "Reads as a generic flat web form on a sky gradient: stock range sliders, OS fallback fonts, border-only cards with no depth, no paper/clay material, no tinted shadow language. Lost the external-reference A/B 4/4.",
+   "rule": "DOD §4.2 item 1 (stock widgets = <=5); SPEC §13.1 'Soft, not flat', 'Toy-real'",
+   "fix": "Build the gallery from @sg/ui components (Button, Card, Chip) and tokens: ui-surface translucent cards, 3 px darker base borders, tinted shadow per mode token (e.g. dusk #7A3F5C @32%, 0 6px 16px), radius md 16 / lg 24."
+  },
+  {
+   "id": "M108-R1-04",
+   "item": 15,
+   "severity": "blocker",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "whole page",
+   "problem": "Gut check: a stranger sees a developer control panel/template, not a premium indie product surface.",
+   "rule": "DOD §4.2 item 15",
+   "fix": "Resolve M108-R1-01/03/05/08/09/13; add a hero 'now playing' panel with an animated 24 px master level meter so the page has one crafted focal surface."
+  },
+  {
+   "id": "M108-R1-05",
+   "item": 6,
+   "severity": "blocker",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "full column",
+   "problem": "No focal point: four equal-weight stacked cards; the only emphasised element (Enable sound) is the lowest-contrast element in night and vanishes after unlock; the master level meter is an empty ~12 px hairline at the very bottom.",
+   "rule": "DOD §4.2 item 6 (one obvious focal point; action -> state -> context)",
+   "fix": "Make the unlock CTA a 48 px button (Fredoka 700 1.25rem) that morphs into a status chip; move the master meter to a header panel at 24 px height with accent fill and peak hold; section headers h2 1.5rem Fredoka 600."
+  },
+  {
+   "id": "M108-R1-06",
+   "item": 2,
+   "severity": "blocker",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "sound cards, hints, toggles",
+   "problem": "At 720p JPEG q60 the 13 px card descriptions, 12 px key hints and 14 px hint line smear; state (which bed/music is active) is conveyed only by a 2 px border colour change.",
+   "rule": "DOD §4.2 item 2; SPEC §13.1.3 (>= 22 px critical text at 1080p); SPEC §13.4 small never used for information",
+   "fix": "Descriptions 0.875rem Nunito 600; active state = accent fill at 18% + check glyph, not border colour alone; status chip text >= 16 px with glyph."
+  },
+  {
+   "id": "M108-R1-07",
+   "item": 3,
+   "severity": "major",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx",
+    "apps/client/dev/audio.html"
+   ],
+   "region": "bottom 152 px at 1920x1080, all modes",
+   "problem": "html/body are transparent and the gradient lives on #audio-gallery whose min-height:100% does not resolve, leaving a pure #FFFFFF band below y=928 in every mode (glaring in night).",
+   "rule": "SPEC §13.1.1 nothing pure #FFF; SPEC §13.2 sky-top/sky-bottom",
+   "fix": "html,body{height:100%;background:var(--ui-bg)}; gallery min-height:100dvh with the sky-top->sky-bottom gradient (background-attachment: fixed)."
+  },
+  {
+   "id": "M108-R1-08",
+   "item": 9,
+   "severity": "major",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "Mix card sliders",
+   "problem": "Native <input type=range> (appearance:auto, accent-color only): OS thumb and a near-black grey track in the light modes.",
+   "rule": "DOD §4.2 item 9 (default controls = <=5); SPEC §13.1.1 no pure black",
+   "fix": "appearance:none; 8 px pill track in ui-line with accent fill; 24 px thumb with 3 px darker base border and tinted shadow; >= 44 px hit area."
+  },
+  {
+   "id": "M108-R1-09",
+   "item": 9,
+   "severity": "major",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "SFX grid, ambience/music pills",
+   "problem": "Hover, selected, last-played and focus-visible all render as the same 2 px coral border; the vote card's permanent purple border reads as a selected/focused state.",
+   "rule": "DOD §4.2 item 9 (visible states); SPEC §13.3 audience #B58AF0 reserved for audience UI",
+   "fix": "hover: translateY(-2px) + shadow, out-soft 240 ms; selected: accent 18% fill + check glyph; last played: 400 ms glow pulse then clear; focus-visible: 3 px ring offset 3 px; vote: small audience chip/glyph instead of a border."
+  },
+  {
+   "id": "M108-R1-10",
+   "item": 5,
+   "severity": "major",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "all buttons",
+   "problem": "Buttons are 44 px tall with a uniform 2 px border and no base: flat pills, not chunky toy buttons.",
+   "rule": "SPEC §13.4 buttons 48 px tall with a 3 px darker base border",
+   "fix": "height 48 px; border-bottom 3 px in the darker accent/line variant; press compresses the base to 1 px."
+  },
+  {
+   "id": "M108-R1-11",
+   "item": 8,
+   "severity": "major",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "all text",
+   "problem": "Weights/scale off-spec: Nunito 400 body and buttons, Fredoka 800 title, off-scale 13 px and 18 px sizes, ui-monospace 12 px key hints, percentages without tabular-nums.",
+   "rule": "SPEC §13.4 type scale, weights, tabular-nums",
+   "fix": "Body/buttons Nunito 600; title Fredoka 700 2rem; section heads 1.5rem; descriptions 0.875rem; key hints Nunito 700 0.75rem in a pill; font-variant-numeric: tabular-nums on level readouts."
+  },
+  {
+   "id": "M108-R1-12",
+   "item": 9,
+   "severity": "major",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "SFX grid rows",
+   "problem": "Row heights differ (75 vs 58 px); 'Piece land · rises per hop' wraps and pushes the tok title up out of line with its row; row 2 leaves two empty cells.",
+   "rule": "DOD §4.2 item 9 (consistent spacing, no misalignment); SPEC §13.4 4-pt grid",
+   "fix": "grid-auto-rows:1fr, titles top-aligned with 12 px padding, 5-column grid at >= 960 px (2 x 5), shorten the tok description."
+  },
+  {
+   "id": "M108-R1-13",
+   "item": 16,
+   "severity": "major",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "page top / pressed card",
+   "problem": "Unlocking removes the Enable sound bar and jumps all content up 60 px in one frame; press feedback is only an opacity dip that lowers text contrast, with no scale or spring.",
+   "rule": "SPEC §13.4 easing/springs; DOD §4.2 item 16 (nothing snaps)",
+   "fix": "Keep the slot and morph the bar into a status chip (out-soft 240 ms); press = scale .96 with snappy spring 520/34, release via back (.34,1.56,.64,1) 320 ms."
+  },
+  {
+   "id": "M108-R1-14",
+   "item": 4,
+   "severity": "major",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "background and cards",
+   "problem": "Mode identity is only the background gradient; rain and snow read as near-identical pale greys and no glow/shadow tokens are applied.",
+   "rule": "SPEC §13.2 per-mode glow and shadow tokens",
+   "fix": "Apply per-mode shadow/glow tokens to cards and active chips (night glow #FFB45E halo, rain shadow #3A3F55 @34%) and a mode glyph in the header chip."
+  },
+  {
+   "id": "M108-R1-15",
+   "item": 7,
+   "severity": "major",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "desktop layout",
+   "problem": "The 980 px single column leaves ~470 px dead margins each side at 1080p while the page still scrolls at 720p.",
+   "rule": "DOD §4.2 item 7 (no dead space)",
+   "fix": "Two-column desktop layout (SFX left; ambience/music/mix right) at >= 1280 px with 24 px gaps on the 4-pt grid."
+  },
+  {
+   "id": "M108-R1-16",
+   "item": 9,
+   "severity": "minor",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "Mix card, Music slider",
+   "problem": "Streamer mode moves the user's Music slider from 60% to 35%, conflating the user level with the -12 dB duck.",
+   "rule": "DOD §4.2 item 9 (clear states)",
+   "fix": "Keep the slider at the user value; show a separate '-12 dB streamer' badge and a duck indicator on the meter."
+  },
+  {
+   "id": "M108-R1-17",
+   "item": 14,
+   "severity": "minor",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "phone SFX list",
+   "problem": "At 360x800 the ten sound cards stack full width (~660 px of scroll) and keyboard hints 1-0 show on touch devices.",
+   "rule": "DOD §4.2 item 14",
+   "fix": "2-column grid below 480 px; hide kbd hints under @media (hover:none)."
+  },
+  {
+   "id": "M108-R1-18",
+   "item": 18,
+   "severity": "minor",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx",
+    "apps/client/dev/audio.html"
+   ],
+   "region": "y=928 at 1080p",
+   "problem": "Hard seam where the gradient ends and the white band begins.",
+   "rule": "DOD §4.2 item 18 (seams)",
+   "fix": "Fixed together with M108-R1-07."
+  }
+ ]
+}
