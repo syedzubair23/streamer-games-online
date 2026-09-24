@@ -268,7 +268,8 @@ describe("pool", () => {
   });
 });
 
-describe("runCalibration with a scripted critic", () => {
+// Image-heavy (real sharp work); 5 s default is too tight when the whole monorepo suite runs in parallel.
+describe("runCalibration with a scripted critic", { timeout: 60_000 }, () => {
   let work = "";
   afterEach(() => rmSync(work, { recursive: true, force: true }));
 

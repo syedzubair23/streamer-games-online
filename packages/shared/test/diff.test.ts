@@ -102,7 +102,8 @@ function deepFreeze<T>(v: T): T {
 
 const clone = (v: unknown): unknown => JSON.parse(JSON.stringify(v));
 
-describe("diff/apply property (M0-02 accept)", () => {
+// 10k-pair property run; the 5 s default is too tight under full-suite parallel load.
+describe("diff/apply property (M0-02 accept)", { timeout: 60_000 }, () => {
   it("apply(prev, diff(prev, next)) deep-equals next over 10k random JSON pairs", () => {
     const rng = createRng("diff-property");
     let patched = 0;

@@ -6,3 +6,4 @@ artifacts/
 docs/
 *.md
 progress.json
+.claude/

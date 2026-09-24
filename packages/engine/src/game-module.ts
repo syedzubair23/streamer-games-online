@@ -218,4 +218,6 @@ export function defaultOptions(specs: readonly OptionSpec[]): Record<string, unk
 export type AnyGameModule = GameModule<any, any, any, any>;
 
 /** The host commands a game may receive through `onHostCommand`. */
-export type GameHostCommand = Parameters<NonNullable<GameModule<unknown, unknown, unknown, unknown>["onHostCommand"]>>[1];
+export type GameHostCommand = Parameters<
+  NonNullable<GameModule<unknown, unknown, unknown, unknown>["onHostCommand"]>
+>[1];

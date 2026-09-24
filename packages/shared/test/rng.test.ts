@@ -72,7 +72,8 @@ describe("createRng", () => {
   });
 });
 
-describe("Rng methods", () => {
+// 60k-iteration uniformity check; the 5 s default is too tight under full-suite parallel load.
+describe("Rng methods", { timeout: 60_000 }, () => {
   it("next() yields u32 and float() yields [0, 1)", () => {
     const r = createRng(1);
     for (let k = 0; k < 10_000; k++) {

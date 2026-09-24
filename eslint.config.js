@@ -213,6 +213,7 @@ export default defineConfig(
       "**/playwright-report/**",
       "**/*.d.ts",
       "docs/**",
+      ".claude/**",
     ],
   },
   {
