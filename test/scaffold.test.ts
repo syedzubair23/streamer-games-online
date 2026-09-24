@@ -140,10 +140,6 @@ describe("root package.json (SPEC §9.1, §9.2)", () => {
  * exists but is still listed here, so this list can only shrink.
  */
 const PENDING_ENTRIES: Record<string, string> = {
-  "tools/harness/verify-game.ts": "M0-05",
-  "tools/harness/verify-item.ts": "M0-05",
-  // Not in any Files list; its inputs (shots, sheets, clips, A/B pairs) are M0-05's harness.
-  "tools/harness/critic-prep.ts": "M0-05",
   "tools/bots/src/swarm.ts": "M1-10",
 };
 

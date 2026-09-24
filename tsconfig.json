@@ -3,5 +3,5 @@
   "compilerOptions": {
     "types": ["node"]
   },
-  "include": ["test", "vitest.config.ts", "vitest.workspace.ts"]
+  "include": ["test", "vitest.config.ts", "vitest.workspace.ts", "playwright.config.ts"]
 }

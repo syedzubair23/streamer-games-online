@@ -59,3 +59,6 @@ secrets/
 *.secret.*
 .claude/settings.local.json
 /artifacts/critic/_calibration/20*.json
+# critic inputs laid out by `pnpm critic:prep` (clips, stream JPEGs) stay local like the PNGs
+/artifacts/critic/**/*.webm
+/artifacts/critic/**/*.jpg

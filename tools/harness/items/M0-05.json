@@ -1,0 +1,37 @@
+{
+  "id": "M0-05",
+  "coverage": [
+    "apps/client/src/dev/**",
+    "tools/harness/src/{browser,contrast,ffmpeg,games,image,matrix,server,spec-env}.ts",
+    "tools/harness/src/scenarios/**",
+    "tools/harness/src/verify/**",
+    "tools/harness/{ab-pairs,check-scenarios,contact-sheet,critic-prep,pixel-diff,stream-sim}.ts"
+  ],
+  "accept": [
+    {
+      "criterion": "`pnpm verify:game tictactoe` produces the screenshots, perf JSON, contact sheets and verify JSON",
+      "cmd": "pnpm verify:game tictactoe --round 1 --port 5209 --allow-red && pnpm verify:game tictactoe --round 1 --check-outputs",
+      "evidence": "a full run writes artifacts/verify/tictactoe.json at HEAD with every G-gate, the §3 still matrix, stream-sim JPEGs, clips, contact sheets (4 modes + stream + controller + snow) and artifacts/perf/tictactoe{,-gpu}.json; --check-outputs verifies each file"
+    },
+    {
+      "criterion": "Two consecutive runs produce pixel-identical PNGs (pixelmatch diff = 0 on swiftshader)",
+      "cmd": "pnpm verify:game tictactoe --only shots --round 2 --port 5209 --allow-red && pnpm exec tsx tools/harness/pixel-diff.ts artifacts/screenshots/tictactoe/round-1 artifacts/screenshots/tictactoe/round-2",
+      "evidence": "a second full still matrix (fresh build, fresh browser) compared file by file with pixelmatch threshold 0 against round 1: every PNG identical; the in-run determinism check (every stage scenario rendered twice) is required by --check-outputs"
+    },
+    {
+      "criterion": "The route waits on __SCENE_READY__ and never on a timeout",
+      "cmd": "pnpm exec vitest run --project @sg/harness tools/harness/test/scene-ready.test.ts && pnpm exec vitest run --project @sg/client apps/client/test/scenario-route.test.ts",
+      "evidence": "static checks: every spec and check-scenarios open scenarios through openScenario (waitForFunction on __SCENE_READY__/__SCENE_ERROR__, raf polling, no timeout), no waitForTimeout/setTimeout/sleep in the specs, browser helpers or route; the route sets __SCENE_READY__ only after fonts + two animation frames; route tests prove the flag and __SCENE_INFO__"
+    },
+    {
+      "criterion": "playwright.config.ts has the swiftshader (CI, determinism) and gpu (--enable-gpu --use-angle=d3d11 on Windows, gl elsewhere) projects",
+      "cmd": "pnpm exec vitest run --project @sg/harness tools/harness/test/scene-ready.test.ts -t \"playwright projects\"",
+      "evidence": "the config is imported and its projects' launch args asserted per platform"
+    },
+    {
+      "criterion": "/dev/scenario renders any registered state deterministically with no network (SPEC §14), excluded from production builds",
+      "cmd": "pnpm exec vitest run --project @sg/client && pnpm exec vitest run --project @sg/harness tools/harness/test/integration.test.ts",
+      "evidence": "route/param/shell unit tests; vite pageInputs leaves dev/scenario out of production; an integration test builds the scenario client, serves it and renders every tictactoe scenario × role with no console errors (G6), and asserts a production build contains no scenario page"
+    }
+  ]
+}
