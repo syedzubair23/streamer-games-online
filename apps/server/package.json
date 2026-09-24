@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "tsx watch src/bin.ts",
-    "build": "esbuild src/bin.ts --bundle --platform=node --target=node22 --format=esm --packages=external --sourcemap --outdir=dist",
+    "build": "esbuild src/bin.ts --bundle --platform=node --target=node22 --format=esm --external:uWebSockets.js --external:better-sqlite3 --external:ws --external:zod --external:obscenity --sourcemap --outdir=dist",
     "start": "node dist/bin.js",
     "typecheck": "tsc --noEmit -p .",
     "test": "vitest run --passWithNoTests"
