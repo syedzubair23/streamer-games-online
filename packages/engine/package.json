@@ -3,15 +3,36 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "sideEffects": false,
   "description": "Pure game runtime: GameModule/ClientModule APIs, GameRunner, timing, scenarios and the testing kit (runScript, contract suite, sim runner).",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./client": "./src/client-module.ts",
+    "./testing": "./src/testing/index.ts",
+    "./fixtures/tictactoe": "./test/fixtures/tictactoe/index.ts",
+    "./fixtures/tictactoe/client": "./test/fixtures/tictactoe/client.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p .",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "api-docs": "tsx scripts/gen-api-docs.ts"
   },
   "dependencies": {
     "@sg/shared": "workspace:*"
+  },
+  "peerDependencies": {
+    "vitest": "^5.0.1"
+  },
+  "peerDependenciesMeta": {
+    "vitest": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/three": "0.186.0",
+    "happy-dom": "^20.14.5",
+    "three": "0.186.1",
+    "typescript": "6.0.3",
+    "vitest": "^5.0.1"
   }
 }

@@ -22,6 +22,10 @@ import type { PackItemMap, PackKind } from "@sg/shared";
 
 import type { Rng, PlayerId, TeamId, AudId, GameId } from "@sg/shared";
 
+/**
+ * Static facts about a game: identity, player range, audience hooks, tick rate, session length
+ * and the 3-step how-to-play card (SPEC §9.3).
+ */
 // prettier-ignore
 export interface GameManifest {
   id: GameId; name: string; version: string;          // semver; stored in snapshots
@@ -36,6 +40,10 @@ export interface GameManifest {
   howToPlay: [string, string, string];                  // 3 steps, ≤ 60 chars each
 }
 
+/**
+ * One host option. The options form is generated from these specs and the runner resolves host
+ * input against them (`resolveOptions`).
+ */
 // prettier-ignore
 export type OptionSpec =
   | { kind: "int"; key: string; label: string; min: number; max: number; step?: number; default: number }
@@ -44,6 +52,11 @@ export type OptionSpec =
   | { kind: "seconds"; key: string; label: string; min: number; max: number; default: number }
   | { kind: "pack"; key: string; label: string; packKind: PackKind; multi: boolean; default: string[] };
 
+/**
+ * `ctx.timing`: turns base durations into deadline lengths. `input` for player/audience input
+ * windows (scaled, plus stream delay, `null` at timerScale 0); `pace` for reveals and readouts
+ * (never scaled).
+ */
 // prettier-ignore
 export interface Timing {
   /** Player/audience input window: base × timerScale + streamDelay. Returns null when timerScale = 0 (no timer). */
@@ -52,9 +65,17 @@ export interface Timing {
   pace(baseMs: number): number;
 }
 
+/**
+ * A seated participant: room player id, display name, seat index, optional team and identity
+ * colour slot (0..7).
+ */
 // prettier-ignore
 export interface Seat { id: PlayerId; name: string; seat: number; teamId?: TeamId; colorSlot: number /*0..7*/ }
 
+/**
+ * What `setup` receives: seats, teams, resolved options, the seeded rng, the clock, timing,
+ * server-only content access and the audience size.
+ */
 // prettier-ignore
 export interface SetupContext<O> {
   players: Seat[]; teams: { id: TeamId; name: string; colorSlot: number }[];
@@ -62,14 +83,29 @@ export interface SetupContext<O> {
   content: ContentAccess;          // server-only pack access (sync, pre-loaded); returns [] in client scenarios unless fixture given
   audienceCount: number;
 }
+/**
+ * What every reducer receives: the seeded rng, the (game) clock, timing and the audience size.
+ * The only sources of randomness and time in logic.
+ */
 // prettier-ignore
 export interface Ctx { rng: Rng; now: number; timing: Timing; audienceCount: number }
+/**
+ * The `onAction` context: {@link Ctx} plus the acting seat (or host / moderator) and its team.
+ */
 // prettier-ignore
 export interface ActionCtx extends Ctx { actor: { id: PlayerId; role: "player" | "host" | "moderator"; teamId?: TeamId } }
 
+/**
+ * A reducer result: the next state plus effects for the runner and the platform.
+ */
 // prettier-ignore
 export interface Step<S> { state: S; effects?: Effect[] }
 
+/**
+ * Side-effect requests from a reducer. The runner applies `timer.*`, `score` and `end` (and
+ * holds early `audience.close`s for the minimum audience window); every other effect goes to the
+ * platform.
+ */
 // prettier-ignore
 export type Effect =
   | { type: "timer.set"; id: string; atMs: number }
@@ -87,6 +123,10 @@ export type Effect =
   | { type: "audience.award"; points: Record<AudId, number> }         // direct play-along points (marble-rally race results)
   | { type: "end"; result: GameResult };
 
+/**
+ * An audience poll the game opens with `audience.open` (SPEC §4). `accept` is a server-side
+ * secret and is never broadcast.
+ */
 // prettier-ignore
 export interface PollSpec {
   pollId: string; kind: "vote" | "predict" | "quiz" | "dial" | "guess" | "tap";
@@ -98,6 +138,10 @@ export interface PollSpec {
   hideLive?: boolean;              // broadcast answered-count only until close (§4)
   closeOn?: "deadline" | "event";  // "event": closed by the game via audience.close; exempt from stream delay (§4)
 }
+/**
+ * The aggregate result of a closed poll, delivered to `onAudienceResult`. Games never see
+ * individual votes.
+ */
 // prettier-ignore
 export interface PollResult {
   pollId: string; kind: PollSpec["kind"]; total: number;
@@ -106,12 +150,19 @@ export interface PollResult {
   mean?: number;                             // dial
   firstCorrect?: { audId: AudId; name: string }[]; // guess
 }
+/**
+ * The final ranking (feeds Night Champion placement points) and optional highlights.
+ */
 // prettier-ignore
 export interface GameResult {
   ranking: { id: PlayerId | TeamId; score: number; place: number }[];
   highlights?: { label: string; playerId?: PlayerId; audId?: AudId }[];
 }
 
+/**
+ * Who a view is for. One view is computed per distinct key per step; `stage` is broadcast-safe
+ * and never contains secrets.
+ */
 // prettier-ignore
 export type ViewerKey =
   | { role: "player"; id: PlayerId }
@@ -120,6 +171,10 @@ export type ViewerKey =
   | { role: "host" }         // stage + host-only info (moderation previews, pending counts); never player secrets. Delivered ONLY to the host panel pop-out, never to the Stage window (§2)
   | { role: "moderator" };
 
+/**
+ * The pure game logic contract every game implements (SPEC §9.3). `view()` is the security
+ * boundary; `onAction` never throws; `bot()` is required.
+ */
 // prettier-ignore
 export interface GameModule<S, A, O, V> {
   manifest: GameManifest;
@@ -209,6 +264,51 @@ export function defaultOptions(specs: readonly OptionSpec[]): Record<string, unk
   const out: Record<string, unknown> = {};
   for (const spec of specs) {
     out[spec.key] = Array.isArray(spec.default) ? [...spec.default] : spec.default;
+  }
+  return out;
+}
+
+/**
+ * Resolves host options against a game's `optionSpecs`: every spec key gets a valid value.
+ * Missing or invalid values fall back to the spec default; numbers are clamped to
+ * `[min, max]` (and snapped to `step` for `int`, whole seconds for `seconds`); enums must be
+ * one of their choices; packs must be string arrays (one id when `multi` is false). Keys that
+ * no spec declares are dropped.
+ */
+export function resolveOptions(
+  specs: readonly OptionSpec[],
+  input: Readonly<Record<string, unknown>>,
+): Record<string, unknown> {
+  const out = defaultOptions(specs);
+  for (const spec of specs) {
+    if (!Object.hasOwn(input, spec.key)) continue;
+    const value = input[spec.key];
+    switch (spec.kind) {
+      case "int":
+      case "seconds": {
+        if (typeof value !== "number" || !Number.isFinite(value)) break;
+        const clamped = Math.min(spec.max, Math.max(spec.min, value));
+        const step = spec.kind === "int" ? (spec.step ?? 1) : 1;
+        const snapped = spec.min + Math.round((clamped - spec.min) / step) * step;
+        out[spec.key] = Math.min(spec.max, snapped);
+        break;
+      }
+      case "bool":
+        if (typeof value === "boolean") out[spec.key] = value;
+        break;
+      case "enum":
+        if (typeof value === "string" && spec.choices.some((c) => c.value === value)) {
+          out[spec.key] = value;
+        }
+        break;
+      case "pack": {
+        if (!Array.isArray(value) || value.length === 0) break;
+        if (!value.every((v): v is string => typeof v === "string" && v.length > 0)) break;
+        const ids = [...new Set(value)];
+        out[spec.key] = spec.multi ? ids : ids.slice(0, 1);
+        break;
+      }
+    }
   }
   return out;
 }
