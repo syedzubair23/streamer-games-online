@@ -1,0 +1,13 @@
+packages:
+  - packages/*
+  - packages/games/*
+  - apps/*
+  - tools/*
+allowBuilds:
+  better-sqlite3: false
+  esbuild: true
+  unrs-resolver: true
+minimumReleaseAgeExclude:
+  - lucide@1.48.0
+  - three@0.186.1
+  - vite@8.3.1

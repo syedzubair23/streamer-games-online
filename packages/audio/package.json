@@ -1,0 +1,17 @@
+{
+  "name": "@sg/audio",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Synthesised, stream-safe audio: SFX recipes, pentatonic quantiser, ambience beds, generative lofi, buses and ducking.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@sg/shared": "workspace:*"
+  }
+}

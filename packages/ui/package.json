@@ -1,0 +1,27 @@
+{
+  "name": "@sg/ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Cozy Table design system: tokens, Preact component kit, HUD layout, transitions, fonts and icons.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@fontsource-variable/fredoka": "^5.3.0",
+    "@fontsource-variable/nunito": "^5.3.0",
+    "@fontsource/caveat": "^5.3.0",
+    "@preact/signals": "^2.11.2",
+    "@sg/shared": "workspace:*",
+    "lucide": "^1.48.0",
+    "preact": "^10.29.8",
+    "qrcode-generator": "^2.0.4"
+  },
+  "devDependencies": {
+    "happy-dom": "^20.14.5"
+  }
+}

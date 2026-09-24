@@ -1,0 +1,29 @@
+{
+  "name": "@sg/game-trivia-night",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Game module for trivia-night: pure logic, bot, scenarios, content loaders and stage/controller clients.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@preact/signals": "^2.11.2",
+    "@sg/audio": "workspace:*",
+    "@sg/engine": "workspace:*",
+    "@sg/render": "workspace:*",
+    "@sg/shared": "workspace:*",
+    "@sg/ui": "workspace:*",
+    "preact": "^10.29.8",
+    "three": "0.186.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/three": "0.186.0",
+    "happy-dom": "^20.14.5"
+  }
+}

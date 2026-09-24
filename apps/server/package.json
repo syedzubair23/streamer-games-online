@@ -1,0 +1,37 @@
+{
+  "name": "@sg/server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Authoritative game server: uWebSockets.js/ws transports, sessions, room actors, audience aggregation, moderation and storage.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "dev": "tsx watch src/bin.ts",
+    "build": "esbuild src/bin.ts --bundle --platform=node --target=node22 --format=esm --packages=external --sourcemap --outdir=dist",
+    "start": "node dist/bin.js",
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@sg/engine": "workspace:*",
+    "@sg/game-chess": "workspace:*",
+    "@sg/game-doodle": "workspace:*",
+    "@sg/game-ludo": "workspace:*",
+    "@sg/game-marble-rally": "workspace:*",
+    "@sg/game-odd-one-out": "workspace:*",
+    "@sg/game-quip-clash": "workspace:*",
+    "@sg/game-trivia-night": "workspace:*",
+    "@sg/game-tune-in": "workspace:*",
+    "@sg/shared": "workspace:*",
+    "better-sqlite3": "^13.0.3",
+    "obscenity": "^0.4.6",
+    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.71.0",
+    "ws": "^8.21.3",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.1"
+  }
+}

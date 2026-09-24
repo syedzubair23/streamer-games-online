@@ -1,0 +1,34 @@
+{
+  "name": "@sg/harness",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Dev harness: progress tooling, verify-game/verify-item, Playwright screenshot/clip/perf/a11y specs, contact sheets, stream-sim and A/B pairs.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@sg/engine": "workspace:*",
+    "@sg/game-chess": "workspace:*",
+    "@sg/game-doodle": "workspace:*",
+    "@sg/game-ludo": "workspace:*",
+    "@sg/game-marble-rally": "workspace:*",
+    "@sg/game-odd-one-out": "workspace:*",
+    "@sg/game-quip-clash": "workspace:*",
+    "@sg/game-trivia-night": "workspace:*",
+    "@sg/game-tune-in": "workspace:*",
+    "@sg/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.63.0",
+    "@types/pngjs": "^6.0.5",
+    "pixelmatch": "^7.2.0",
+    "pngjs": "^7.0.0",
+    "sharp": "^0.35.4"
+  }
+}

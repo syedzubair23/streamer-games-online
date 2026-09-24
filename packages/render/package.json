@@ -1,0 +1,21 @@
+{
+  "name": "@sg/render",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "three.js render kit: renderer, on-demand loop, quality tiers, the only material and procedural texture factories, Cozy Table diorama, FX and ambient modes.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@sg/shared": "workspace:*",
+    "three": "0.186.1"
+  },
+  "devDependencies": {
+    "@types/three": "0.186.0"
+  }
+}

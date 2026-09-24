@@ -1,0 +1,38 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# build output
+dist/
+dist-ssr/
+*.tsbuildinfo
+.vite/
+coverage/
+
+# harness output: everything under artifacts/ is regenerated, except critic reports
+/artifacts/*
+!/artifacts/critic/
+
+# playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# local data
+*.sqlite
+*.sqlite-journal
+*.db
+.env
+.env.*
+!.env.example
+
+# logs and OS/editor noise
+*.log
+npm-debug.log*
+pnpm-debug.log*
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

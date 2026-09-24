@@ -1,0 +1,52 @@
+{
+  "name": "streamer-games-online",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Cozy browser party games for streamers: a Stage on stream, phones as controllers, the audience as part of every game.",
+  "packageManager": "pnpm@12.4.1",
+  "engines": {
+    "node": ">=22.12 <25"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n server,client -c auto \"pnpm --filter @sg/server dev\" \"pnpm --filter @sg/client dev\"",
+    "build": "pnpm -r --if-present build",
+    "start": "pnpm --filter @sg/server start",
+    "preview": "pnpm --filter @sg/client preview",
+    "typecheck": "tsc --noEmit -p tsconfig.json && pnpm -r --workspace-concurrency=4 typecheck",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "size": "size-limit",
+    "verify:game": "tsx tools/harness/verify-game.ts",
+    "verify:item": "tsx tools/harness/verify-item.ts",
+    "shots": "tsx tools/harness/verify-game.ts --only shots",
+    "perf:game": "tsx tools/harness/verify-game.ts --only perf",
+    "critic:prep": "tsx tools/harness/critic-prep.ts",
+    "bots": "tsx tools/bots/src/swarm.ts",
+    "progress": "tsx tools/harness/progress.ts"
+  },
+  "devDependencies": {
+    "@eslint-community/eslint-plugin-eslint-comments": "^4.8.1",
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.63.0",
+    "@size-limit/esbuild": "^14.0.0",
+    "@size-limit/file": "^14.0.0",
+    "@types/node": "^22.20.4",
+    "@vitest/coverage-v8": "^5.0.1",
+    "concurrently": "^10.0.5",
+    "esbuild": "^0.28.2",
+    "eslint": "^10.11.0",
+    "eslint-import-resolver-typescript": "^4.4.5",
+    "eslint-plugin-boundaries": "^7.2.0",
+    "globals": "^17.12.0",
+    "prettier": "^3.9.9",
+    "size-limit": "^14.0.0",
+    "tsx": "^4.23.15",
+    "typescript": "6.0.3",
+    "typescript-eslint": "^8.70.1",
+    "vitest": "^5.0.1"
+  }
+}

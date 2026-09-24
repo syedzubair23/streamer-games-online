@@ -1,0 +1,42 @@
+{
+  "name": "@sg/client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Browser client: Stage and controller entry points, shell routes, lazy game registry and the /dev scenario route.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@preact/signals": "^2.11.2",
+    "@sg/audio": "workspace:*",
+    "@sg/engine": "workspace:*",
+    "@sg/game-chess": "workspace:*",
+    "@sg/game-doodle": "workspace:*",
+    "@sg/game-ludo": "workspace:*",
+    "@sg/game-marble-rally": "workspace:*",
+    "@sg/game-odd-one-out": "workspace:*",
+    "@sg/game-quip-clash": "workspace:*",
+    "@sg/game-trivia-night": "workspace:*",
+    "@sg/game-tune-in": "workspace:*",
+    "@sg/render": "workspace:*",
+    "@sg/shared": "workspace:*",
+    "@sg/ui": "workspace:*",
+    "preact": "^10.29.8",
+    "three": "0.186.1"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.6",
+    "@types/three": "0.186.0",
+    "happy-dom": "^20.14.5",
+    "vite": "^8.3.1",
+    "vite-plugin-pwa": "^1.3.0"
+  }
+}

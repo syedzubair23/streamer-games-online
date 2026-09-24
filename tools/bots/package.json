@@ -1,0 +1,21 @@
+{
+  "name": "@sg/bots",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Headless bot swarm: N players and M audience members against a real server, with latency and egress reports.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@sg/shared": "workspace:*",
+    "ws": "^8.21.3"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.1"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "@sg/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared types and utilities: protocol, room, ids, sfc32 RNG, JSON diff/patch, codecs, text normalisation and filtering, content schemas.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "obscenity": "^0.4.6",
+    "zod": "^4.6.5"
+  }
+}
