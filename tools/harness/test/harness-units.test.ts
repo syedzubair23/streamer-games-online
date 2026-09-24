@@ -1,8 +1,15 @@
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import sharp from "sharp";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { seededPick } from "../ab-pairs.ts";
 import { criticPrep } from "../critic-prep.ts";
 import { collectErrors, openScenario } from "../src/browser.ts";
@@ -22,11 +29,30 @@ import {
   shotFile,
   shotPath,
 } from "../src/matrix.ts";
-import { readManifest, type ScenarioManifest } from "../src/scenarios/manifest.ts";
+import { gameTarget } from "../src/games.ts";
+import {
+  buildManifest,
+  loadRegistry,
+  readManifest,
+  type ScenarioManifest,
+} from "../src/scenarios/manifest.ts";
+import { parseGameSpec } from "../src/scenarios/spec.ts";
 import { specEnv, writeJson } from "../src/spec-env.ts";
 
 const ROOT = resolve(import.meta.dirname, "..", "..", "..");
 const tmp = (): string => mkdtempSync(join(tmpdir(), "sg-units-"));
+
+// A private root holding a freshly built tictactoe manifest, so these tests never depend on
+// (or race another test file over) the untracked artifacts/scenarios/tictactoe.json in the repo.
+let MROOT = "";
+beforeAll(async () => {
+  MROOT = tmp();
+  const t = gameTarget(ROOT, "tictactoe");
+  const spec = parseGameSpec(readFileSync(join(ROOT, t.spec), "utf8"));
+  const m = buildManifest(t, spec, await loadRegistry(ROOT, t));
+  mkdirSync(join(MROOT, "artifacts/scenarios"), { recursive: true });
+  writeFileSync(join(MROOT, "artifacts/scenarios/tictactoe.json"), JSON.stringify(m));
+});
 
 const scenario = (
   id: string,
@@ -47,7 +73,7 @@ const scenario = (
 
 describe("the DOD §3 matrix", () => {
   it("counts the tictactoe matrix: 4 stage states × 4 modes × 3 viewports, phone roles × 2 modes, snow", () => {
-    const m = readManifest(ROOT, "tictactoe");
+    const m = readManifest(MROOT, "tictactoe");
     const shots = screenshotMatrix(m);
     expect(shots.filter((s) => s.set === "stage")).toHaveLength(48);
     expect(shots.filter((s) => s.set === "controller")).toHaveLength(8);
@@ -121,7 +147,7 @@ describe("the DOD §3 matrix", () => {
       reduced: "1",
       ambient: "1",
     });
-    const shot = screenshotMatrix(readManifest(ROOT, "tictactoe"))[0]!;
+    const shot = screenshotMatrix(readManifest(MROOT, "tictactoe"))[0]!;
     expect(shotPath("tictactoe", shot)).toBe(
       "/dev/scenario?game=tictactoe&state=intro&mode=day&seed=3&quality=low&vp=360x800&role=stage&freeze=1",
     );
@@ -132,7 +158,7 @@ describe("spec environment", () => {
   it("reads SG_GAME / SG_ROUND and the manifest; writes JSON artifacts", () => {
     expect(() => specEnv({})).toThrow(/set SG_GAME/);
     expect(() => specEnv({ SG_GAME: "tictactoe", SG_ROUND: "../x" })).toThrow(/bad SG_ROUND/);
-    const env = specEnv({ SG_GAME: "tictactoe" }, ROOT);
+    const env = specEnv({ SG_GAME: "tictactoe" }, MROOT);
     expect(env.round).toBe("1");
     expect(env.manifest.game).toBe("tictactoe");
     expect(() => specEnv({ SG_GAME: "ludo" }, tmp())).toThrow(
