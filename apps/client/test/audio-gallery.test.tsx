@@ -12,10 +12,12 @@ import {
   HOP_WINDOW_MS,
   SFX_ROLES,
   galleryVars,
+  onAccentInk,
   mountAudioGallery,
   parseGalleryMode,
 } from "../src/dev/audio-gallery.tsx";
-import { tokensFor } from "../src/dev/placeholder-theme.ts";
+import { contrastRatio, tokensFor } from "../src/dev/placeholder-theme.ts";
+import { AMBIENT_MODES } from "@sg/shared";
 
 const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
 
@@ -64,6 +66,49 @@ describe("/dev/audio gallery (ROADMAP M1-08)", () => {
     const v = galleryVars("night");
     expect(v["--bg"]).toBe(tokensFor("night").mode.uiBg);
     expect(v["--audience"]).toBe(tokensFor("night").semantic.audience);
+  });
+
+  it("labels on the accent fill (the Enable sound CTA) meet 4.5:1 in every mode", () => {
+    for (const mode of AMBIENT_MODES) {
+      const ink = onAccentInk(mode);
+      expect(galleryVars(mode)["--on-accent"]).toBe(ink);
+      expect(contrastRatio(ink, tokensFor(mode).mode.accent)).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
+  it("tints the whole page background from the mode and clears it on unmount", async () => {
+    const { q } = await mount("?mode=night");
+    const rootStyle = document.documentElement.style;
+    expect(rootStyle.getPropertyValue("--bg")).toBe(tokensFor("night").mode.uiBg);
+    q("mode-snow").click();
+    await tick();
+    expect(rootStyle.getPropertyValue("--bg")).toBe(tokensFor("snow").mode.uiBg);
+    unmount?.();
+    unmount = null;
+    await tick();
+    expect(rootStyle.getPropertyValue("--bg")).toBe("");
+  });
+
+  it("the CTA becomes a status chip after unlock and the duck shows as its own indicator", async () => {
+    const { root, audio, q } = await mount();
+    expect(root.querySelector("[data-testid=duck-state]")).toBeNull();
+    q("unlock").click();
+    await tick();
+    await tick();
+    expect(q("sound-on").textContent).toContain("Sound on");
+    q("streamer").click();
+    await tick();
+    expect(q("duck-state").textContent).toBe("Music ducked −12 dB");
+    q("streamer").click();
+    await tick();
+    expect(root.querySelector("[data-testid=duck-state]")).toBeNull();
+    q("duck").dispatchEvent(new Event("pointerdown"));
+    await tick();
+    expect(q("duck-state").textContent).toBe("Music ducked −4 dB");
+    q("duck").dispatchEvent(new Event("pointerup"));
+    await tick();
+    expect(root.querySelector("[data-testid=duck-state]")).toBeNull();
+    expect(audio.buses?.duckDb).toBe(0);
   });
 
   it("shows the stream-safe label, every sound and every mode; nothing sounds before unlock", async () => {

@@ -120,7 +120,8 @@ describe("lofi player", () => {
         ?.frequency.targets()[0];
     expect(bassAt(0.05)).toBeCloseTo(noteFreq(CHORD_SETS[plan.order[0]!]![0].root), 6);
     expect(bassAt(0.05 + barS * 2)).toBeCloseTo(noteFreq("C2"), 6);
-    // Hat on the swung off-beat of beat 1.
+    // A kick (oscillator with an exponential pitch sweep) lands on the swung position 2 + SWING
+    // beats into the bar.
     const kickTimes = ctx
       .of(FakeOscillator)
       .filter((o) => o.frequency.events.some((e) => e.type === "exp"))
