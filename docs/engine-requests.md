@@ -35,3 +35,13 @@ Rules:
 - **Proposed API:** none; use `role="group"` with `aria-label="Board"` (or add rows and gridcells).
 - **Local stub:** none needed; the gate reports it.
 - **Resolution:**
+
+### ER-002 Room settings in SetupContext (moderation, content filter, audienceMin)
+- **From:** M2-01 (quip-clash builder)
+- **Package:** @sg/engine (`packages/engine/src/game-module.ts`, `runner.ts`)
+- **Status:** open
+- **Need:** game logic must know `RoomConfig.moderation`, `contentFilter` and `audienceMin`; `SetupContext` carries none of them.
+- **Why:** `docs/specs/quip-clash.md` R3 (`filterText` at the room's level), R7 (`poll.total ≥ audienceMin`), R13 (`moderation = reveal-review`); Doodle needs the same.
+- **Proposed API:** `SetupContext.room: Pick<RoomConfig, "contentFilter" | "moderation" | "audienceMin">`, filled by `GameRunner` from a new `RunnerOptions.room` (default `DEFAULT_ROOM_CONFIG`).
+- **Local stub:** `packages/games/quip-clash/src/logic/room.ts` reads an optional `ctx.room`; `createQuipClash(room)` pins the settings meanwhile.
+- **Resolution:**

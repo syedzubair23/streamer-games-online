@@ -211,3 +211,12 @@ Pack item: `{ id, text: "The worst thing to hear from your dentist: ___", safety
 
 ## Builder notes
 (Builder-owned, 20 lines or fewer.)
+- Votes name answer **slots** (`A`/`B`; Last Quip `c1..c8`), not author ids: the views table hides authorship until `results`.
+- Stage/audience see vote **counts** only (`votesCast`/`votersEligible`) and ballots from `results`; who may vote would reveal the authors.
+- Room settings (`moderation`, `contentFilter`, `audienceMin`) come from `ctx.room` (ER-002) or `createQuipClash(room)`; default room otherwise.
+- Safety lines are drawn without replacement per prompt (an overwritten one goes back). In Last Quip with more than 3 takers Safety is unavailable, and a rejected answer with no line left is blank. Safety quips skip review (curated content).
+- After the players' vote ends the game waits up to 15 s for the audience result (the runner holds early closes), then scores without chat.
+- Too few prompts: stays in `intro` with `error` and no timer; `forceAdvance` ends it with an empty ranking. `skipItem` is unused.
+- R14 safety fill is done by the game (timer 10 s before the deadline); `bot()` returns null for away seats.
+- Scenarios are "as of" `SCENARIO_NOW`; live tallies come as `audience-tally` fx. `midgame` (= voting) is the G8a perf scenario.
+- **G14 conflict (for M2-05):** timed-bot medians are 6.1 / 8.8 / 10.6 min at 3 / 6 / 8 players against `estMinutes [12, 15]`; even with every window used in full a 3-player game lasts about 8.7 min. Idle gaps pass (audience 9.5 s, player 11.7 s). Needs a spec decision.
