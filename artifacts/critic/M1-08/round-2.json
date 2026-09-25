@@ -1,0 +1,543 @@
+{
+ "game": "M1-08",
+ "round": 2,
+ "critic": "fresh-visual-critic-r2",
+ "pass": false,
+ "note": "Advisory for M1-08 (DOD §1 P6 lists only M1-05, M1-07, M1-09 and M10-01 as visual items). Scored surface: the /dev/audio gallery, 5 modes x 3 viewports, stream-sim dusk/night (1920 -> 1280 JPEG q60, same settings as tools/harness/stream-sim.ts), hover/press/focus/unlock/duck/streamer/mode-switch frame sequences, phone with reduced motion. No console errors or warnings. Golden A/B skipped (no _style/golden yet); external A/B 0/6. Clip item 12 n/a (no ambient scene). Motion judged from 50-120 ms frame sequences plus computed transitions (mode palette crossfades over ~2 s; press uses back easing; reduced motion removes transitions); webm frame extraction was unavailable (no ffmpeg). Round-1 fixes verified: Fredoka/Nunito variable fonts load, night CTA 9.3:1, no white band below the gradient, unlock no longer shifts layout, custom sliders, duck indicator. R1-16 disputed (research 03 §8: streamer mode defaults music to 35%).",
+ "ab": [
+  {
+   "pair": "pair-01",
+   "choice": "A",
+   "why": "A is a crafted clay party-game frame with bold, deliberate type; B is a clean but generic settings page."
+  },
+  {
+   "pair": "pair-02",
+   "choice": "A",
+   "why": "A is a lit, painterly world with a unified dusk palette; B is dark UI cards with no material or world."
+  },
+  {
+   "pair": "pair-03",
+   "choice": "A",
+   "why": "A is a cohesive toy-like diorama; B is flat web chrome on a gradient."
+  },
+  {
+   "pair": "pair-04",
+   "choice": "B",
+   "why": "B is a rich, deliberate pixel-art room; A is a pale control panel."
+  },
+  {
+   "pair": "pair-05",
+   "choice": "B",
+   "why": "B has a harmonised palette and a strong form language; A is a tidy but template-like UI."
+  },
+  {
+   "pair": "pair-06",
+   "choice": "B",
+   "why": "B is crafted pixel art with clear art direction; A is a settings page."
+  }
+ ],
+ "scores": {
+  "day/1920x1080": {
+   "1": 7,
+   "2": 7,
+   "3": 7.5,
+   "4": 7,
+   "5": 8,
+   "6": 7.5,
+   "7": 7,
+   "8": 7.5,
+   "9": 7.3,
+   "10": null,
+   "11": 6.5,
+   "12": null,
+   "13": null,
+   "14": null,
+   "15": 6.5,
+   "16": null,
+   "17": null,
+   "18": 8
+  },
+  "day/1280x720": {
+   "1": 7,
+   "2": 7,
+   "3": 7.5,
+   "4": 7,
+   "5": 8,
+   "6": 7.5,
+   "7": 7,
+   "8": 7,
+   "9": 7,
+   "10": null,
+   "11": 6.5,
+   "12": null,
+   "13": null,
+   "14": null,
+   "15": 6.5,
+   "16": null,
+   "17": null,
+   "18": 7.5
+  },
+  "day/360x800": {
+   "1": 7,
+   "2": 7,
+   "3": 7.5,
+   "4": 7,
+   "5": 8,
+   "6": 7.5,
+   "7": 7.5,
+   "8": 7.5,
+   "9": 7.3,
+   "10": null,
+   "11": 6.5,
+   "12": null,
+   "13": null,
+   "14": 7.5,
+   "15": 6.5,
+   "16": null,
+   "17": null,
+   "18": 8
+  },
+  "dusk/1920x1080": {
+   "1": 7,
+   "2": 7,
+   "3": 8,
+   "4": 7,
+   "5": 8,
+   "6": 7.5,
+   "7": 7,
+   "8": 7.5,
+   "9": 7.3,
+   "10": null,
+   "11": 6.5,
+   "12": null,
+   "13": null,
+   "14": null,
+   "15": 6.5,
+   "16": null,
+   "17": null,
+   "18": 8
+  },
+  "dusk/1280x720": {
+   "1": 7,
+   "2": 7,
+   "3": 8,
+   "4": 7,
+   "5": 8,
+   "6": 7.5,
+   "7": 7,
+   "8": 7,
+   "9": 7,
+   "10": null,
+   "11": 6.5,
+   "12": null,
+   "13": null,
+   "14": null,
+   "15": 6.5,
+   "16": null,
+   "17": null,
+   "18": 7.5
+  },
+  "dusk/360x800": {
+   "1": 7,
+   "2": 7,
+   "3": 8,
+   "4": 7,
+   "5": 8,
+   "6": 7.5,
+   "7": 7.5,
+   "8": 7.5,
+   "9": 7.3,
+   "10": null,
+   "11": 6.5,
+   "12": null,
+   "13": null,
+   "14": 7.5,
+   "15": 6.5,
+   "16": null,
+   "17": null,
+   "18": 8
+  },
+  "night/1920x1080": {
+   "1": 7,
+   "2": 7,
+   "3": 8,
+   "4": 7,
+   "5": 8,
+   "6": 7.5,
+   "7": 7,
+   "8": 7.5,
+   "9": 7.3,
+   "10": null,
+   "11": 8,
+   "12": null,
+   "13": null,
+   "14": null,
+   "15": 6.5,
+   "16": null,
+   "17": null,
+   "18": 8
+  },
+  "night/1280x720": {
+   "1": 7,
+   "2": 7,
+   "3": 8,
+   "4": 7,
+   "5": 8,
+   "6": 7.5,
+   "7": 7,
+   "8": 7,
+   "9": 7,
+   "10": null,
+   "11": 8,
+   "12": null,
+   "13": null,
+   "14": null,
+   "15": 6.5,
+   "16": null,
+   "17": null,
+   "18": 7.5
+  },
+  "night/360x800": {
+   "1": 7,
+   "2": 7,
+   "3": 8,
+   "4": 7,
+   "5": 8,
+   "6": 7.5,
+   "7": 7.5,
+   "8": 7.5,
+   "9": 7.3,
+   "10": null,
+   "11": 8,
+   "12": null,
+   "13": null,
+   "14": 7.5,
+   "15": 6.5,
+   "16": null,
+   "17": null,
+   "18": 8
+  },
+  "rain/1920x1080": {
+   "1": 7,
+   "2": 7,
+   "3": 7.5,
+   "4": 6.8,
+   "5": 8,
+   "6": 7.5,
+   "7": 7,
+   "8": 7.5,
+   "9": 7.3,
+   "10": null,
+   "11": 6.5,
+   "12": null,
+   "13": null,
+   "14": null,
+   "15": 6.5,
+   "16": null,
+   "17": null,
+   "18": 8
+  },
+  "rain/1280x720": {
+   "1": 7,
+   "2": 7,
+   "3": 7.5,
+   "4": 6.8,
+   "5": 8,
+   "6": 7.5,
+   "7": 7,
+   "8": 7,
+   "9": 7,
+   "10": null,
+   "11": 6.5,
+   "12": null,
+   "13": null,
+   "14": null,
+   "15": 6.5,
+   "16": null,
+   "17": null,
+   "18": 7.5
+  },
+  "rain/360x800": {
+   "1": 7,
+   "2": 7,
+   "3": 7.5,
+   "4": 6.8,
+   "5": 8,
+   "6": 7.5,
+   "7": 7.5,
+   "8": 7.5,
+   "9": 7.3,
+   "10": null,
+   "11": 6.5,
+   "12": null,
+   "13": null,
+   "14": 7.5,
+   "15": 6.5,
+   "16": null,
+   "17": null,
+   "18": 8
+  },
+  "snow/1920x1080": {
+   "1": 7,
+   "2": 7,
+   "3": 7.5,
+   "4": 6.8,
+   "5": 8,
+   "6": 7.5,
+   "7": 7,
+   "8": 7.5,
+   "9": 7.3,
+   "10": null,
+   "11": 6.5,
+   "12": null,
+   "13": null,
+   "14": null,
+   "15": 6.5,
+   "16": null,
+   "17": null,
+   "18": 8
+  },
+  "snow/1280x720": {
+   "1": 7,
+   "2": 7,
+   "3": 7.5,
+   "4": 6.8,
+   "5": 8,
+   "6": 7.5,
+   "7": 7,
+   "8": 7,
+   "9": 7,
+   "10": null,
+   "11": 6.5,
+   "12": null,
+   "13": null,
+   "14": null,
+   "15": 6.5,
+   "16": null,
+   "17": null,
+   "18": 7.5
+  },
+  "snow/360x800": {
+   "1": 7,
+   "2": 7,
+   "3": 7.5,
+   "4": 6.8,
+   "5": 8,
+   "6": 7.5,
+   "7": 7.5,
+   "8": 7.5,
+   "9": 7.3,
+   "10": null,
+   "11": 6.5,
+   "12": null,
+   "13": null,
+   "14": 7.5,
+   "15": 6.5,
+   "16": null,
+   "17": null,
+   "18": 8
+  },
+  "stream/dusk": {
+   "1": 7,
+   "2": 7,
+   "3": 8,
+   "4": 7,
+   "5": 8,
+   "6": 7.5,
+   "7": 7,
+   "8": 7.5,
+   "9": 7.3,
+   "10": null,
+   "11": 6.5,
+   "12": null,
+   "13": null,
+   "14": null,
+   "15": 6.5,
+   "16": null,
+   "17": null,
+   "18": 8
+  },
+  "stream/night": {
+   "1": 7,
+   "2": 7,
+   "3": 8,
+   "4": 7,
+   "5": 8,
+   "6": 7.5,
+   "7": 7,
+   "8": 7.5,
+   "9": 7.3,
+   "10": null,
+   "11": 8,
+   "12": null,
+   "13": null,
+   "14": null,
+   "15": 6.5,
+   "16": null,
+   "17": null,
+   "18": 8
+  }
+ },
+ "clipScores": {
+  "16": 7
+ },
+ "minScore": 6.5,
+ "issues": [
+  {
+   "id": "M108-R2-01",
+   "item": 1,
+   "severity": "blocker",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "whole page",
+   "problem": "Big step up from round 1 (real fonts, token surfaces, 3 px base borders, tinted card shadows), but it still reads as a tidy web settings page: flat translucent cards on a sky gradient, no paper/wood/clay material, no object or illustration that puts the page in the Cozy Table world. Lost the external-reference blind A/B 6/6 (0%, bar 30%).",
+   "rule": "DOD §4.2 item 1; SPEC §13.1 'Soft, not flat', 'Toy-real'; DOD §4.3.4 external A/B >= 30%",
+   "fix": "Give the page one material anchor: a paper-grain card surface (SPEC §13.6 paper texture as a 6% multiply overlay, token paper #FBF5EA tint) and a small procedural hero object in the Now-playing panel (e.g. a clay radio drawn with the ui tokens, 96 px, blob shadow in the mode shadow token) so the page belongs to the same world as the Stage."
+  },
+  {
+   "id": "M108-R2-02",
+   "item": 2,
+   "severity": "blocker",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "sound tiles and card sub-labels, stream/dusk + stream/night",
+   "problem": "On the 720p q60 stream-sim the tile sub-labels (Nunito 14 px at 1080p, ~9 px on stream), the 12 px key badges and the 14 px footnote/hint smear; only titles and the CTA read in 1 s. The last-played state is not shown on the tile itself.",
+   "rule": "DOD §4.2 item 2 (critical text >= 22 px at 1080p); SPEC §13.4 'small is never used for gameplay information'",
+   "fix": "At >= 1280 px widths set tile titles to h2 1.5rem and sub-labels to body 1rem (Nunito 600); render key badges at 0.875rem min or drop them; mark the last-played tile with an accent-tinted fill (accent @18%) + 3 px accent base for 1.2 s so state reads on stream."
+  },
+  {
+   "id": "M108-R2-03",
+   "item": 6,
+   "severity": "blocker",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "left column below the SFX card, 1280x720 and 1920x1080",
+   "problem": "The Now-playing hero now gives a focal point, but the grid leaves a ~480x520 px empty well under Sound effects at 1280 and ~820x480 px at 1920 while the right column runs ~500 px longer; the eye drops out of the composition into dead gradient, and Ambience/Lofi/Mix compete at equal weight. (R1-15 dead space not resolved.)",
+   "rule": "DOD §4.2 items 6 and 7; SPEC §13.4 spacing grid",
+   "fix": "Use a 12-col grid: SFX card spans 7 cols and rows 1-2 (tiles 3x4, 96 px min height), Ambience + Lofi stacked in cols 8-12, Mix as a full-width row below with the three sliders in one 3-column row (gap 24). Target: column bottoms within 24 px of each other at 1280 and 1920."
+  },
+  {
+   "id": "M108-R2-04",
+   "item": 15,
+   "severity": "blocker",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "whole page",
+   "problem": "Gut check: a stranger sees a well-styled developer tool, not a premium indie surface. Nothing is celebratory or tactile (the win sting plays with no visual moment), and copy is dev-facing ('research 03 §8', 'ii–V–I–vi, 72–84 BPM, swing 58%', 'C major pentatonic' in headings).",
+   "rule": "DOD §4.2 item 15",
+   "fix": "Resolve R2-01/03/05; move technical specs into a details line (label 0.875rem, >= 4.5:1 ink) and title the cards in player language ('Sound effects', 'Room ambience', 'Lofi radio', 'Mix'); on each SFX press play a 320 ms back-eased (cubic-bezier(.34,1.56,.64,1)) scale 1 -> 1.04 -> 1 on the tile, plus a 6-particle accent burst for win/success only."
+  },
+  {
+   "id": "M108-R2-05",
+   "item": 8,
+   "severity": "major",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "'success' (tile 6) and 'capture' (tile 8) titles at 1280x720 and in the 720p stream",
+   "problem": "Tile titles overflow under the key badge: 'succes' and 'captur' are cut off / overlapped by the '6' and '8' badges (Fredoka 600 20 px in a 116 px tile).",
+   "rule": "DOD §4.2 items 8, 9, 18 (no clipping, no overlapping text)",
+   "fix": "Reserve the badge space: padding-right 36 px on the title row (badge 24 px + gap 12), or give the title its own line under the badge; min tile width 132 px (grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)))."
+  },
+  {
+   "id": "M108-R2-06",
+   "item": 11,
+   "severity": "major",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "card sub-labels, 'NOW PLAYING' eyebrow, 'Keys 1–0' hint, streamer footnote; day/dusk/rain/snow",
+   "problem": "Muted ink on light surfaces measures below 4.5:1: day #8A7A86 on #FFF8EF 3.83:1 (4.03 on the white tiles), dusk #8F7078 on #FFF3E4 4.03:1, rain #7B8093 on #F2F1F4 3.49:1, snow #8886A0 on #FAF8FC 3.34:1. Night passes (5.47:1).",
+   "rule": "DOD §4.2 item 11 contrast >= 4.5:1; ROADMAP M1-05 'every text pair >= 4.5:1'",
+   "fix": "For text use a darker muted ink (e.g. mix ui-ink 60% / muted 40%: day ~#5E4F5B, rain ~#4F5465, snow ~#57556F, all >= 5:1), keeping the SPEC muted token for non-text strokes; re-check all 5 modes."
+  },
+  {
+   "id": "M108-R2-07",
+   "item": 9,
+   "severity": "major",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "Ambience card chips, Mix card, Sound-on button, music button",
+   "problem": "Component inconsistencies: 'Bed on' (a toggle) sits in the same chip row and style as the five mode choices and wraps to an orphan line with 'Snow'; Mix puts 3 sliders in a 2-col grid leaving an empty cell; the unlocked 'Sound on' control changes from radius md 16 to a pill; '✓ Stop music' puts a check glyph on a stop action.",
+   "rule": "DOD §4.2 item 9 (consistent radii, visible states); SPEC §13.4 radius tokens",
+   "fix": "Make the 5 modes one segmented control (radius md 16, single row, equal widths at >= 1280) and move 'Bed on' to a separate switch at the card's right edge; lay the sliders in one 3-col row; keep 'Sound on' at radius md 16; label the music button 'Pause music' with a pause glyph instead of the check."
+  },
+  {
+   "id": "M108-R2-08",
+   "item": 16,
+   "severity": "major",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "Enable sound -> Sound on; phone SFX tap",
+   "problem": "Unlock swaps the accent CTA to the green 'Sound on' pill in a single frame (colour, radius and label all snap; frames at 80 ms intervals are identical from the first). On phone (reduced motion and normal) tapping a tile gives no feedback on the tile; the only feedback is the meter in the Now-playing card, which is scrolled off-screen.",
+   "rule": "DOD §4.2 item 16 (nothing snaps; feedback within 100 ms)",
+   "fix": "Crossfade the CTA over out-soft 240 ms (background-color, border-color, label opacity) keeping its box; on tap add a pressed state (translateY 2 px, base border 3 -> 1 px, in-soft 80 ms) and a 1.2 s last-played accent tint on the tile; under prefers-reduced-motion keep the tint without the transform."
+  },
+  {
+   "id": "M108-R2-09",
+   "item": 8,
+   "severity": "major",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "Lofi card heading (1280x720, 360x800); SFX and Ambience headings on phone",
+   "problem": "Headings wrap with widows: 'Lofi loop · ii–V–I–vi, 72–84 BPM, swing' / '58%' at 1280, and on phone 'Sound effects · C major' / 'pentatonic', 'Ambience · 2.5 s' / 'crossfade'.",
+   "rule": "DOD §4.2 item 8 (no widows)",
+   "fix": "Shorten headings to the noun (see R2-04), move specs to a sub-line, and add text-wrap: balance to h2."
+  },
+  {
+   "id": "M108-R2-10",
+   "item": 3,
+   "severity": "minor",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "SFX tiles in day, rain and snow",
+   "problem": "Tiles render opaque #FFFFFF (computed rgb(255, 255, 255)); SPEC allows pure white only as translucent ui-surface.",
+   "rule": "SPEC §13.2 'ui-surface pure white is allowed only because it is translucent'; DOD §4.2 item 3 (no pure white)",
+   "fix": "Use the ui-surface token with its alpha (#FFFFFF @86/84/88%) or ui-bg for the tiles."
+  },
+  {
+   "id": "M108-R2-11",
+   "item": 4,
+   "severity": "minor",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "rain vs snow, whole page",
+   "problem": "Rain and snow still read as near-identical pale grey pages; only the accent (blue vs pink) separates them at a glance.",
+   "rule": "DOD §4.2 item 4 (each mode recognisable at once)",
+   "fix": "Apply the mode glow token to the Now-playing panel shadow (rain #FFD08F @0.7, 0 0 32px) and run the sky-top -> sky-bottom tokens at full strength over the whole page height (rain #7D8FA6 -> #B8C3CF) instead of fading to ui-bg."
+  },
+  {
+   "id": "M108-R2-12",
+   "item": 14,
+   "severity": "minor",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "phone 360x800, first load",
+   "problem": "Keyboard badges 1–0 and the 'Keys 1–0 … hold Space' hint still show on a touch phone until the first tap. (R1-17 only partly resolved.)",
+   "rule": "DOD §4.2 item 14",
+   "fix": "Hide the badges and the key hint with @media (hover: none) and (pointer: coarse) from first paint."
+  },
+  {
+   "id": "M108-R2-13",
+   "item": 9,
+   "severity": "minor",
+   "files": [
+    "apps/client/src/dev/audio-gallery.tsx"
+   ],
+   "region": "Mix card footnote",
+   "problem": "The footnote says Streamer mode 'caps' music at 35%, but research 03 §8 says it 'defaults music to 35%' (moving the slider to 35 is correct per research, so R1-16 is disputed); '(research 03 §8)' is dev copy.",
+   "rule": "research 03 §8 audio; DOD §4.2 item 9",
+   "fix": "Reword to 'Streamer mode ducks music by 12 dB and sets it to 35%' and drop the citation."
+  }
+ ]
+}
