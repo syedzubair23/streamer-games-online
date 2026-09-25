@@ -1,8 +1,8 @@
 /**
  * The track preview renderer (ROADMAP M9-00b): draws an authored track as a standalone SVG
  * document, straight from the same JSON the solver compiles. It is used to author and review
- * tracks (`pnpm --filter @sg/game-marble-rally tracks:preview`, which also overlays simulated
- * races: marble positions, finish-time stats and DNF spots) and can serve as a track-picker
+ * tracks (`node --import tsx test/track-lab.ts preview`; the `check` command also overlays
+ * simulated races: finish-time stats and DNF spots) and can serve as a track-picker
  * thumbnail, since it needs no DOM, WebGL or three.js.
  *
  * Output is deterministic: the same track and options always give byte-identical SVG. Colours
