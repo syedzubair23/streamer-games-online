@@ -7,9 +7,11 @@
  * process entry around it.
  */
 import { createAudienceAggregator } from "./audience/aggregator.ts";
+import { BanList } from "./bans.ts";
 import type { Clock, ServerConfig } from "./config.ts";
 import { GameRegistry, PackLibrary } from "./games.ts";
 import { createHttpHandler } from "./http.ts";
+import { createModeration } from "./moderation.ts";
 import { createRoomActorFactory, type RoomActorOptions } from "./room.ts";
 import { RoomManager, type DriverFactory, type JoinGuard } from "./room-manager.ts";
 import { MemoryStore, type Store } from "./store/memory.ts";
@@ -20,11 +22,13 @@ export * from "./audience/leaderboard.ts";
 export * from "./audience/polls/index.ts";
 export * from "./audience/reactions.ts";
 export * from "./audience/seeds.ts";
+export * from "./bans.ts";
 export * from "./codes.ts";
 export * from "./config.ts";
 export * from "./fanout.ts";
 export * from "./games.ts";
 export * from "./http.ts";
+export * from "./moderation.ts";
 export * from "./playlist.ts";
 export * from "./room.ts";
 export * from "./room-manager.ts";
@@ -48,7 +52,10 @@ export interface CreateServerOptions {
   games?: GameRegistry;
   /** Content packs; default: `content/packs` of this repo. */
   packs?: PackLibrary;
-  /** Room actor tuning (seeds, phase lengths, audience/moderation ports, ban hook). */
+  /**
+   * Room actor tuning (seeds, phase lengths, audience/moderation ports, ban hook). An `onBan`
+   * here runs after the server's own {@link BanList} has recorded the ban.
+   */
   actor?: Omit<RoomActorOptions, "manager" | "games" | "packs">;
   guards?: JoinGuard[];
   /** Random source for room codes. */
@@ -64,6 +71,8 @@ export interface RunningServer {
   manager: RoomManager;
   transport: Transport;
   store: Store;
+  /** The server's ban list (its guard refuses banned tokens and IP hashes with `BANNED`). */
+  bans: BanList;
   /** Stops listening, closes every socket and timer. Idempotent. */
   close(): Promise<void>;
 }
@@ -85,14 +94,21 @@ export async function createServer(o: CreateServerOptions): Promise<RunningServe
     if (holder.manager === null) throw new Error("server not ready");
     return holder.manager;
   };
+  const bans = new BanList();
   let driver = o.driver;
   if (driver === undefined) {
     const games = o.games ?? new GameRegistry();
     await games.preload();
+    const onBan = o.actor?.onBan;
     driver = createRoomActorFactory({
-      // The AudienceAggregator (M1-03) is the production audience port.
+      // The AudienceAggregator (M1-03) and Moderation (M1-04) are the production ports.
       audience: createAudienceAggregator(),
+      moderation: createModeration({ bans }),
       ...o.actor,
+      onBan: (room, session) => {
+        bans.ban(room, session);
+        onBan?.(room, session);
+      },
       manager: managerRef,
       games,
       packs: o.packs ?? PackLibrary.load(),
@@ -111,7 +127,7 @@ export async function createServer(o: CreateServerOptions): Promise<RunningServe
     store,
     ...(o.clock ? { clock: o.clock } : {}),
     driver,
-    ...(o.guards ? { guards: o.guards } : {}),
+    guards: [bans.guard, ...(o.guards ?? [])],
     ...(o.random ? { random: o.random } : {}),
     http,
   });
@@ -139,6 +155,7 @@ export async function createServer(o: CreateServerOptions): Promise<RunningServe
     manager,
     transport,
     store,
+    bans,
     close() {
       closing ??= (async () => {
         manager.shutdown();

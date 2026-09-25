@@ -998,9 +998,9 @@ describe("room actor: moderation, audience, snapshots, restore", () => {
     expect(mod[`note-${ps[0]?.id}`]).toBe("rejected");
     expect(h.actor(code).moderationQueue).toEqual([]);
     expect(panel.take("modq").at(-1)?.items).toEqual([]);
-    // mute/rename belong to the moderation item (M1-04).
+    // mute/rename need the production moderation port (moderation.ts, see moderation.test.ts).
     panel.send({ t: "mod", cmd: { c: "mute", id: "x", minutes: 1 } });
-    expect(panel.take("error").at(-1)?.msg).toMatch(/M1-04/);
+    expect(panel.take("error").at(-1)?.msg).toMatch(/moderation port/);
   });
 
   it("with moderation off, items are approved at once", async () => {
