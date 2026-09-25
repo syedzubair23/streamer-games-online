@@ -3,7 +3,7 @@
 > Generated from `progress.json` by `pnpm progress render`. Do not edit by hand:
 > change status with `pnpm progress set <id> status=<status>` (see CLAUDE.md).
 
-**74 items:** todo 63 · done 11
+**74 items:** todo 62 · done 12
 
 ## M0 (6/6 done)
 
@@ -16,7 +16,7 @@
 | M0-05 | Scenario route + Playwright harness | **done** | - | merger | 2026-09-24 23:10Z | merged item/M0-05; verify:item green on main |
 | M0-06 | Critic kit + reference board | **done** | - | step0-sync | 2026-09-24 20:18Z | re-verified at 9922016 during M0 progress sync; artifacts/verify/M0-06.json |
 
-## M1 (5/10 done)
+## M1 (6/10 done)
 
 | ID | Item | Status | Critic | Owner | Updated | Notes |
 |---|---|---|---|---|---|---|
@@ -27,7 +27,7 @@
 | M1-05 | @sg/ui design system | todo | 0/5 | - | - |  |
 | M1-06 | @sg/render kit | **done** | - | merger | 2026-09-25 08:52Z |  |
 | M1-07 | Cozy Table diorama, ambient modes, camera, FX | todo | 0/5 | - | - |  |
-| M1-08 | @sg/audio | todo | - | - | - |  |
+| M1-08 | @sg/audio | **done** | - | merger | 2026-09-25 10:18Z | merged to main at 8dc7c6f; verify:item green |
 | M1-09 | Client shell | todo | 0/5 | - | - |  |
 | M1-10 | Bot swarm & load gate | todo | - | - | - |  |
 
