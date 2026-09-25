@@ -3,7 +3,7 @@
 > Generated from `progress.json` by `pnpm progress render`. Do not edit by hand:
 > change status with `pnpm progress set <id> status=<status>` (see CLAUDE.md).
 
-**74 items:** todo 62 · done 12
+**74 items:** todo 61 · done 13
 
 ## M0 (6/6 done)
 
@@ -106,11 +106,11 @@
 | M8-04 | chess: Controller | todo | 0/5 | - | - |  |
 | M8-05 | chess: Verify & critic | todo | 0/5 | - | - |  |
 
-## M9 `marble-rally` (0/7 done)
+## M9 `marble-rally` (1/7 done)
 
 | ID | Item | Status | Critic | Owner | Updated | Notes |
 |---|---|---|---|---|---|---|
-| M9-00 | marble-rally: Physics solver | todo | - | - | - |  |
+| M9-00 | marble-rally: Physics solver | **done** | - | merger | 2026-09-25 10:52Z |  |
 | M9-00b | marble-rally: Tracks | todo | - | - | - |  |
 | M9-01 | marble-rally: Logic | todo | - | - | - |  |
 | M9-02 | marble-rally: Content | todo | - | - | - |  |
