@@ -169,3 +169,16 @@ Player idle exception (FFA with 2 players): none needed. Teams mode: the non-act
 Card: `{ id, left, right, examples: string[3] }`, for example `{ left: "Underrated", right: "Overrated" }`. The `spectrum-core` pack needs 200 or more cards, all original.
 
 ## Builder notes
+- M3-01 logic: `src/logic/` (module, rules, views, bot), `src/scenarios.ts` (TableDriver drives the real runner).
+- Card `examples` run left→right along the dial (slots of 1000/3); the bot clues with them and reads them back.
+- Target is drawn at turn start and shown only to the psychic in `clue`/`guess` (R4 order holds); public from `reveal`.
+- Reveal waits (locked, `awaitingDial`) for this turn's dial result, ≤ 14 s after the guess opened (SPEC §4 hold).
+- Lock guard (moved or 5 s) also applies to FFA dials. Stealer picks are final. Host `skipItem` redraws the pair in card-pick.
+- `mode: teams` with < 4 players plays FFA. Room teams are used when every seat has one of exactly two teams.
+- Deck: room packs (unused first) capped at 36 cards, else 16 built-in fallback cards (`FALLBACK_CARDS`).
+- Stage fx: `cardPicked`, `cardVote`, `clue`, `lock`, `playerLocked`, `reveal`, `chatBeatYou`, `catchUp`, `suddenDeath`, `win`, `illegal`.
+- Scenarios pass audience tallies as a `tally` fx; extras (not screenshotted): intro, card-pick-psychic, ffa-guessing, turn-score.
+- Stubs: ER-002 audienceMin (default 5), ER-003 clue filter = family rejection, ER-004 mid-game joins (not possible yet).
+- 2-player FFA always ties (R9: the psychic scores the lone guesser's points).
+- G14 pre-check (M3-05 owns pacing.test.ts): median 5.2–7.8 min vs 10–15 at every count; FFA and own-team
+  guesser idle up to 46.5 s (card-pick 13 s + clue ≤ 33.6 s) vs 45 s. Needs a spec decision (e.g. estMinutes, clueSec 40).
