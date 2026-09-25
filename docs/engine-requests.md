@@ -75,3 +75,33 @@ Rules:
 - **Proposed API:** `PollResult.counted?: boolean` (same on `PublicPollResult`); `RoomSnapshot.audienceTop?: { audId; name; score; place }[]` and `Me.audienceRank?: number`; `RoomConfig.predictStake: number` (default 100, 10..1000).
 - **Local stub:** `apps/server/src/audience/aggregator.ts` sends `counted` as an extra field (`AudiencePollResult`); `Leaderboard.top(5)` / `rowOf(id)` hold the ranking; `AggregatorOptions.predictStake` holds the stake.
 - **Resolution:**
+
+### ER-006 Room settings in SetupContext (moderation, content filter, audienceMin)
+- **From:** M2-01 (quip-clash builder)
+- **Package:** @sg/engine (`packages/engine/src/game-module.ts`, `runner.ts`)
+- **Status:** open
+- **Need:** game logic must know `RoomConfig.moderation`, `contentFilter` and `audienceMin`; `SetupContext` carries none of them.
+- **Why:** `docs/specs/quip-clash.md` R3 (`filterText` at the room's level), R7 (`poll.total ≥ audienceMin`), R13 (`moderation = reveal-review`); Doodle needs the same. Superset of ER-002 and ER-003 (tune-in); one `ctx.room` would close all three.
+- **Proposed API:** `SetupContext.room: Pick<RoomConfig, "contentFilter" | "moderation" | "audienceMin">`, filled by `GameRunner` from a new `RunnerOptions.room` (default `DEFAULT_ROOM_CONFIG`).
+- **Local stub:** `packages/games/quip-clash/src/logic/room.ts` reads an optional `ctx.room`; `createQuipClash(room)` pins the settings meanwhile.
+- **Resolution:**
+
+### ER-007 Client scenario-route test assumes quip-clash has no logic
+- **From:** M2-01 (quip-clash builder)
+- **Package:** @sg/client (`apps/client/test/scenario-route.test.ts`, "explains which roadmap item a game is waiting for")
+- **Status:** open
+- **Need:** the test expects `loadScenarioGame("quip-clash")` to reject with "no logic yet"; M2-01 ships that logic, so `pnpm test` goes red once M2-01 merges (and the same happens for any other game later).
+- **Why:** DOD P3/G-gates need a green `pnpm test`; the assertion depends on build progress, not on behaviour.
+- **Proposed API:** none; keep the same assertion without a real game: `expect(() => assembleGame("chess", {}, {}, null)).toThrow(/no logic yet.*Mx-01/)` (an empty logic module, independent of build progress).
+- **Local stub:** none possible (engine-owned test). Blocks merging M2-01 until applied.
+- **Resolution:**
+
+### ER-008 Secrecy check flags two owners holding the same text
+- **From:** M2-01 (quip-clash builder)
+- **Package:** @sg/engine (`packages/engine/src/testing/contract.ts`, `findLeaks`)
+- **Status:** open
+- **Need:** a hidden string owned by B is reported as leaked to A when A's own hidden value is the same text (A sees only its own answer). Quip Clash R3 lets more than 3 Last Quip authors use Safety Quip on one prompt with 3 lines, so equal texts are legal.
+- **Why:** the secrecy fuzz and `findLeaks` cannot tell a shared text from a leak; the quip-clash bot and `legalActions` avoid reused lines only to keep the check meaningful.
+- **Proposed API:** none; in `findLeaks`, skip a string secret for a viewer when the same value is also a secret that viewer owns.
+- **Local stub:** `packages/games/quip-clash/src/logic/bot.ts` offers Safety only while an unused line is left; the rule itself (and its tests) allows reuse.
+- **Resolution:**
