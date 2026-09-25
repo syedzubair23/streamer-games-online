@@ -1,0 +1,50 @@
+{
+  "id": "M2-01",
+  "coverage": [
+    "packages/games/quip-clash/src/logic/**",
+    "packages/games/quip-clash/src/bot.ts",
+    "packages/games/quip-clash/src/scenarios.ts"
+  ],
+  "accept": [
+    {
+      "criterion": "G1 typecheck: tsc --noEmit on packages/games/quip-clash has 0 errors",
+      "cmd": "pnpm exec tsc --noEmit -p packages/games/quip-clash",
+      "evidence": "the quip-clash package (logic, bot, scenarios, tests) typechecks on its own project"
+    },
+    {
+      "criterion": "G2 lint: eslint on the package has 0 errors and 0 warnings (Math.random/Date banned in logic/**)",
+      "cmd": "pnpm exec eslint packages/games/quip-clash --max-warnings 0",
+      "evidence": "the package passes the repo eslint config, including the logic/** determinism bans and cross-game import rules"
+    },
+    {
+      "criterion": "G3 rule tests: logic.test.ts passes 100% with branch coverage on logic/** of at least 90%",
+      "cmd": "cd packages/games/quip-clash && pnpm exec vitest run test/logic.test.ts --reporter=json --outputFile=../../../artifacts/tmp/verify/M2-01-g3.json --coverage.enabled --coverage.provider=v8 \"--coverage.include=src/logic/**\" --coverage.reporter=text-summary --coverage.reportsDirectory=../../../artifacts/tmp/verify/M2-01-g3-coverage --coverage.thresholds.branches=90",
+      "evidence": "80 rule tests pass; v8 branch coverage on src/logic/** is enforced at >= 90% by the vitest threshold (94.7% branches, 99.9% lines at merge)"
+    },
+    {
+      "criterion": "G3 naming: every numbered rule (R#) and test case (T#) in docs/specs/quip-clash.md has a test named with its number",
+      "cmd": "pnpm exec tsx -e \"(async()=>{const fs=await import('node:fs');const s=await import('./tools/harness/src/scenarios/spec.ts');const spec=s.parseGameSpec(fs.readFileSync('docs/specs/quip-clash.md','utf8'));const r=JSON.parse(fs.readFileSync('artifacts/tmp/verify/M2-01-g3.json','utf8'));const names=r.testResults.flatMap(f=>f.assertionResults.map(a=>a.fullName));const m=s.missingNumberedTests([...spec.rules,...spec.tests],names);console.log(spec.rules.length+' rules, '+spec.tests.length+' cases, '+names.length+' tests, missing: ['+m.join(',')+']');if(m.length>0||spec.rules.length===0||r.numFailedTests>0)process.exit(1)})()\"",
+      "evidence": "uses the harness's own parseGameSpec + missingNumberedTests (the verify:game G3 check) over the G3 run's test names: 15 rules (R1-R14 plus R3a) and 16 cases (T1-T16), none missing"
+    },
+    {
+      "criterion": "G4 contract suite: determinism, serialize round-trip, 200-game secrecy fuzz, termination, 1,000-payload parseAction fuzz, illegal actions are no-ops",
+      "cmd": "pnpm exec vitest run --project @sg/game-quip-clash packages/games/quip-clash/test/contract.test.ts",
+      "evidence": "runContractSuite over the quip-clash module for all 5 option presets, plus reveal-review moderation, the family filter and timerScale 0"
+    },
+    {
+      "criterion": "G5 bot simulation: 1,000+ seeded games over every player count and option preset, 0 exceptions, 0 illegal actions, all end within max steps, invariants every step, fairness",
+      "cmd": "pnpm exec vitest run --project @sg/game-quip-clash packages/games/quip-clash/test/sim.test.ts",
+      "evidence": "1,000 bot games over 3-8 players x 5 presets x 7 room variants (solo, 3/4 teams, 2-team fallback, moderation, family, timerScale 0) with the spec invariants after every step, plus the 1.25/N fairness bound per N and in team mode"
+    },
+    {
+      "criterion": "Scenario builders: every scenario in the spec's Scenarios table is registered in scenarios.ts with the spec's hero animation",
+      "cmd": "pnpm exec tsx -e \"(async()=>{const fs=await import('node:fs');const s=await import('./tools/harness/src/scenarios/spec.ts');const g=await import('./tools/harness/src/games.ts');const mf=await import('./tools/harness/src/scenarios/manifest.ts');const t=g.gameTarget(process.cwd(),'quip-clash');const spec=s.parseGameSpec(fs.readFileSync(t.spec,'utf8'));const reg=await mf.loadRegistry(process.cwd(),t);const m=mf.buildManifest(t,spec,reg);console.log(spec.scenarios.length+' spec scenarios, '+reg.length+' registered, problems: '+JSON.stringify(m.problems));if(m.problems.length>0||spec.scenarios.length===0)process.exit(1)})()\"",
+      "evidence": "the harness buildManifest (G6's registry half) reports 0 problems: 11 spec scenarios registered (plus the midgame perf alias); rendering them is G6 in M2-05"
+    },
+    {
+      "criterion": "G13 docs: the spec's Builder notes are 20 lines or fewer and the handoff is 40 lines or fewer",
+      "cmd": "pnpm exec tsx -e \"(async()=>{const fs=await import('node:fs');const s=await import('./tools/harness/src/scenarios/spec.ts');const g=await import('./tools/harness/src/games.ts');const t=g.gameTarget(process.cwd(),'quip-clash');const spec=s.parseGameSpec(fs.readFileSync(t.spec,'utf8'));const h=fs.readFileSync('artifacts/handoff/M2-01.md','utf8').trimEnd().split(String.fromCharCode(10)).length;console.log('builder notes '+spec.builderNotes.length+' lines, M2-01 handoff '+h+' lines');if(spec.builderNotes.length===0||spec.builderNotes.length>20||h>40)process.exit(1)})()\"",
+      "evidence": "Builder notes present and <= 20 lines in docs/specs/quip-clash.md; artifacts/handoff/M2-01.md <= 40 lines"
+    }
+  ]
+}
