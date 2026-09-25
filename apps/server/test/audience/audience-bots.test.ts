@@ -167,11 +167,14 @@ describe("AudienceAggregator: bot test", () => {
       const endIdx = frames.findIndex((f) => f.t === "pollEnd");
       expect(open, spec.pollId).toBeDefined();
       expect(endIdx, spec.pollId).toBeGreaterThan(0);
-      // Stream delay on deadline polls only: 8 s window + 3 s.
+      // Stream delay on deadline polls only, added once: 8 s window + 3 s (100 ms sampling).
       const openedAt = frames[0]?.at as number;
       const window = open.poll.closesAtMs - openedAt;
       if (spec.closeOn === "event") expect(window).toBeLessThanOrEqual(SHOW_POLL_MS);
-      else expect(window).toBeGreaterThan(SHOW_POLL_MS + 2_800);
+      else {
+        expect(window).toBeGreaterThan(SHOW_POLL_MS + 2_800);
+        expect(window).toBeLessThanOrEqual(SHOW_POLL_MS + 3_000);
+      }
       // Tallies at ≤ 4 Hz: consecutive tally frames at least 250 ms apart (100 ms sampling).
       const tallies = frames.slice(0, endIdx).filter((f) => f.t === "tally");
       expect(tallies.length, spec.pollId).toBeGreaterThan(0);
@@ -227,6 +230,37 @@ describe("AudienceAggregator: bot test", () => {
       expect((top[i - 1]?.score as number) >= (top[i]?.score as number)).toBe(true);
     const quizEnd = watcher.all.filter((m) => m.t === "pollEnd" && m.pollId === "s-quiz").at(-1);
     expect(quizEnd?.t === "pollEnd" && quizEnd.result.correct).toBe(SHOW_ANSWERS.quiz);
+  });
+
+  it("stream delay is added once: a game poll built with ctx.timing.input closes at now + base + delay", async () => {
+    const { h, agg } = setup();
+    const host = h.create({
+      playlistMode: "fixed",
+      streamDelaySec: 3,
+      timerScale: 1,
+      playlist: [{ gameId: "trivia-night", options: {} }],
+    });
+    const code = host.room?.code as string;
+    h.join(code, { name: "P1" });
+    const viewer = h.join(code, { want: "audience", name: "Watcher" });
+    h.host(host, { c: "start" });
+    // Step 1 ms at a time so the poll frame's arrival time is the exact opening instant.
+    let open: Extract<S2C, { t: "poll" }> | undefined;
+    let openedAt = 0;
+    for (let i = 0; i < 5_000 && open === undefined; i++) {
+      await h.advance(1, 1, [viewer]);
+      open = viewer.all.find((m): m is Extract<S2C, { t: "poll" }> => m.t === "poll");
+      openedAt = h.clock.now();
+    }
+    expect(open?.poll.pollId).toBe("s-vote");
+    // 8 s base × timerScale 1 + 3 s delay, added once (not + 6 s).
+    expect((open?.poll.closesAtMs as number) - openedAt).toBe(SHOW_POLL_MS + 3_000);
+    // The server closes it at that same instant: the phone countdown and the game agree.
+    const a = agg();
+    await h.advance(SHOW_POLL_MS + 3_000 - 1, 100);
+    expect(a.isOpen("s-vote")).toBe(true);
+    await h.advance(1, 1);
+    expect(a.isOpen("s-vote")).toBe(false);
   });
 
   it("audience sockets are limited to 5 msg/s", async () => {

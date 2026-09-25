@@ -24,8 +24,8 @@
     },
     {
       "criterion": "predict pays out pari-mutuel, and a balance never drops below 100",
-      "cmd": "pnpm exec vitest run --project @sg/server --maxWorkers=2 apps/server/test/audience/aggregator.test.ts apps/server/test/audience/units.test.ts apps/server/test/audience/audience-bots.test.ts -t \"pari-mutuel|never drops below 100|200 audience bots\"",
-      "evidence": "pool 600 / winning pool 200 pays +200 net per winner, -100 per loser; resolving twice pays once; 20 straight losses end at exactly 100; no winner backed = refund; proportional split and pool conservation unit-tested; 200 bots all stay >= 100"
+      "cmd": "pnpm exec vitest run --project @sg/server --maxWorkers=2 apps/server/test/audience/aggregator.test.ts apps/server/test/audience/units.test.ts apps/server/test/audience/audience-bots.test.ts -t \"pari-mutuel|never drops below 100|never creates Seeds|200 audience bots\"",
+      "evidence": "pool 600 / winning pool 200 pays +200 net per winner, -100 per loser; resolving twice pays once; 20 straight losses end at exactly 100; no winner backed = refund; stakes are capped at the balance above the floor (checked at vote and at resolve), so a member at the floor stakes 0 and total Seeds never rise after a resolve, including overlapping polls; proportional split and pool conservation unit-tested; 200 bots all stay >= 100"
     },
     {
       "criterion": "Below audienceMin, the flag says the vote doesn't count",
@@ -35,7 +35,7 @@
     {
       "criterion": "Stream delay is added to closesAtMs for closeOn: \"deadline\" polls; closeOn: \"event\" polls ignore it and discard inputs received after the close event",
       "cmd": "pnpm exec vitest run --project @sg/server --maxWorkers=2 apps/server/test/audience/aggregator.test.ts apps/server/test/audience/audience-bots.test.ts -t \"stream delay is added|200 audience bots\"",
-      "evidence": "streamDelaySec 3: the announced closesAtMs is +3 s and the poll closes exactly then; an event poll keeps its closesAtMs, never closes on the deadline, and inputs after the close (same instant or later) are counted as late and dropped; room polls are not delayed twice"
+      "evidence": "the delay is added once, by ctx.timing.input: a game poll built from timing.input(8 s) in a real room with streamDelaySec 3 is announced at exactly openedAt + 11 s (not +14 s) and closes at that instant; the aggregator announces and honours a timing.input deadline unchanged; an event poll keeps its closesAtMs, never closes on the deadline, and inputs after the close (same instant or later) are counted as late and dropped; room polls keep their window"
     },
     {
       "criterion": "A hideLive poll broadcasts only total until close (frame grep: no per-option tallies before pollEnd)",

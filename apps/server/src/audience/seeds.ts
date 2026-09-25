@@ -4,9 +4,10 @@
  * a fixed amount ({@link DEFAULT_PREDICT_STAKE}, host-configurable) and pay out pari-mutuel
  * when the game emits `audience.resolve`.
  *
- * The floor is a bankruptcy guard, not a stake limit: a member at the floor can still stake
- * the full amount, and a losing stake that would take them below the floor only takes them
- * to it (the house covers the difference). That keeps every viewer in the game all night.
+ * The floor also limits the stake: a member can only stake Seeds they can actually lose, the
+ * part of their balance above the floor ({@link stakeable}). A member at the floor still
+ * votes but stakes nothing, so the pari-mutuel pool is exactly what the losers lose and a
+ * resolve never creates Seeds. Everyone stays in the game all night; nobody bets risk-free.
  *
  * @module
  */
@@ -50,6 +51,14 @@ export function parimutuel(
     else out.set(id, -s.amount);
   }
   return out;
+}
+
+/**
+ * The stake a member can place: `want`, capped at their balance above the floor (never
+ * negative). Staking this much can never take the balance below the floor.
+ */
+export function stakeable(ledger: SeedLedger, id: AudId, want: number): number {
+  return Math.max(0, Math.min(Math.trunc(want), ledger.balance(id) - ledger.floor));
 }
 
 /**

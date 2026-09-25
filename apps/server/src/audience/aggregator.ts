@@ -10,9 +10,13 @@
  * - **Tallies** go out at most every {@link TALLY_INTERVAL_MS} (≤ 4 Hz) per poll and only when
  *   something changed; a `hideLive` poll sends only `total` until close; `quiz` sends only the
  *   answered count until resolve. The `guess` answers and guess texts never leave the server.
- * - **Stream delay**: `RoomConfig.streamDelaySec` is added to `closesAtMs` of every
- *   `closeOn: "deadline"` poll the game opens. `closeOn: "event"` polls ignore it, close the
- *   instant the game says so, and discard every input received after that.
+ * - **Stream delay** (SPEC §4) is added exactly once, by the engine: every timed poll window
+ *   is built with `ctx.timing.input(base)` (= `base × timerScale + streamDelay`), and room
+ *   polls (the next-game vote) include it in their window too. So a `closeOn: "deadline"`
+ *   poll closes at the `closesAtMs` it was opened with, which already carries the delay, and
+ *   phones count down to the same instant the game's own timers use. `closeOn: "event"` polls
+ *   ignore the deadline, close the instant the game says so, and discard every input
+ *   received after that.
  * - **Minimum audience**: every result carries `counted: total >= audienceMin`; below it the
  *   vote is shown but does not count.
  * - **Seeds and play-along points** feed the {@link Leaderboard}; each scored member gets a
@@ -140,9 +144,8 @@ export class AudienceAggregator implements AudiencePort {
     const existing = this.#polls.get(spec.pollId);
     if (existing !== undefined && existing.result === null) return;
     const now = this.#ctx.clock.now();
-    const effective = this.#effectiveSpec(spec, source);
     const poll: LivePoll = {
-      state: createPoll(effective, now),
+      state: createPoll(spec, now),
       source,
       openedAt: now,
       closedAt: null,
@@ -154,14 +157,14 @@ export class AudienceAggregator implements AudiencePort {
     };
     this.#polls.set(spec.pollId, poll);
     this.stats.polls++;
-    if (effective.closeOn !== "event")
+    if (spec.closeOn !== "event")
       poll.timer = new PausableTimer(
         this.#ctx.clock,
-        effective.closesAtMs - now,
+        spec.closesAtMs - now,
         () => this.close(spec.pollId),
         this.#paused,
       );
-    this.#ctx.fanout.toAudience({ t: "poll", poll: publicPoll(effective) }, { stage: true });
+    this.#ctx.fanout.toAudience({ t: "poll", poll: publicPoll(spec) }, { stage: true });
   }
 
   isOpen(pollId: string): boolean {
@@ -310,16 +313,6 @@ export class AudienceAggregator implements AudiencePort {
   // -------------------------------------------------------------------------------------------
   // Internals
   // -------------------------------------------------------------------------------------------
-
-  /**
-   * Adds the stream delay to a game's deadline poll (SPEC §4). Event-closed polls ignore it;
-   * room polls (the next-game vote) already include it in their window.
-   */
-  #effectiveSpec(spec: PollSpec, source: PollSource): PollSpec {
-    if (source !== "game" || spec.closeOn === "event") return spec;
-    const delayMs = Math.round(Math.max(0, this.#ctx.room.config.streamDelaySec) * 1000);
-    return delayMs === 0 ? spec : { ...spec, closesAtMs: spec.closesAtMs + delayMs };
-  }
 
   #counted(total: number): boolean {
     return total >= this.#ctx.room.config.audienceMin;

@@ -12,6 +12,7 @@ import {
   TALLY_INTERVAL_MS,
   type Session,
 } from "../../src/index.ts";
+import { createTiming } from "@sg/engine";
 import { Rig } from "./rig.ts";
 
 describe("AudienceAggregator: accept criteria", () => {
@@ -219,6 +220,57 @@ describe("AudienceAggregator: accept criteria", () => {
     expect([l2, l3].map((m) => seeds.balance(m.id))).toEqual(before);
   });
 
+  it("predict never creates Seeds: a member at the floor stakes nothing and a resolve never raises the total", () => {
+    const r = new Rig({ streamDelaySec: 0, audienceMin: 1 });
+    const [w, l, x] = r.members(3) as [Session, Session, Session];
+    const seeds = r.agg.leaderboard.seeds;
+    const total = (): number => [w, l, x].reduce((n, m) => n + seeds.balance(m.id), 0);
+    // Drive l to the floor: 9 losing 100-Seed stakes against w.
+    for (let i = 0; i < 9; i++) {
+      r.open({ pollId: `down${i}`, kind: "predict" });
+      r.vote(l, `down${i}`, "b");
+      r.vote(w, `down${i}`, "a");
+      const before = total();
+      r.agg.resolve({ type: "audience.resolve", pollId: `down${i}`, correct: "a" });
+      expect(total()).toBeLessThanOrEqual(before);
+    }
+    expect(seeds.balance(l.id)).toBe(SEEDS_FLOOR);
+    const wBefore = seeds.balance(w.id);
+    // l bets from the floor and loses: nothing to lose, so nothing enters w's winnings.
+    r.open({ pollId: "floor", kind: "predict" });
+    r.vote(l, "floor", "b");
+    r.vote(w, "floor", "a");
+    const before = total();
+    r.agg.resolve({ type: "audience.resolve", pollId: "floor", correct: "a" });
+    expect(seeds.balance(l.id)).toBe(SEEDS_FLOOR);
+    expect(seeds.balance(w.id)).toBe(wBefore);
+    expect(total()).toBeLessThanOrEqual(before);
+    // l still counted in the tally (they voted), just with a zero stake.
+    expect(r.lastResult()).toMatchObject({ pollId: "floor", total: 2 });
+    // Two overlapping polls: x stakes in both, but the second settles only what is left
+    // above the floor, so x never goes below it and the total never rises.
+    for (let i = 0; i < 8; i++) {
+      r.open({ pollId: `x${i}`, kind: "predict" });
+      r.vote(x, `x${i}`, "b");
+      r.vote(w, `x${i}`, "a");
+      r.agg.resolve({ type: "audience.resolve", pollId: `x${i}`, correct: "a" });
+    }
+    expect(seeds.balance(x.id)).toBe(SEEDS_START - 800);
+    r.open({ pollId: "o1", kind: "predict" });
+    r.open({ pollId: "o2", kind: "predict" });
+    r.vote(x, "o1", "b");
+    r.vote(x, "o2", "b");
+    r.vote(w, "o1", "a");
+    r.vote(w, "o2", "a");
+    for (const id of ["o1", "o2"]) {
+      const b = total();
+      r.agg.resolve({ type: "audience.resolve", pollId: id, correct: "a" });
+      expect(total()).toBeLessThanOrEqual(b);
+    }
+    expect(seeds.balance(x.id)).toBe(SEEDS_FLOOR);
+    expect(seeds.balance(w.id)).toBe(SEEDS_START + 900 + 800 + 100);
+  });
+
   it("below audienceMin, the flag says the vote doesn't count", () => {
     const r = new Rig({ streamDelaySec: 0, audienceMin: 5 });
     const ms = r.members(5);
@@ -238,7 +290,10 @@ describe("AudienceAggregator: accept criteria", () => {
     const r = new Rig({ streamDelaySec: 3, audienceMin: 1 });
     const [x, y] = r.members(2) as [Session, Session];
     const t0 = r.clock.now();
-    r.open({ pollId: "dl", kind: "vote", closesAtMs: t0 + 10_000 });
+    // A game builds the window with ctx.timing.input, which adds the delay once; the
+    // aggregator must announce and honour that deadline as-is, never add the delay again.
+    const timing = createTiming({ timerScale: 1, streamDelaySec: 3 });
+    r.open({ pollId: "dl", kind: "vote", closesAtMs: t0 + (timing.input(10_000) as number) });
     expect(r.of("poll").at(-1)?.poll.closesAtMs).toBe(t0 + 13_000);
     r.clock.advance(10_500);
     r.vote(x, "dl", "a"); // inside the delayed window: counts
@@ -262,7 +317,7 @@ describe("AudienceAggregator: accept criteria", () => {
     expect(r.agg.stats.late).toBe(2);
     expect(r.lastResult()).toMatchObject({ pollId: "ev", total: 1, tallies: { b: 1 } });
 
-    // Room polls (the next-game vote) already carry the delay in their window.
+    // Room polls (the next-game vote) carry the delay in their window too.
     const t2 = r.clock.now();
     r.open({ pollId: "next", kind: "vote", closesAtMs: t2 + 18_000 }, "room");
     expect(r.of("poll").at(-1)?.poll.closesAtMs).toBe(t2 + 18_000);

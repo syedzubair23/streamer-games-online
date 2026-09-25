@@ -19,7 +19,7 @@ import type {
 
 /** The secret guess answer; bots know it, frames must never carry it. */
 export const SHOW_SECRET = "Zanzibar Quokka";
-/** How long each timed poll is open (before stream delay). */
+/** Base length of each timed poll window, before `ctx.timing.input` scales it and adds the stream delay. */
 export const SHOW_POLL_MS = 8_000;
 
 const OPTIONS = [
@@ -64,8 +64,13 @@ export interface ShowView {
 function openPoll(index: number, ctx: Ctx): Effect[] {
   const spec = SHOW_POLLS[index];
   if (spec === undefined) return [];
+  // A timed audience window comes from ctx.timing.input (SPEC §4/§9.3): base × timerScale +
+  // stream delay, the only place the delay is added. The event-closed poll is exempt from the
+  // delay (its closesAtMs is never used as a deadline), so it keeps the bare base.
+  const windowMs =
+    spec.closeOn === "event" ? SHOW_POLL_MS : (ctx.timing.input(SHOW_POLL_MS) ?? SHOW_POLL_MS);
   const effects: Effect[] = [
-    { type: "audience.open", poll: { ...spec, closesAtMs: ctx.now + SHOW_POLL_MS } },
+    { type: "audience.open", poll: { ...spec, closesAtMs: ctx.now + windowMs } },
   ];
   // The event-closed poll closes when "the move is made": a game timer, not the deadline.
   if (spec.closeOn === "event")
