@@ -1,0 +1,26 @@
+{
+  "id": "M1-04",
+  "coverage": ["apps/server/src/moderation.ts", "apps/server/src/bans.ts"],
+  "accept": [
+    {
+      "criterion": "Family mode masks bad text in names and answers",
+      "cmd": "pnpm exec vitest run --project @sg/server --maxWorkers=2 apps/server/test/moderation.test.ts -t \"family mode masks|standard mode passes|rename cleans\"",
+      "evidence": "in a family room a profane join name and rename are masked in the room snapshot; a player's text answer is masked before the game sees it (own view, modq preview), and no socket's serialized frames contain the raw text; standard mode passes text unchanged"
+    },
+    {
+      "criterion": "With reveal-review, the onModeration callback is withheld until a moderator approves, and the stage view shows the item as pending",
+      "cmd": "pnpm exec vitest run --project @sg/server --maxWorkers=2 apps/server/test/moderation.test.ts -t \"onModeration is withheld\"",
+      "evidence": "a spied onModeration is not called for 5 s while the Stage view shows both items pending; a promoted moderator's approve calls it once (approved=true) and the Stage view flips to approved; a host-panel reject calls it with approved=false; the Stage socket never receives modq or the unreviewed text"
+    },
+    {
+      "criterion": "A banned token or IP hash cannot rejoin",
+      "cmd": "pnpm exec vitest run --project @sg/server --maxWorkers=2 apps/server/test/moderation.test.ts -t \"banned token or IP hash|BanList keys|production server installs\"",
+      "evidence": "after kick{ban:true} the old token from a new IP and a fresh identity from the banned IP (player, audience, moderator) get BANNED and a closed socket; a plain kick can rejoin; bans are per room code+epoch and dropped with the room; createServer installs the guard end to end over a real ws socket"
+    },
+    {
+      "criterion": "A muted player's text actions return MUTED",
+      "cmd": "pnpm exec vitest run --project @sg/server --maxWorkers=2 apps/server/test/moderation.test.ts -t \"muted player's text actions\"",
+      "evidence": "after mod mute the player's text act is acked {ok:false, err:\"MUTED\"} and never reaches the game; non-text actions are not muted; minutes 0 lifts a mute; the mute expires after its minutes; nobody can mute the host, only the host can mute a moderator, players cannot send mod"
+    }
+  ]
+}

@@ -539,7 +539,16 @@ export interface ModerationContext {
   clock: Clock;
   /** The item was approved or rejected (or timed out: rejected). Queued like poll results. */
   decide(itemId: string, approved: boolean): void;
+  /** A member's public fields changed (rename): rebroadcast the room snapshot. */
+  roomChanged(): void;
 }
+
+/** The outcome of {@link ModerationPort.screenAction}. */
+export type ScreenResult = { ok: true; action: unknown } | { ok: false; err: ErrorCode };
+
+/** The moderator commands other than approve/reject (SPEC §9.6 `ModCommand`). */
+export type MemberModCommand =
+  { c: "mute"; id: string; minutes: number } | { c: "rename"; id: string; name: string };
 
 /** The seam for the review queue (SPEC §9.7). */
 export interface ModerationPort {
@@ -549,6 +558,13 @@ export interface ModerationPort {
   command(cmd: { c: "approve" | "reject"; itemId: string }): boolean;
   /** Items still waiting. */
   pending(): readonly ModItem[];
+  /**
+   * Screens a player action before the game sees it (text filter, mute). The default port
+   * passes every action through unchanged.
+   */
+  screenAction?(session: Session, action: unknown): ScreenResult;
+  /** `mute` / `rename` from a host or moderator; returns the error to send, or null. */
+  modCommand?(from: Session, cmd: MemberModCommand): { code: ErrorCode; msg: string } | null;
   /** Resolves everything pending as rejected without calling back (game over). */
   clear(): void;
   pause(): void;
@@ -825,6 +841,7 @@ export class RoomActor implements RoomDriver, ViewRouting {
             const runner = this.#liveRunner();
             if (runner !== null) this.#apply(runner.moderation(itemId, approved, clock.now()));
           }),
+        roomChanged: () => this.#manager.roomChanged(room),
       },
       this.#timings.reviewTimeoutMs,
     );
@@ -916,7 +933,7 @@ export class RoomActor implements RoomDriver, ViewRouting {
         case "host":
           return this.#host(session, conn, msg.cmd);
         case "mod":
-          return this.#mod(conn, msg.cmd);
+          return this.#mod(session, conn, msg.cmd);
         case "resync": {
           for (const [surface, c] of session.conns)
             if (c === conn) this.fanout.sendFull(session, surface, conn);
@@ -1276,7 +1293,12 @@ export class RoomActor implements RoomDriver, ViewRouting {
       this.#manager.send(conn, { t: "ack", id, ok: false, err: "NOT_ALLOWED" });
       return;
     }
-    const result = runner.act(session.id, raw, this.#clock.now(), "player");
+    const screened = this.#moderation.screenAction?.(session, raw) ?? { ok: true, action: raw };
+    if (!screened.ok) {
+      this.#manager.send(conn, { t: "ack", id, ok: false, err: screened.err });
+      return;
+    }
+    const result = runner.act(session.id, screened.action, this.#clock.now(), "player");
     this.#apply(result);
     this.#countAction(slot);
     this.#manager.send(
@@ -1355,13 +1377,16 @@ export class RoomActor implements RoomDriver, ViewRouting {
     }
   }
 
-  #mod(conn: Conn, cmd: Extract<DriverMessage, { t: "mod" }>["cmd"]): void {
+  #mod(from: Session, conn: Conn, cmd: Extract<DriverMessage, { t: "mod" }>["cmd"]): void {
     if (cmd.c === "approve" || cmd.c === "reject") {
       if (!this.#moderation.command(cmd))
         this.#error(conn, "ILLEGAL", `no pending item ${cmd.itemId}`);
       return;
     }
-    this.#error(conn, "ILLEGAL", `"${cmd.c}" is handled by moderation (M1-04)`);
+    if (this.#moderation.modCommand === undefined)
+      return this.#error(conn, "ILLEGAL", `"${cmd.c}" needs the moderation port (moderation.ts)`);
+    const refused = this.#moderation.modCommand(from, cmd);
+    if (refused !== null) this.#error(conn, refused.code, refused.msg);
   }
 
   #kick(conn: Conn, id: string, ban: boolean): void {
