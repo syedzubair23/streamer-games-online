@@ -1,0 +1,50 @@
+{
+  "id": "M5-01",
+  "coverage": [
+    "packages/games/doodle/src/logic/**",
+    "packages/games/doodle/src/bot.ts",
+    "packages/games/doodle/src/scenarios.ts"
+  ],
+  "accept": [
+    {
+      "criterion": "G1 typecheck: tsc --noEmit on packages/games/doodle has 0 errors",
+      "cmd": "pnpm exec tsc --noEmit -p packages/games/doodle",
+      "evidence": "the doodle package (logic, bot, scenarios, tests) typechecks on its own project"
+    },
+    {
+      "criterion": "G2 lint: eslint on the package has 0 errors and 0 warnings (Math.random/Date banned in logic/**)",
+      "cmd": "pnpm exec eslint packages/games/doodle --max-warnings 0",
+      "evidence": "the package passes the repo eslint config, including the logic/** determinism bans and cross-game import rules"
+    },
+    {
+      "criterion": "G3 rule tests: logic.test.ts passes 100% with branch coverage on logic/** of at least 90%",
+      "cmd": "cd packages/games/doodle && pnpm exec vitest run test/logic.test.ts --maxWorkers=2 --reporter=json --outputFile=../../../artifacts/tmp/verify/M5-01-g3.json --coverage.enabled --coverage.provider=v8 \"--coverage.include=src/logic/**\" --coverage.reporter=text-summary --coverage.reportsDirectory=../../../artifacts/tmp/verify/M5-01-g3-coverage --coverage.thresholds.branches=90",
+      "evidence": "107 rule tests pass; v8 branch coverage on src/logic/** is enforced at >= 90% by the vitest threshold (93.8% at build)"
+    },
+    {
+      "criterion": "G3 naming: every Guess mode rule (R1-R8) and test case (T1-T6, T9-T13) in docs/specs/doodle.md has a test named with its number (Telephone R9-R14, T7, T8 are ROADMAP M5-01b)",
+      "cmd": "pnpm exec tsx -e \"(async()=>{const fs=await import('node:fs');const s=await import('./tools/harness/src/scenarios/spec.ts');const spec=s.parseGameSpec(fs.readFileSync('docs/specs/doodle.md','utf8'));const tel=['R9','R9a','R10','R11','R12','R13','R14','T7','T8'];const ids=[...spec.rules,...spec.tests].filter(x=>!tel.includes(x));const r=JSON.parse(fs.readFileSync('artifacts/tmp/verify/M5-01-g3.json','utf8'));const names=r.testResults.flatMap(f=>f.assertionResults.map(a=>a.fullName));const m=s.missingNumberedTests(ids,names);console.log(ids.length+' guess-mode ids of '+(spec.rules.length+spec.tests.length)+', '+names.length+' tests, missing: ['+m.join(',')+']');if(m.length>0||ids.length<21||r.numFailedTests>0)process.exit(1)})()\"",
+      "evidence": "uses the harness's own parseGameSpec + missingNumberedTests over the G3 run's test names: R1-R8 and T1-T6, T9-T13 (21 ids), none missing"
+    },
+    {
+      "criterion": "G4 contract suite: determinism, serialize round-trip, 200-game secrecy fuzz, termination, 1,000-payload parseAction fuzz, illegal actions are no-ops",
+      "cmd": "pnpm exec vitest run --project @sg/game-doodle packages/games/doodle/test/contract.test.ts --maxWorkers=2",
+      "evidence": "runContractSuite over the doodle module for 6 option presets at 3/4/5/8/12 players, plus Team Doodle and timerScale 0, max steps 20,000"
+    },
+    {
+      "criterion": "G5 bot simulation: 1,000+ seeded games over every player count and option preset, 0 exceptions, 0 illegal actions, all end within max steps, invariants every step, fairness",
+      "cmd": "pnpm exec vitest run --project @sg/game-doodle packages/games/doodle/test/sim.test.ts --maxWorkers=2",
+      "evidence": "1,008 bot games over 3-12 players x 6 presets plus Team Doodle, spec invariants checked after every step, and the 1.25/N fairness bound for FFA and teams"
+    },
+    {
+      "criterion": "Scenario builders: every Guess mode scenario in the spec's table is registered with the spec's hero animation (tel-* and the page anim are ROADMAP M5-01b)",
+      "cmd": "pnpm exec tsx -e \"(async()=>{const fs=await import('node:fs');const s=await import('./tools/harness/src/scenarios/spec.ts');const g=await import('./tools/harness/src/games.ts');const mf=await import('./tools/harness/src/scenarios/manifest.ts');const t=g.gameTarget(process.cwd(),'doodle');const spec=s.parseGameSpec(fs.readFileSync(t.spec,'utf8'));const reg=await mf.loadRegistry(process.cwd(),t);const m=mf.buildManifest(t,spec,reg);const tel=m.problems.filter(p=>/\\\"tel-|anim \\\"page\\\"/.test(p));const rest=m.problems.filter(p=>!tel.includes(p));console.log(spec.scenarios.length+' spec scenarios, '+reg.length+' registered, guess-mode problems: '+JSON.stringify(rest)+', telephone (M5-01b): '+tel.length);if(rest.length>0||reg.length<5)process.exit(1)})()\"",
+      "evidence": "the harness buildManifest reports 0 problems for word-pick, drawing, correct-guess, reveal and final (plus drawing-guesser and midgame extras); only the 4 tel-* scenarios and the page anim remain, owned by M5-01b"
+    },
+    {
+      "criterion": "G13 docs: the spec's Builder notes are 20 lines or fewer and the handoff is 40 lines or fewer",
+      "cmd": "pnpm exec tsx -e \"(async()=>{const fs=await import('node:fs');const s=await import('./tools/harness/src/scenarios/spec.ts');const g=await import('./tools/harness/src/games.ts');const t=g.gameTarget(process.cwd(),'doodle');const spec=s.parseGameSpec(fs.readFileSync(t.spec,'utf8'));const h=fs.readFileSync('artifacts/handoff/M5-01.md','utf8').trimEnd().split(String.fromCharCode(10)).length;console.log('builder notes '+spec.builderNotes.length+' lines, M5-01 handoff '+h+' lines');if(spec.builderNotes.length===0||spec.builderNotes.length>20||h>40)process.exit(1)})()\"",
+      "evidence": "Builder notes present and <= 20 lines in docs/specs/doodle.md; artifacts/handoff/M5-01.md <= 40 lines"
+    }
+  ]
+}

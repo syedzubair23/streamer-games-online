@@ -105,3 +105,23 @@ Rules:
 - **Proposed API:** none; in `findLeaks`, skip a string secret for a viewer when the same value is also a secret that viewer owns.
 - **Local stub:** `packages/games/quip-clash/src/logic/bot.ts` offers Safety only while an unused line is left; the rule itself (and its tests) allows reuse.
 - **Resolution:**
+
+### ER-010 Host custom word lists as packs (`customWords`)
+- **From:** M5-01 (doodle logic builder)
+- **Package:** @sg/shared (`packages/shared/src/content.ts`), @sg/server (content library), client options form
+- **Status:** open
+- **Need:** a convention for how a host's pasted word list reaches the game. Doodle's `customWords` (off/mix/only) must tell custom words (no tier) from stock packs among `options.packs`.
+- **Why:** `docs/specs/doodle.md` "Host options" (`customWords`: "stored as a pack; custom words have no tier, so the tier vote is skipped"); SPEC §12 (host custom packs).
+- **Proposed API:** store the list with `parseWordList` as a `doodle-words` pack whose id starts with `custom` (e.g. `custom-<room>`), items `{ w, d: 1 }` (the game ignores `d`), exposed through `ContentAccess` and added to the playlist item's `packs`.
+- **Local stub:** `isCustomPack(id)` (`packages/games/doodle/src/logic/words.ts`) treats `custom*` pack ids as host lists.
+- **Resolution:**
+
+### ER-011 Timestamp on the first correct audience guess
+- **From:** M5-01 (doodle logic builder)
+- **Package:** @sg/engine (`game-module.ts` `PollResult.firstCorrect`), @sg/server (aggregator)
+- **Status:** open
+- **Need:** the game time (or server ms) of each `firstCorrect` entry, so Doodle can decide whether the first correct chatter beat the first correct player.
+- **Why:** `docs/specs/doodle.md` "Audience hooks" ("Chat vs Players" race chip).
+- **Proposed API:** `firstCorrect?: { audId; name; atMs?: number }[]` (server receive time; the runner translates by its pause offset like `closesAtMs`).
+- **Local stub:** `onAudienceResult` reads an optional numeric `atMs` on the first entry; without it the chip is `beat: null` (unknown) unless no player guessed (chat wins) or no chatter did (chat loses). `packages/games/doodle/src/logic/game.ts`.
+- **Resolution:**

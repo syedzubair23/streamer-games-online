@@ -209,3 +209,17 @@ Player idle exception: in Telephone reveal, a player's own content appears in mo
 Word item: `{ w: "cat", alt?: ["kitty"], d: 1|2|3 }`. Every word must be drawable in 70 s by a non-artist (concrete nouns, actions and simple scenes; no abstract concepts in easy/medium). The `doodle-core` pack needs 1,200 or more words (about 40% easy, 40% medium, 20% hard). The `doodle-kids` pack needs 300 or more words (all easy or medium, rated all). No brands or trademarks.
 
 ## Builder notes
+
+- M5-01 = Guess mode + Team Doodle. `mode` offers only `guess` until M5-01b adds Telephone (R9–R14, T7, T8, T13 `maxSteps`, the `tel-*` scenarios and the `page` anim).
+- Secrecy: `hidden.word` / `hidden.wordChoices` carry `owner: <drawer>`; offered words enter `usedWords` only once the turn moves on. Correct guessers' views never hold the word.
+- Feed: close guesses and any message containing the word (e.g. spam lists) never enter the feed; the author gets a `private` `close` / `hidden` cue (R2: the word is never on the Stage). Insider chat is `insider: true`, filtered per viewer.
+- Guesser points are scored at the guess; drawer points at the turn end (0 on a report or host skip). HARD ×1.25 also applies to R7 team points.
+- Tier vote: ties broken by rng; below `audienceMin` the drawer picks (fresh 12 s); no result 2 s after close → random word, no bonus.
+- `customWords` (ER-010: `custom*` pack ids): `mix` makes 50% of turns offer 3 custom words (drawer pick, no tier vote); `only` uses built-ins only if the list runs dry. Family mode adds `doodle-kids`.
+- Room settings (`contentFilter`, `audienceMin`) come from `ctx.room` or `createDoodle(room)` until ER-006.
+- Team Doodle: on when every seat has a team and there are ≥ 2 teams. A round is teams × largest-team turns; the first correct team guess scores and ends the turn; others steal from 60% (`steal` timer).
+- Disconnects: the drawer leaving ends the turn (while picking: next turn); disconnected drawers are skipped; takeover bots do nothing in Guess mode.
+- timerScale 0: hints and time scoring use the nominal `drawSec` window; the host advances.
+- disputed: scenario `drawing` says "45% … 2 hints", impossible under R3 (hints at 50/75%, and "cat" gets only one). Built with "kitten" at 76%. Extras: `drawing-guesser` (player variant), `midgame` (G8a).
+- Chat vs Players needs `firstCorrect[].atMs` (ER-011); until then `beat` is null when both chat and a player got it.
+- G14 pre-check (timed bots, 50 seeds, defaults): median 7.0 / 9.9 / 15.0 min at 3 / 8 / 12 players vs `estMinutes` 8–14 (p90 ≤ 15.6, idle max 4 s audience / 15 s player). Needs a spec call in M5-05 (e.g. estMinutes [6, 16]).
