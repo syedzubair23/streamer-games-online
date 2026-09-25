@@ -3,7 +3,7 @@
 > Generated from `progress.json` by `pnpm progress render`. Do not edit by hand:
 > change status with `pnpm progress set <id> status=<status>` (see CLAUDE.md).
 
-**74 items:** todo 60 · done 14
+**74 items:** todo 59 · done 14 · blocked 1
 
 ## M0 (6/6 done)
 
@@ -26,7 +26,7 @@
 | M1-04 | Moderation & safety | **done** | - | merger | 2026-09-25 09:58Z |  |
 | M1-05 | @sg/ui design system | todo | 0/5 | - | - |  |
 | M1-06 | @sg/render kit | **done** | - | merger | 2026-09-25 08:52Z |  |
-| M1-07 | Cozy Table diorama, ambient modes, camera, FX | todo | 0/5 | - | - |  |
+| M1-07 | Cozy Table diorama, ambient modes, camera, FX | **blocked** | 0/5 | - | 2026-09-25 16:20Z | blocked: failed 5 rounds (verify 6, critic 6.7): DoD P6 (visual critic, DOD §4.3/§7) has not passed. artifacts/critic/M1-07/round-5.json, committed at HEAD 4fe9383, has pass=false with minScore 6.7 and 4 open blockers. M17-R5-01: item 1 style consistency, the walls and floor read as flat fills against the clay props. M17-R5-02: item 6, in the establishing shot the mat is about 8% of the frame and the windo |
 | M1-08 | @sg/audio | **done** | - | merger | 2026-09-25 10:18Z | merged to main at 8dc7c6f; verify:item green |
 | M1-09 | Client shell | todo | 0/5 | - | - |  |
 | M1-10 | Bot swarm & load gate | todo | - | - | - |  |
