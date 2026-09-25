@@ -19,10 +19,11 @@
  *       *before* the substep: impacts faster than {@link REST_VN} bounce with e = 3/4 between
  *       marbles and e = 5/8 against walls, and walls take 1/16 of the tangential speed;
  *       slower (resting) contacts end with zero normal speed and roll without friction;
- *    e′. **contact energy guard**: per island of touching marbles, contacts may not add
- *       mechanical energy beyond the integer-rounding allowance (see `limitContactEnergy`);
  *    f. **zone lines** crossed by a centre during the substep (gates, finish, boosts) become
- *       events; forward boost crossings add their velocity.
+ *       events;
+ * 3. **energy guard** per island of marbles that touched during the tick: contacts may not add
+ *    mechanical energy beyond the integer-rounding allowance (see `limitTickEnergy`); then the
+ *    forward boost crossings of the tick add their velocity.
  *
  * Determinism: every value is an integer and every operation is exact integer arithmetic (see
  * `fixed.ts`), iteration orders are fixed, and nothing reads a clock or a random source. The
@@ -117,10 +118,16 @@ interface Scratch {
   cand: Int32Array;
   /** The substep's candidate pairs `i, j`, in ascending `(i, j)` order. */
   cp: Int32Array;
-  /** Contact islands (union–find parents) and their energy sums for the contact guard. */
+  /** Contact islands of the tick (union–find parents) and their sums for the energy guard. */
   parent: Int32Array;
   idelta: Float64Array;
   ikin: Float64Array;
+  /** Per marble at the start of the tick (after the one-tick adds, before gravity): `|v|²`, y. */
+  k0: Float64Array;
+  y0: Int32Array;
+  /** Boost velocity crossed this tick, applied after the energy guard. */
+  bx: Int32Array;
+  by: Int32Array;
   /** The substep's contacts: pairs `i, j, nx, ny`; walls `i, nx, ny`. */
   pairs: Int32Array;
   pairCount: number;
@@ -168,6 +175,10 @@ export function createSolver(track: CompiledTrack, capacity: number): Solver {
       parent: buf(),
       idelta: new Float64Array(capacity),
       ikin: new Float64Array(capacity),
+      k0: new Float64Array(capacity),
+      y0: buf(),
+      bx: buf(),
+      by: buf(),
       pairs: new Int32Array(4 * 256),
       pairCount: 0,
       walls: new Int32Array(3 * 256),
@@ -207,10 +218,10 @@ function pushEvent(
  */
 let cur: Scratch;
 /**
- * Per marble and substep under gravity, the `|v|²` rise the contact guard tolerates as integer
- * rounding: `|v|²` 1 per substep is ½ energy unit, so 1 unit per marble per tick (spec T3).
+ * Per marble and tick under gravity, the `|v|²` rise the energy guard tolerates as integer
+ * rounding: `|v|²` 2 is 1 energy unit, the spec's T3 tolerance of 1 unit per marble per tick.
  */
-const ROUNDING_ALLOWANCE = 1;
+const ROUNDING_ALLOWANCE = 2;
 /**
  * Contact slop, fixed units: a marble within this distance of touching counts as in contact
  * (recorded for the velocity pass) without being pushed, so resting contacts stay resolved.
@@ -478,49 +489,52 @@ function findRoot(parent: Int32Array, i: number): number {
 }
 
 /**
- * Energy guard for the contact phase of a substep: **contacts do no positive work**. Marbles
- * touching each other form islands (union–find over the recorded pair contacts; a marble that
- * only touches walls is its own island). For every island, compares its marbles' `|v|²` now
- * with before the substep, plus the lift of their corrections (`−2g·Δy`, in `|v|²` units).
- * When that sum is positive, the projection lifted marbles without a matching loss (a pile
- * settling, a squeeze), so the island's velocities are scaled by one common factor to remove
- * the excess. Rolling, bouncing and flowing marbles lose energy in contacts anyway and are
- * untouched.
+ * Joins the substep's pair contacts into the tick's contact islands (union–find, the smaller
+ * id is the root, so the result does not depend on the pair order).
  */
-function limitContactEnergy(b: Bodies, g: number): void {
-  const sc = cur;
-  const n = b.count;
-  const { alive, vx: VX, vy: VY, x: X, y: Y } = b;
-  const { mx: MX, my: MY, vpx: VPX, vpy: VPY, parent, idelta, ikin } = sc;
-  for (let i = 0; i < n; i++) {
-    parent[i] = i;
-    idelta[i] = 0;
-    ikin[i] = 0;
-  }
-  const P = sc.pairs;
+function uniteContacts(sc: Scratch): void {
+  const { parent, pairs } = sc;
   for (let k = 0, o = 0; k < sc.pairCount; k++, o += 4) {
-    const ri = findRoot(parent, P[o]!);
-    const rj = findRoot(parent, P[o + 1]!);
+    const ri = findRoot(parent, pairs[o]!);
+    const rj = findRoot(parent, pairs[o + 1]!);
     if (ri < rj) parent[rj] = ri;
     else if (rj < ri) parent[ri] = rj;
   }
+}
+
+/**
+ * The energy guard, once per tick: **contacts do no net positive work**. Marbles that touched
+ * each other during the tick form islands (a marble without marble contacts is its own). For
+ * each island, the change of mechanical energy over the tick (`Σ Δ|v|² − 2g·Δy`, in `|v|²`
+ * units, measured from after the one-tick adds and before gravity) may not exceed the
+ * integer-rounding allowance; if it does, the island's velocities are scaled by one common
+ * factor to remove the excess. Free flight, rolling and bouncing lose energy anyway (gravity is
+ * integrated semi-implicitly, contacts are inelastic or restitutive) and are never touched; the
+ * guard catches the rare squeeze where the projection lifts a pile for free.
+ */
+function limitTickEnergy(b: Bodies, g: number): void {
+  const sc = cur;
+  const n = b.count;
+  const { alive, vx: VX, vy: VY, y: Y } = b;
+  const { parent, idelta, ikin, k0, y0 } = sc;
   // Under gravity each marble may keep the integer-rounding allowance (positions are whole
-  // fixed units, so a lift is quantised); without gravity the guard is strict.
+  // fixed units, so lifts are quantised); without gravity the guard is strict.
   const allowance = g === 0 ? 0 : ROUNDING_ALLOWANCE;
+  for (let i = 0; i < n; i++) {
+    idelta[i] = 0;
+    ikin[i] = 0;
+  }
   let any = false;
   for (let i = 0; i < n; i++) {
     if (alive[i] !== 1) continue;
+    const r = findRoot(parent, i);
     const vx = VX[i]!;
     const vy = VY[i]!;
-    const px = VPX[i]!;
-    const py = VPY[i]!;
-    const dy = Y[i]! - MY[i]!;
-    if (vx === px && vy === py && dy === 0 && X[i] === MX[i]) continue;
-    const r = findRoot(parent, i);
     const k = vx * vx + vy * vy;
     ikin[r] = ikin[r]! + k;
-    idelta[r] = idelta[r]! + k - (px * px + py * py) - 2 * g * dy - allowance;
-    any = true;
+    const d = idelta[r]! + k - k0[i]! - 2 * g * (Y[i]! - y0[i]!) - allowance;
+    idelta[r] = d;
+    if (d > 0) any = true;
   }
   if (!any) return;
   for (let r = 0; r < n; r++) {
@@ -588,10 +602,18 @@ export function step(solver: Solver, bodies: Bodies, opts: StepOptions = {}): St
   ev.count = 0;
 
   // 1. forces
+  const { k0: K0, y0: Y0, parent, bx: BX, by: BY } = sc;
   for (let i = 0; i < n; i++) {
+    parent[i] = i;
+    BX[i] = 0;
+    BY[i] = 0;
     if (alive[i] === 1) {
-      VX[i] = VX[i]! + IX[i]! + wind;
-      VY[i] = VY[i]! + IY[i]! + g;
+      const vx = VX[i]! + IX[i]! + wind;
+      const vy = VY[i]! + IY[i]!;
+      K0[i] = vx * vx + vy * vy;
+      Y0[i] = Y[i]!;
+      VX[i] = vx;
+      VY[i] = vy + g;
     }
     IX[i] = 0;
     IY[i] = 0;
@@ -676,8 +698,9 @@ export function step(solver: Solver, bodies: Bodies, opts: StepOptions = {}): St
             cand[p] = j;
           }
         }
-      if (cpCount + m > sc.cp.length) {
-        const g = new Int32Array(Math.max(sc.cp.length * 2, cpCount + m));
+      // each candidate takes two slots (i, j)
+      if (cpCount + 2 * m > sc.cp.length) {
+        const g = new Int32Array(Math.max(sc.cp.length * 2, cpCount + 2 * m));
         g.set(sc.cp);
         sc.cp = g;
       }
@@ -737,10 +760,7 @@ export function step(solver: Solver, bodies: Bodies, opts: StepOptions = {}): St
     for (let k = 0, o = 0; k < sc.wallCount; k++, o += 3)
       wallVelocity(VX, VY, W[o]!, W[o + 1]!, W[o + 2]!);
 
-    // e'. contacts do no positive work: if this substep's corrections and responses together
-    //     raised the mechanical energy of the marbles involved, their speeds are scaled down
-    //     to pay it back (exact integers; see limitContactEnergy)
-    limitContactEnergy(bodies, g);
+    uniteContacts(sc);
 
     // f. zone lines
     if (lineCount === 0) continue;
@@ -771,11 +791,19 @@ export function step(solver: Solver, bodies: Bodies, opts: StepOptions = {}): St
         const kz = lineKind[z]!;
         pushEvent(ev, kz, lineIndex[z]!, i, dir, sub);
         if (kz === ZONE_BOOST && dir === 1) {
-          VX[i] = VX[i]! + ld[o + 4]!;
-          VY[i] = VY[i]! + ld[o + 5]!;
+          BX[i] = BX[i]! + ld[o + 4]!;
+          BY[i] = BY[i]! + ld[o + 5]!;
         }
       }
     }
+  }
+
+  // 3. energy guard over the tick, then the boosts crossed during it
+  limitTickEnergy(bodies, g);
+  for (let i = 0; i < n; i++) {
+    if (BX[i] === 0 && BY[i] === 0) continue;
+    VX[i] = VX[i]! + BX[i]!;
+    VY[i] = VY[i]! + BY[i]!;
   }
   return ev;
 }

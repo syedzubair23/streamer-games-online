@@ -578,7 +578,56 @@ describe("solver behaviour", () => {
     addMarble(b, 2000 * FP, 3000 * FP);
     step(s, b, { gravity: 0 });
     expect(b.x[0]).toBe(b.x[1]);
-    expect(b.y[1]! - b.y[0]!).toBe(2 * MARBLE_R);
+    // the overlap is split equally: the pair's centre does not move
+    expect(b.y[0]! + b.y[1]!).toBe(2 * 3000 * FP);
+    // separated to contact, plus at most the second substep's carry of the correction speed
+    // (the tick's energy guard then removes that speed: strict at g = 0)
+    const gap = b.y[1]! - b.y[0]!;
+    expect(gap).toBeGreaterThanOrEqual(2 * MARBLE_R);
+    expect(gap).toBeLessThanOrEqual(2 * MARBLE_R + 8 * FP);
+    expect([b.vx[0], b.vy[0], b.vx[1], b.vy[1]]).toEqual([0, 0, 0, 0]);
+    const after = JSON.stringify(bodiesToJson(b));
+    for (let t = 0; t < 10; t++) step(s, b, { gravity: 0 });
+    expect(JSON.stringify(bodiesToJson(b))).toBe(after); // and then stays at rest
+  });
+
+  it("results do not depend on the solver's buffer history (dense pile, first step)", () => {
+    const track = compileTrack(TEST_TRACK);
+    const fresh = createSolver(track, 500);
+    const used = createSolver(track, 500);
+    // grow `used`'s scratch buffers first: a tightly packed tray has ~9 candidates per marble
+    const warm = packTray(500, 500, 8100, 0);
+    for (let t = 0; t < 5; t++) step(used, warm);
+    const a = packTray(500, 500, 8100, 0);
+    const b = bodiesFromJson(bodiesToJson(a));
+    const ea: number[][] = [];
+    const eb: number[][] = [];
+    for (let t = 0; t < 30; t++) {
+      ea.push(...eventsOf(step(fresh, a)));
+      eb.push(...eventsOf(step(used, b)));
+    }
+    expect(JSON.stringify(bodiesToJson(a))).toBe(JSON.stringify(bodiesToJson(b)));
+    expect(eb).toEqual(ea);
+  });
+
+  it("a three-layer heap flows down a 10° ramp instead of jamming", () => {
+    const drop = Math.round(3000 * Math.tan((10 * Math.PI) / 180)); // test-side geometry only
+    const s = createSolver(compileTrack({ segments: [[500, 1000 + drop, 3500, 1000, 16]] }), 90);
+    const b = createBodies(90);
+    for (let i = 0; i < 90; i++) {
+      const col = i % 30;
+      const row = Math.floor(i / 30);
+      const x = 600 + col * 90 + (row % 2) * 45;
+      const surface = 1000 + drop - ((x - 500) * drop) / 3000;
+      addMarble(b, x * FP, Math.round((surface + 8 + 44 + row * 80 + 2) * FP));
+    }
+    let x0 = 0;
+    for (let i = 0; i < 90; i++) x0 += b.x[i]!;
+    for (let t = 0; t < 600; t++) step(s, b);
+    let x1 = 0;
+    for (let i = 0; i < 90; i++) x1 += b.x[i]!;
+    // 10 s later the heap's mean position has moved well down the ramp (≈1,200 units)
+    expect((x1 - x0) / 90 / FP).toBeGreaterThan(600);
   });
 
   it("wrapping the broadphase stamp counter does not change results", () => {
@@ -767,15 +816,14 @@ describe("zone events", () => {
 
 describe("T11: performance", () => {
   /**
-   * Runs `physics-bench.ts` in a plain Node process (see its header for why) and gates on the
-   * best of 3 runs' p99 plus every run's mean. The suite runs other test files in parallel on a
+   * Runs `physics-bench.ts` in a plain Node process (see its header for why) and gates on
+   * every one of 3 runs: p99 and mean per step both within 4 ms. The suite runs other test files in parallel on a
    * shared dev machine, so a noisy attempt is retried in a fresh process (at most 3 attempts);
    * the 4 ms budget itself never moves.
    */
   function gate(scene: "race" | "pile"): void {
     const attempts: BenchRun[][] = [];
-    const ok = (runs: BenchRun[]): boolean =>
-      Math.min(...runs.map((x) => x.p99)) <= 4 && runs.every((x) => x.mean <= 4);
+    const ok = (runs: BenchRun[]): boolean => runs.every((x) => x.p99 <= 4 && x.mean <= 4);
     for (let a = 0; a < 3 && !attempts.some(ok); a++) {
       const out = execFileSync(
         process.execPath,
@@ -788,8 +836,10 @@ describe("T11: performance", () => {
     }
     console.log(`T11 ${scene} (ms/step, 500 marbles): ${JSON.stringify(attempts)}`);
     const last = attempts.at(-1)!;
-    expect(Math.min(...last.map((x) => x.p99))).toBeLessThanOrEqual(4);
-    for (const x of last) expect(x.mean).toBeLessThanOrEqual(4);
+    for (const x of last) {
+      expect(x.p99).toBeLessThanOrEqual(4);
+      expect(x.mean).toBeLessThanOrEqual(4);
+    }
   }
 
   it("T11: 500 marbles step at 60 Hz in 4 ms or less: the race (tray drop, pegs, ramps, funnel)", () => {
