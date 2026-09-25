@@ -3,7 +3,7 @@
 > Generated from `progress.json` by `pnpm progress render`. Do not edit by hand:
 > change status with `pnpm progress set <id> status=<status>` (see CLAUDE.md).
 
-**74 items:** todo 59 · done 14 · blocked 1
+**74 items:** todo 58 · done 15 · blocked 1
 
 ## M0 (6/6 done)
 
@@ -31,11 +31,11 @@
 | M1-09 | Client shell | todo | 0/5 | - | - |  |
 | M1-10 | Bot swarm & load gate | todo | - | - | - |  |
 
-## M2 `quip-clash` (0/6 done)
+## M2 `quip-clash` (1/6 done)
 
 | ID | Item | Status | Critic | Owner | Updated | Notes |
 |---|---|---|---|---|---|---|
-| M2-01 | quip-clash: Logic | todo | - | - | - |  |
+| M2-01 | quip-clash: Logic | **done** | - | merger | 2026-09-25 19:59Z |  |
 | M2-02 | quip-clash: Content | todo | - | - | - |  |
 | M2-03 | quip-clash: Stage | todo | 0/5 | - | - |  |
 | M2-04 | quip-clash: Controller | todo | 0/5 | - | - |  |
