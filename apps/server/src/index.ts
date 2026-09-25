@@ -2,19 +2,27 @@
  * @packageDocumentation
  * @sg/server: Authoritative game server: uWebSockets.js/ws transports, sessions, room actors, audience aggregation, moderation and storage.
  *
- * {@link createServer} wires config, store, room manager, HTTP routes and a transport into one
- * listening server; `bin.ts` is the process entry around it.
+ * {@link createServer} wires config, store, room manager, the room actor (game registry,
+ * content packs), HTTP routes and a transport into one listening server; `bin.ts` is the
+ * process entry around it.
  */
 import type { Clock, ServerConfig } from "./config.ts";
+import { GameRegistry, PackLibrary } from "./games.ts";
 import { createHttpHandler } from "./http.ts";
+import { createRoomActorFactory, type RoomActorOptions } from "./room.ts";
 import { RoomManager, type DriverFactory, type JoinGuard } from "./room-manager.ts";
 import { MemoryStore, type Store } from "./store/memory.ts";
 import type { Transport, TransportFactory, TransportOptions } from "./transport/types.ts";
 
 export * from "./codes.ts";
 export * from "./config.ts";
+export * from "./fanout.ts";
+export * from "./games.ts";
 export * from "./http.ts";
+export * from "./playlist.ts";
+export * from "./room.ts";
 export * from "./room-manager.ts";
+export * from "./scoreboard.ts";
 export * from "./session.ts";
 export * from "./store/memory.ts";
 export * from "./transport/types.ts";
@@ -28,7 +36,14 @@ export interface CreateServerOptions {
   /** Defaults to a {@link MemoryStore}. (`STORE=sqlite` arrives with M10-03.) */
   store?: Store;
   clock?: Clock;
+  /** Replaces the room actor entirely (tests of the bare manager). */
   driver?: DriverFactory;
+  /** Game modules; default: every game's `@sg/game-<id>/logic` entry, preloaded at start. */
+  games?: GameRegistry;
+  /** Content packs; default: `content/packs` of this repo. */
+  packs?: PackLibrary;
+  /** Room actor tuning (seeds, phase lengths, audience/moderation ports, ban hook). */
+  actor?: Omit<RoomActorOptions, "manager" | "games" | "packs">;
   guards?: JoinGuard[];
   /** Random source for room codes. */
   random?: (max: number) => number;
@@ -60,10 +75,24 @@ export async function createServer(o: CreateServerOptions): Promise<RunningServe
     throw new Error("STORE=sqlite needs the SqliteStore (M10-03); use STORE=memory for now");
   const store = o.store ?? new MemoryStore();
   const holder: { manager: RoomManager | null } = { manager: null };
+  const managerRef = (): RoomManager => {
+    if (holder.manager === null) throw new Error("server not ready");
+    return holder.manager;
+  };
+  let driver = o.driver;
+  if (driver === undefined) {
+    const games = o.games ?? new GameRegistry();
+    await games.preload();
+    driver = createRoomActorFactory({
+      ...o.actor,
+      manager: managerRef,
+      games,
+      packs: o.packs ?? PackLibrary.load(),
+    });
+  }
   const http = createHttpHandler({
     get manager(): RoomManager {
-      if (holder.manager === null) throw new Error("server not ready");
-      return holder.manager;
+      return managerRef();
     },
     config,
     transport: config.transport,
@@ -73,7 +102,7 @@ export async function createServer(o: CreateServerOptions): Promise<RunningServe
     config,
     store,
     ...(o.clock ? { clock: o.clock } : {}),
-    ...(o.driver ? { driver: o.driver } : {}),
+    driver,
     ...(o.guards ? { guards: o.guards } : {}),
     ...(o.random ? { random: o.random } : {}),
     http,

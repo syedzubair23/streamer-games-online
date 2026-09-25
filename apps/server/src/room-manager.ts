@@ -12,10 +12,12 @@
  * throttled to 2 Hz so 10,000 viewers joining do not cause 10,000 broadcasts), persistence to
  * the {@link Store}, and cleanup 10 minutes after the room empties.
  *
- * Game play is not handled here. Each room has a {@link RoomDriver}; the room actor (M1-02)
- * installs one that runs the playlist through `GameRunner`, the audience aggregator (M1-03)
- * and moderation (M1-04) hang off it. Without one, the built-in lobby driver answers game
- * traffic truthfully: no game is running, so actions are illegal and polls do not exist.
+ * Game play is not handled here. Each room has a {@link RoomDriver}; the room actor (M1-02,
+ * `room.ts`) runs the playlist through `GameRunner`, and the audience aggregator (M1-03) and
+ * moderation (M1-04) hang off it. `createServer` installs the room actor; a bare manager
+ * falls back to the lobby driver, which answers game traffic truthfully: no game is running,
+ * so actions are illegal and polls do not exist. The actor changes membership through
+ * {@link RoomManager.setMember} and {@link RoomManager.removeMember}.
  *
  * @module
  */
@@ -539,6 +541,76 @@ export class RoomManager implements TransportHandlers {
   /** Publishes one pre-serialized message to a topic. */
   publish(topic: string, msg: S2C): void {
     this.#transport?.publish(topic, encodeMessage(msg));
+  }
+
+  /**
+   * Publishes an already-encoded frame (a view buffer shared by every subscriber, or a Marble
+   * Rally binary frame) to a topic: one buffer, native fan-out on uWS.
+   */
+  publishRaw(topic: string, data: string | Uint8Array): void {
+    this.#transport?.publish(topic, data);
+  }
+
+  // -------------------------------------------------------------------------------------------
+  // Membership changes made by the room actor (M1-02)
+  // -------------------------------------------------------------------------------------------
+
+  /**
+   * Changes a member's role, seat and team (seat raffle, bench, promote, transfer host).
+   * The session's sockets get the new role's message rate; topic subscriptions are the
+   * actor's business (it knows which view each socket receives). Broadcasts the room.
+   */
+  setMember(
+    room: ManagedRoom,
+    s: Session,
+    change: { role?: Session["role"]; seat?: number | null; teamId?: string | null },
+  ): void {
+    if (change.role !== undefined) s.role = change.role;
+    if (change.seat !== undefined) s.seat = change.seat;
+    if (change.teamId !== undefined) s.teamId = change.teamId ?? undefined;
+    if (change.role !== undefined) {
+      const rate =
+        s.role === "audience" || s.role === "overlay"
+          ? this.config.audienceMsgPerSec
+          : this.config.playerMsgPerSec;
+      const now = this.clock.now();
+      for (const conn of s.conns.values()) this.#states.get(conn)?.bucket.reset(rate, rate, now);
+      if (s.role === "audience") s.queued = false;
+    }
+    this.#changed(room, true);
+  }
+
+  /**
+   * Removes a member for good (kick, or a seat released after its bot finished the game):
+   * closes its sockets with `code`, forgets the session and broadcasts the room. The host
+   * cannot be removed.
+   */
+  removeMember(
+    room: ManagedRoom,
+    s: Session,
+    code: number = CLOSE.KICKED,
+    reason = "removed",
+  ): void {
+    if (s.id === room.hostId || room.sessions.get(s.token) !== s) return;
+    for (const conn of [...s.conns.values()]) {
+      s.detach(conn);
+      room.conns.delete(conn);
+      const st = this.#states.get(conn);
+      if (st !== undefined) {
+        st.room = null;
+        st.session = null;
+      }
+      conn.close(code, reason);
+    }
+    this.#removeSession(room, s);
+    room.driver.onMember?.(s, "leave");
+    this.#changed(room, true);
+    if (room.conns.size === 0) this.#scheduleCleanup(room);
+  }
+
+  /** Writes the room to the store now (the actor's every-20-actions / every-10-s snapshots). */
+  persistNow(room: ManagedRoom): void {
+    if (this.rooms.get(room.code) === room) this.store.saveRoom(room.toRecord(this.clock.now()));
   }
 
   #error(conn: Conn, code: ErrorCode, msg: string): void {
