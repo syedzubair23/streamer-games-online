@@ -1,0 +1,41 @@
+{
+  "id": "M1-06",
+  "coverage": ["packages/render/src/**"],
+  "accept": [
+    {
+      "criterion": "The loop renders 0 frames/s when idle with ambient off (Playwright test)",
+      "cmd": "pnpm exec playwright test -c packages/render/playwright.config.ts render-kit.spec.ts -g \"render loop in a real browser\" && pnpm exec vitest run --project @sg/render packages/render/test/loop.test.ts",
+      "evidence": "Chromium/WebGL2 (SwiftShader): a mounted game renders exactly 1 frame on invalidate, then 0 loop frames and 0 WebGL frames (renderer.info.render.frame) over ~2 s of display frames; a tween renders every frame and the loop returns to 0 fps by itself; ambient life is capped at the tier rate and stops when turned off. Unit tests (fake scheduler) cover idle 0 fps, one frame per invalidate, one frame in flight, beginAnim, busy participants, the ambient cap, continuous mode, tab visibility, pause/start and dispose"
+    },
+    {
+      "criterion": "Dynamic resolution steps down and up with hysteresis (unit test using a fake frame feed)",
+      "cmd": "pnpm exec vitest run --project @sg/render packages/render/test/quality.test.ts",
+      "evidence": "DynamicResolution fed synthetic frame times: -0.1 after one bad window (p90 > 1.15 x target), no step inside the hysteresis band, at most one change per second, +0.05 only after three good windows in a row, streak reset by neutral/bad windows, floor 0.5 / cap 1.0, warm-up ignored, inert when disabled, settles without oscillating when frame cost scales with pixel count, recovers once load drops"
+    },
+    {
+      "criterion": "All procedural textures generate in 150 ms or less under a 4x CPU throttle (perf spec)",
+      "cmd": "pnpm exec playwright test -c packages/render/playwright.config.ts textures.perf.spec.ts",
+      "evidence": "per tier (low/mid/high) the whole boot set (14 textures: ramp, blob, noise, grain, both matcaps, wood, table wood, felt, paper, cork, dice, board, cards) is painted cold in a fresh browser context with no IndexedDB store under CDP Emulation.setCPUThrottlingRate 4; the throttle is verified by a fixed workload (>= 2.5x slower) in every trial; best of 5 cold trials must be <= 150 ms; all trials are written to artifacts/perf/render-textures.json"
+    },
+    {
+      "criterion": "dispose.ts returns renderer.info.memory to its baseline after a mount/unmount cycle",
+      "cmd": "pnpm exec playwright test -c packages/render/playwright.config.ts render-kit.spec.ts -g \"disposal\" && pnpm exec vitest run --project @sg/render packages/render/test/dispose.test.ts",
+      "evidence": "real WebGL2: three mount/unmount cycles of representative game content (instanced lathe pieces, blob shadows, matcap box, card with its own CanvasTexture, additive halo, board tile) each raise geometries/textures/programs and disposeObject3D returns renderer.info.memory (geometries, textures, programs) exactly to the baseline; shell-owned kit textures are never freed by a game; an on-demand kit texture is painted once and reused. Unit tests cover shared-resource skipping, material texture discovery and the leak check"
+    },
+    {
+      "criterion": "Game code cannot construct any material directly: a lint rule bans new Mesh*Material outside @sg/render",
+      "cmd": "pnpm exec vitest run --project root test/material-ban.test.ts test/eslint-rules.test.ts && pnpm lint",
+      "evidence": "eslint.config.js bans `new *Material` (identifier and member forms) and renamed material-class imports in every linted file, re-allowing only packages/render/**; fixture tests lint 11 construction forms at 18 paths (every game folder incl. logic, client, bot, scenarios, tests and configs; apps; engine/ui/audio/shared; tools; root tests) and prove factories, type-only imports and @sg/render stay legal; the whole repo lints clean"
+    },
+    {
+      "criterion": "The render kit satisfies the @sg/engine StageContext contracts (materials, textures, tween, loop, pick, springs, quality)",
+      "cmd": "pnpm exec vitest run --project root test/render-contract.test.ts && pnpm typecheck",
+      "evidence": "compile-time structural equality of every type mirrored in packages/render/src/types.ts with packages/engine/src/client-module.ts, plus runtime checks that the real factories fill the StageContext members and the constant lists agree"
+    },
+    {
+      "criterion": "Materials compile on WebGL2, share programs per kind, and a mode change adds no programs; textures are deterministic, tile seamlessly and round-trip through IndexedDB",
+      "cmd": "pnpm exec playwright test -c packages/render/playwright.config.ts render-kit.spec.ts -g \"materials on WebGL2|procedural textures in a real canvas\"",
+      "evidence": "every factory on every tier compiles without WebGL/shader errors, a second material of the same kind adds no program, rim colour / matcap blend / sky uniform changes add none; every texture of every tier paints identical pixels twice and is non-blank; wood/felt/paper/cork/noise/grain seams are no stronger than interior neighbours; the IndexedDB store serves pixel-identical textures after a reload and discards a stale version; contact sheets in artifacts/tmp/render-kit/"
+    }
+  ]
+}

@@ -3,7 +3,7 @@
 > Generated from `progress.json` by `pnpm progress render`. Do not edit by hand:
 > change status with `pnpm progress set <id> status=<status>` (see CLAUDE.md).
 
-**74 items:** todo 67 · done 7
+**74 items:** todo 60 · done 14
 
 ## M0 (6/6 done)
 
@@ -16,18 +16,18 @@
 | M0-05 | Scenario route + Playwright harness | **done** | - | merger | 2026-09-24 23:10Z | merged item/M0-05; verify:item green on main |
 | M0-06 | Critic kit + reference board | **done** | - | step0-sync | 2026-09-24 20:18Z | re-verified at 9922016 during M0 progress sync; artifacts/verify/M0-06.json |
 
-## M1 (1/10 done)
+## M1 (6/10 done)
 
 | ID | Item | Status | Critic | Owner | Updated | Notes |
 |---|---|---|---|---|---|---|
 | M1-01 | Server transport, sessions, codes, roles, reconnection | **done** | - | builder | 2026-09-24 23:50Z | verified green at merge commit; non-visual, no critic stage |
-| M1-02 | Room actor + GameRunner integration | todo | - | - | - |  |
-| M1-03 | AudienceAggregator | todo | - | - | - |  |
-| M1-04 | Moderation & safety | todo | - | - | - |  |
+| M1-02 | Room actor + GameRunner integration | **done** | - | merger | 2026-09-25 08:42Z |  |
+| M1-03 | AudienceAggregator | **done** | - | merger | 2026-09-25 09:30Z |  |
+| M1-04 | Moderation & safety | **done** | - | merger | 2026-09-25 09:58Z |  |
 | M1-05 | @sg/ui design system | todo | 0/5 | - | - |  |
-| M1-06 | @sg/render kit | todo | - | - | - |  |
+| M1-06 | @sg/render kit | **done** | - | merger | 2026-09-25 08:52Z |  |
 | M1-07 | Cozy Table diorama, ambient modes, camera, FX | todo | 0/5 | - | - |  |
-| M1-08 | @sg/audio | todo | - | - | - |  |
+| M1-08 | @sg/audio | **done** | - | merger | 2026-09-25 10:18Z | merged to main at 8dc7c6f; verify:item green |
 | M1-09 | Client shell | todo | 0/5 | - | - |  |
 | M1-10 | Bot swarm & load gate | todo | - | - | - |  |
 
@@ -106,12 +106,12 @@
 | M8-04 | chess: Controller | todo | 0/5 | - | - |  |
 | M8-05 | chess: Verify & critic | todo | 0/5 | - | - |  |
 
-## M9 `marble-rally` (0/7 done)
+## M9 `marble-rally` (2/7 done)
 
 | ID | Item | Status | Critic | Owner | Updated | Notes |
 |---|---|---|---|---|---|---|
-| M9-00 | marble-rally: Physics solver | todo | - | - | - |  |
-| M9-00b | marble-rally: Tracks | todo | - | - | - |  |
+| M9-00 | marble-rally: Physics solver | **done** | - | merger | 2026-09-25 10:52Z |  |
+| M9-00b | marble-rally: Tracks | **done** | - | merger | 2026-09-25 13:36Z | verified 1 round, 0 critic rounds |
 | M9-01 | marble-rally: Logic | todo | - | - | - |  |
 | M9-02 | marble-rally: Content | todo | - | - | - |  |
 | M9-03 | marble-rally: Stage | todo | 0/5 | - | - |  |

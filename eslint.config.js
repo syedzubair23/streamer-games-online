@@ -46,6 +46,13 @@ const NO_DIRECT_MATERIAL_MEMBER = {
   selector: "NewExpression[callee.type='MemberExpression'][callee.property.name=/Material$/]",
   message: NO_DIRECT_MATERIAL.message,
 };
+/** Renaming a material class on import would hide a `new` from the two selectors above. */
+const NO_MATERIAL_ALIAS = {
+  selector: "ImportSpecifier[imported.name=/Material$/][local.name!=/Material$/]",
+  message: `Do not rename material classes on import. ${NO_DIRECT_MATERIAL.message}`,
+};
+/** Every direct-material ban (all files except @sg/render). */
+const MATERIAL_BANS = [NO_DIRECT_MATERIAL, NO_DIRECT_MATERIAL_MEMBER, NO_MATERIAL_ALIAS];
 
 /** Hex / rgb() / hsl() colour strings. */
 const COLOUR_STRING = String.raw`/^\s*(#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})|(rgba?|hsla?|oklch|oklab|lab|lch|hwb|color)\(.*\))\s*$/`;
@@ -244,7 +251,9 @@ export default defineConfig(
       eqeqeq: ["error", "always", { null: "ignore" }],
       "no-var": "error",
       "prefer-const": "error",
-      "no-restricted-syntax": ["error", NO_THREE_NAMESPACE],
+      // Direct materials are banned everywhere (games, apps, tools, tests); @sg/render, the one
+      // place that constructs them, is re-allowed below (M1-06).
+      "no-restricted-syntax": ["error", NO_THREE_NAMESPACE, ...MATERIAL_BANS],
       "no-restricted-imports": restrictedImports(),
     },
   },
@@ -429,12 +438,7 @@ export default defineConfig(
       "no-restricted-imports": restrictedImports([NO_OTHER_GAME_IMPORT]),
       "no-restricted-globals": ["error", ...RAF_GLOBALS],
       "no-restricted-properties": ["error", ...RAF_PROPERTIES],
-      "no-restricted-syntax": [
-        "error",
-        NO_THREE_NAMESPACE,
-        NO_DIRECT_MATERIAL,
-        NO_DIRECT_MATERIAL_MEMBER,
-      ],
+      "no-restricted-syntax": ["error", NO_THREE_NAMESPACE, ...MATERIAL_BANS],
     },
   },
   // Game clients: additionally no colour/duration literals (tokens only).
@@ -442,13 +446,7 @@ export default defineConfig(
     files: GAME_CLIENT_FILES,
     languageOptions: { globals: { ...globals.browser } },
     rules: {
-      "no-restricted-syntax": [
-        "error",
-        NO_THREE_NAMESPACE,
-        NO_DIRECT_MATERIAL,
-        NO_DIRECT_MATERIAL_MEMBER,
-        ...NO_TOKEN_LITERALS,
-      ],
+      "no-restricted-syntax": ["error", NO_THREE_NAMESPACE, ...MATERIAL_BANS, ...NO_TOKEN_LITERALS],
     },
   },
   // Phone entries: never statically import three or @sg/render (only the lazy requestBoard path).
@@ -470,13 +468,14 @@ export default defineConfig(
   {
     files: ["apps/**/*.{ts,tsx}", "packages/{shared,engine,ui,audio}/**/*.{ts,tsx}"],
     rules: {
-      "no-restricted-syntax": [
-        "error",
-        NO_THREE_NAMESPACE,
-        NO_DIRECT_MATERIAL,
-        NO_DIRECT_MATERIAL_MEMBER,
-      ],
+      "no-restricted-syntax": ["error", NO_THREE_NAMESPACE, ...MATERIAL_BANS],
     },
+  },
+
+  // @sg/render owns the material factories: the only files allowed to construct materials.
+  {
+    files: ["packages/render/**/*.{ts,tsx}"],
+    rules: { "no-restricted-syntax": ["error", NO_THREE_NAMESPACE] },
   },
 
   // ---- Pure logic (any **/logic/**, e.g. packages/games/*/src/logic) ------------------------
@@ -489,8 +488,7 @@ export default defineConfig(
       "no-restricted-syntax": [
         "error",
         NO_THREE_NAMESPACE,
-        NO_DIRECT_MATERIAL,
-        NO_DIRECT_MATERIAL_MEMBER,
+        ...MATERIAL_BANS,
         { selector: "NewExpression[callee.name='Date']", message: LOGIC_MSG },
         { selector: "CallExpression[callee.name='Date']", message: LOGIC_MSG },
         { selector: "MemberExpression[object.name='Date']", message: LOGIC_MSG },

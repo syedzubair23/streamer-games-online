@@ -3,7 +3,7 @@
  * `audienceMin`).
  *
  * The engine's `SetupContext` does not pass these yet. Until it does
- * (docs/engine-requests.md ER-005), the module reads an optional `room` field from the setup
+ * (docs/engine-requests.md ER-006), the module reads an optional `room` field from the setup
  * context, and `createQuipClash(room)` can pin them (tests, scenarios, and the server until the
  * engine lands the field). Anything missing falls back to `DEFAULT_ROOM_CONFIG`.
  *
@@ -13,7 +13,7 @@ import { DEFAULT_ROOM_CONFIG, type RoomConfig } from "@sg/shared";
 import type { SetupContext } from "@sg/engine";
 import type { QcRoomSettings } from "./types.ts";
 
-/** A setup context that may carry the room settings (the shape ER-005 asks for). */
+/** A setup context that may carry the room settings (the shape ER-006 asks for). */
 export type SetupContextWithRoom<O> = SetupContext<O> & { room?: Partial<RoomConfig> };
 
 const FILTERS: readonly RoomConfig["contentFilter"][] = ["family", "standard"];
