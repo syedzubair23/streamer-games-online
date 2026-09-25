@@ -3,7 +3,7 @@
 > Generated from `progress.json` by `pnpm progress render`. Do not edit by hand:
 > change status with `pnpm progress set <id> status=<status>` (see CLAUDE.md).
 
-**74 items:** todo 58 · done 15 · blocked 1
+**74 items:** todo 57 · done 15 · blocked 2
 
 ## M0 (6/6 done)
 
@@ -24,7 +24,7 @@
 | M1-02 | Room actor + GameRunner integration | **done** | - | merger | 2026-09-25 08:42Z |  |
 | M1-03 | AudienceAggregator | **done** | - | merger | 2026-09-25 09:30Z |  |
 | M1-04 | Moderation & safety | **done** | - | merger | 2026-09-25 09:58Z |  |
-| M1-05 | @sg/ui design system | todo | 0/5 | - | - |  |
+| M1-05 | @sg/ui design system | **blocked** | 0/5 | - | 2026-09-25 20:01Z | blocked: failed 5 rounds (verify 9, critic 8.53): M105-R5-01 (item 1, a hard-gate item): R4-05 asked for stronger weather cues, and the fix went too far. Rain is now an even pinstripe of diagonal lines at a fixed pitch, and snow is a regular grid of equal dots and hollow rings. Both are static: frames taken at 0, 400 and 800 ms are byte-identical. They read as printed wallpaper, so style consistency in rai |
 | M1-06 | @sg/render kit | **done** | - | merger | 2026-09-25 08:52Z |  |
 | M1-07 | Cozy Table diorama, ambient modes, camera, FX | **blocked** | 0/5 | - | 2026-09-25 16:20Z | blocked: failed 5 rounds (verify 6, critic 6.7): DoD P6 (visual critic, DOD §4.3/§7) has not passed. artifacts/critic/M1-07/round-5.json, committed at HEAD 4fe9383, has pass=false with minScore 6.7 and 4 open blockers. M17-R5-01: item 1 style consistency, the walls and floor read as flat fills against the clay props. M17-R5-02: item 6, in the establishing shot the mat is about 8% of the frame and the windo |
 | M1-08 | @sg/audio | **done** | - | merger | 2026-09-25 10:18Z | merged to main at 8dc7c6f; verify:item green |
