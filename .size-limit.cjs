@@ -37,6 +37,14 @@ const sourceEntries = [
     ignore: ["preact", "@preact/signals", "@preact/signals-core"],
   },
   {
+    // M1-06: renderer, loop, quality, materials, textures, pieces, perf HUD. three.js is
+    // measured with the Stage shell (built chunk below), not here.
+    name: "@sg/render kit (without three)",
+    path: "packages/render/src/index.ts",
+    limit: "25 KB",
+    ignore: ["three"],
+  },
+  {
     name: "@sg/audio",
     path: "packages/audio/src/index.ts",
     limit: "12 KB",
