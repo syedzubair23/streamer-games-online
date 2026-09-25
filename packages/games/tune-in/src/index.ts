@@ -1,8 +1,10 @@
 /**
  * @packageDocumentation
- * @sg/game-tune-in: Game module for tune-in: pure logic, bot, scenarios, content loaders and stage/controller clients.
+ * @sg/game-tune-in: Tune In, the dial-and-clue party game (`docs/specs/tune-in.md`).
  *
- * The manifest and module exports are added by the game's Mx-01 item.
+ * - `./logic`: the pure game module (`tuneIn` / `logic`), rules, views and bot.
+ * - `./scenarios`: the scenario registry for `/dev/scenario` (SPEC §14).
+ * - `./client`: the Stage and controller (M3-03, M3-04).
  */
 
-export { GAME_ID } from "./logic/index.ts";
+export * from "./logic/index.ts";
