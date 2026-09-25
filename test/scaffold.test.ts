@@ -4,7 +4,7 @@
  * dependencies are pinned as specified, and every script's entry file exists (so `pnpm build`
  * and `pnpm start` really run).
  */
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -191,17 +191,38 @@ describe("script entry files exist (pnpm build/dev/start are runnable)", () => {
     }
   });
 
-  it("pnpm build succeeds and the built server starts and exits 0", () => {
-    const run = (cmd: string, args: string[]): string =>
-      execFileSync(cmd, args, {
-        cwd: ROOT,
-        encoding: "utf8",
-        stdio: "pipe",
-        shell: process.platform === "win32",
-      });
-    run("pnpm", ["build"]);
+  // Since M1-01 the built server is the real one: it keeps listening, so the check is that it
+  // starts from the bundle alone (workspace packages bundled, no TypeScript at runtime), prints
+  // its startup line and answers /health, then it is stopped.
+  it("pnpm build succeeds and the built server starts and serves /health", async () => {
+    execFileSync("pnpm", ["build"], {
+      cwd: ROOT,
+      encoding: "utf8",
+      stdio: "pipe",
+      shell: process.platform === "win32",
+    });
     expect(existsSync(join(ROOT, "apps/server/dist/bin.js"))).toBe(true);
-    expect(run("node", ["apps/server/dist/bin.js"])).toContain("@sg/server");
+    const child = spawn(process.execPath, ["apps/server/dist/bin.js"], {
+      cwd: ROOT,
+      env: { ...process.env, PORT: "0", HOST: "127.0.0.1", TRANSPORT: "ws", SG_CONFIG: "" },
+    });
+    let out = "";
+    child.stdout.on("data", (d: Buffer) => (out += d.toString()));
+    child.stderr.on("data", (d: Buffer) => (out += d.toString()));
+    const exited = new Promise<number | null>((r) => child.on("exit", (code) => r(code)));
+    try {
+      await expect
+        .poll(() => out, { timeout: 20_000, interval: 100 })
+        .toMatch(/@sg\/server: listening on 127\.0\.0\.1:\d+/);
+      const port = /listening on 127\.0\.0\.1:(\d+)/.exec(out)?.[1];
+      const health = (await (await fetch(`http://127.0.0.1:${port}/health`)).json()) as {
+        ok: boolean;
+      };
+      expect(health.ok).toBe(true);
+    } finally {
+      child.kill();
+      await exited;
+    }
   }, 180_000);
 });
 

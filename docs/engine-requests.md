@@ -36,22 +36,52 @@ Rules:
 - **Local stub:** none needed; the gate reports it.
 - **Resolution:**
 
-### ER-002 Room settings in SetupContext (moderation, content filter, audienceMin)
+### ER-002 `audienceMin` in the game context
+- **From:** M3-01 (tune-in logic builder)
+- **Package:** @sg/engine (`packages/engine/src/game-module.ts`, `runner.ts`)
+- **Status:** open
+- **Need:** games need the room's `audienceMin` to decide whether an audience vote counts.
+- **Why:** `docs/specs/tune-in.md` R4, R6 and R10 ("if the audience total is at least `audienceMin`"); SPEC §4 "Minimum audience".
+- **Proposed API:** `Ctx.audienceMin: number` (and on `SetupContext`), filled from `RoomConfig.audienceMin`.
+- **Local stub:** `AUDIENCE_MIN = DEFAULT_ROOM_CONFIG.audienceMin` in `packages/games/tune-in/src/logic/module.ts`.
+- **Resolution:**
+
+### ER-003 Room content filter and moderation mode in the game context
+- **From:** M3-01 (tune-in logic builder)
+- **Package:** @sg/engine (`packages/engine/src/game-module.ts`, `runner.ts`)
+- **Status:** open
+- **Need:** a game that accepts player text (clues) needs the room's `contentFilter` (family/standard) and moderation mode to mask, flag or queue it.
+- **Why:** SPEC §9.7 (profanity filter runs on clues; `reveal-review` queues user text); `docs/specs/tune-in.md` R5.
+- **Proposed API:** `Ctx.room: { contentFilter: RoomConfig["contentFilter"]; moderation: RoomConfig["moderation"] }` (read-only).
+- **Local stub:** tune-in applies the strictest behaviour: a clue flagged by `filterText(clue, "family")` is rejected with the private "try another" message (`src/logic/rules.ts` `checkClue`); no `moderate` effect yet.
+- **Resolution:**
+
+### ER-004 Mid-game joins (`onPlayerJoin`)
+- **From:** M3-01 (tune-in logic builder)
+- **Package:** @sg/engine (`packages/engine/src/runner.ts`, `game-module.ts`)
+- **Status:** open
+- **Need:** the runner's seats are fixed at setup, so a player who joins mid-game cannot be seated at the next turn boundary.
+- **Why:** `docs/specs/tune-in.md` edge cases ("a player joins mid-game: they sit out until the next turn boundary, and in teams mode they are auto-assigned to the smaller team").
+- **Proposed API:** `GameRunner.playerJoin(seat, now)` → optional `GameModule.onPlayerJoin?(state, seat, ctx)`; the runner adds the seat when the hook accepts it.
+- **Local stub:** none possible; joiners stay audience until the next game (handoff "known limits").
+- **Resolution:**
+
+### ER-005 Room settings in SetupContext (moderation, content filter, audienceMin)
 - **From:** M2-01 (quip-clash builder)
 - **Package:** @sg/engine (`packages/engine/src/game-module.ts`, `runner.ts`)
 - **Status:** open
 - **Need:** game logic must know `RoomConfig.moderation`, `contentFilter` and `audienceMin`; `SetupContext` carries none of them.
-- **Why:** `docs/specs/quip-clash.md` R3 (`filterText` at the room's level), R7 (`poll.total ≥ audienceMin`), R13 (`moderation = reveal-review`); Doodle needs the same.
+- **Why:** `docs/specs/quip-clash.md` R3 (`filterText` at the room's level), R7 (`poll.total ≥ audienceMin`), R13 (`moderation = reveal-review`); Doodle needs the same. Superset of ER-002 and ER-003 (tune-in); one `ctx.room` would close all three.
 - **Proposed API:** `SetupContext.room: Pick<RoomConfig, "contentFilter" | "moderation" | "audienceMin">`, filled by `GameRunner` from a new `RunnerOptions.room` (default `DEFAULT_ROOM_CONFIG`).
 - **Local stub:** `packages/games/quip-clash/src/logic/room.ts` reads an optional `ctx.room`; `createQuipClash(room)` pins the settings meanwhile.
 - **Resolution:**
 
-### ER-003 Client scenario-route test assumes quip-clash has no logic
+### ER-006 Client scenario-route test assumes quip-clash has no logic
 - **From:** M2-01 (quip-clash builder)
 - **Package:** @sg/client (`apps/client/test/scenario-route.test.ts`, "explains which roadmap item a game is waiting for")
 - **Status:** open
 - **Need:** the test expects `loadScenarioGame("quip-clash")` to reject with "no logic yet"; M2-01 ships that logic, so `pnpm test` goes red once M2-01 merges (and the same happens for any other game later).
 - **Why:** DOD P3/G-gates need a green `pnpm test`; the assertion depends on build progress, not on behaviour.
-- **Proposed API:** none; keep the same assertion without a real game: `expect(() => assembleGame("tune-in", {}, {}, null)).toThrow(/no logic yet.*Mx-01/)`.
+- **Proposed API:** none; keep the same assertion without a real game: `expect(() => assembleGame("chess", {}, {}, null)).toThrow(/no logic yet.*Mx-01/)` (an empty logic module, independent of build progress).
 - **Local stub:** none possible (engine-owned test). Blocks merging M2-01 until applied.
 - **Resolution:**

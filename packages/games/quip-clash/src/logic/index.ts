@@ -2,9 +2,9 @@
  * Server-safe logic entry for `@sg/game-quip-clash/logic` (SPEC §9.2): the Quip Clash
  * `GameModule` (`docs/specs/quip-clash.md`), pure and deterministic.
  *
- * - `logic`: the module the platform runs (room settings from the setup context, ER-002).
+ * - `logic`: the module the platform runs (room settings from the setup context, ER-005).
  * - `createQuipClash(room)`: the same module with pinned room settings (moderation, content
- *   filter, audienceMin), for tests, scenarios and the server until ER-002 lands.
+ *   filter, audienceMin), for tests, scenarios and the server until ER-005 lands.
  *
  * @module
  */

@@ -213,7 +213,7 @@ Pack item: `{ id, text: "The worst thing to hear from your dentist: ___", safety
 (Builder-owned, 20 lines or fewer.)
 - Votes name answer **slots** (`A`/`B`; Last Quip `c1..c8`), not author ids: the views table hides authorship until `results`.
 - Stage/audience see vote **counts** only (`votesCast`/`votersEligible`) and ballots from `results`; who may vote would reveal the authors.
-- Room settings (`moderation`, `contentFilter`, `audienceMin`) come from `ctx.room` (ER-002) or `createQuipClash(room)`; default room otherwise.
+- Room settings (`moderation`, `contentFilter`, `audienceMin`) come from `ctx.room` (ER-005) or `createQuipClash(room)`; default room otherwise.
 - Safety lines are drawn without replacement per prompt (an overwritten one goes back). In Last Quip with more than 3 takers Safety is unavailable, and a rejected answer with no line left is blank. Safety quips skip review (curated content).
 - After the players' vote ends the game waits up to 15 s for the audience result (the runner holds early closes), then scores without chat.
 - Too few prompts: stays in `intro` with `error` and no timer; `forceAdvance` ends it with an empty ranking. `skipItem` is unused.

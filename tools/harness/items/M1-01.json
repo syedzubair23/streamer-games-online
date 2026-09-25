@@ -1,0 +1,41 @@
+{
+  "id": "M1-01",
+  "coverage": ["apps/server/src/**"],
+  "accept": [
+    {
+      "criterion": "create → hello → welcome works",
+      "cmd": "pnpm exec vitest run --project @sg/server apps/server/test/transport.test.ts -t \"create . hello . welcome works\"",
+      "evidence": "real ws clients against the uws and ws transports: create returns welcome (host role, 128-bit token, valid code, lobby snapshot); a hello with that code (any case) returns welcome with a seat; the host receives the room broadcast; no token, password or overlay key appears in the public snapshot"
+    },
+    {
+      "criterion": "A wrong code returns BAD_CODE, and a full room puts the joiner in the audience",
+      "cmd": "pnpm exec vitest run --project @sg/server apps/server/test/transport.test.ts -t \"wrong code returns BAD_CODE|full room puts the joiner in the audience\"",
+      "evidence": "both transports: unknown and malformed codes get error BAD_CODE and the socket can retry; with maxPlayers 2 the third joiner gets role audience (seat null) and the host sees audienceCount 1"
+    },
+    {
+      "criterion": "A password is required when one is set",
+      "cmd": "pnpm exec vitest run --project @sg/server apps/server/test/transport.test.ts -t \"password is required when one is set\"",
+      "evidence": "both transports: missing or wrong (case-sensitive) password gets BAD_PASSWORD, the right one joins, a live token reconnects without it, the host can change and clear it via the config command; the snapshot only carries hasPassword"
+    },
+    {
+      "criterion": "Codes use only the 20-consonant alphabet, and a blocklisted code is never issued",
+      "cmd": "pnpm exec vitest run --project @sg/server apps/server/test/codes.test.ts apps/server/test/transport.test.ts -t \"20-consonant alphabet|blocklisted code is never issued|blocklist entry|never issues a blocked code\"",
+      "evidence": "2,000 issued codes match ^[BCDFGHJKLMNPQRSTVWXZ]{4}$ and are unique; a random source scripted to propose blocked codes first is skipped (unit and through the live server); 20,000 random issues plus 500 forced fallback-scan issues are never blocked; every blocklist entry is spelled with the alphabet so it can match"
+    },
+    {
+      "criterion": "A reconnect within the grace period restores role and seat",
+      "cmd": "pnpm exec vitest run --project @sg/server apps/server/test/transport.test.ts -t \"reconnect within the grace period restores role and seat|after the grace period|replaces the first|restores rooms from the store\"",
+      "evidence": "both transports: a player who drops is shown connected:false with the seat held (a newcomer takes the next seat), hello{token} restores id, role, seat, name and colour even with a different want/name; the host token restores the host role; after the grace period the seat is released; a second tab replaces the first (close 4000); a restart with the same store restores seats by token"
+    },
+    {
+      "criterion": "The join rate limit (40/min/IP by default, configurable) triggers at the configured value, 30 clients from one IP can all join (classroom case), and the 16 KB payload cap drops the connection",
+      "cmd": "pnpm exec vitest run --project @sg/server apps/server/test/transport.test.ts apps/server/test/config.test.ts -t \"join rate limit|30 clients from one IP|16 KB payload cap|configurable from server.config.json|SPEC .9.5 defaults\"",
+      "evidence": "both transports: with perIpJoinsPerMin 5 the 6th attempt (hello, bad code or HTTP probe) gets RATE_LIMIT while token reconnects still work; with the default the 41st attempt is refused after 40 pass; 30 simultaneous joins from 127.0.0.1 all get welcome (12 seated, 18 audience); a frame just under 16 KB is answered, one over it closes the socket; server.config.json sets perIpJoinsPerMin"
+    },
+    {
+      "criterion": "The overlay key gives read-only access: an act from an overlay socket returns NOT_ALLOWED",
+      "cmd": "pnpm exec vitest run --project @sg/server apps/server/test/transport.test.ts apps/server/test/session.test.ts -t \"overlay key gives read-only access|overlays are read-only\"",
+      "evidence": "both transports: the 96-bit key is only served to the host token; a wrong key gets NOT_ALLOWED; with the right key act returns ack{ok:false, err:NOT_ALLOWED} and host/aud/mod return error NOT_ALLOWED while resync still reads the room; the role table allows overlays only ping, resync and bg"
+    }
+  ]
+}
