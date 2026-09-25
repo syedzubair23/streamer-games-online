@@ -46,6 +46,9 @@ import {
 } from "../src/scenarios.ts";
 import { content, Game, roomTeams, T0, teamSeats } from "./helpers.ts";
 
+/** Whole-game loops take about 1.5 s alone; the full coverage run under load needs headroom. */
+const HEAVY_TIMEOUT_MS = 60_000;
+
 const SAFETY = new Set(
   [...FIXTURE_CORE_PACK.items, ...FIXTURE_SPICY_PACK.items].flatMap((i) =>
     "safety" in i ? [...i.safety] : [],
@@ -199,30 +202,34 @@ describe("R1 / T15: authors and team mode", () => {
 });
 
 describe("R2 / T1: prompt assignment", () => {
-  it("R2: T1: every author gets exactly 2 prompts and every prompt 2 distinct authors (N=3..8)", () => {
-    for (let n = 3; n <= 8; n++) {
-      for (let seed = 1; seed <= 25; seed++) {
-        const g = new Game({ players: n, seed });
-        const ids = g.s.prompts.map((p) => p.id);
-        expect(new Set(ids).size).toBe(ids.length); // no two prompts repeat
-        expect(ids).toHaveLength(2 * n + 1);
-        for (const round of [1, 2] as const) {
-          const prompts = g.s.prompts.filter((p) => p.round === round);
-          expect(prompts).toHaveLength(n);
-          for (const p of prompts) {
-            expect(p.authors).toHaveLength(2);
-            expect(p.authors[0]).not.toBe(p.authors[1]);
+  it(
+    "R2: T1: every author gets exactly 2 prompts and every prompt 2 distinct authors (N=3..8)",
+    () => {
+      for (let n = 3; n <= 8; n++) {
+        for (let seed = 1; seed <= 25; seed++) {
+          const g = new Game({ players: n, seed });
+          const ids = g.s.prompts.map((p) => p.id);
+          expect(new Set(ids).size).toBe(ids.length); // no two prompts repeat
+          expect(ids).toHaveLength(2 * n + 1);
+          for (const round of [1, 2] as const) {
+            const prompts = g.s.prompts.filter((p) => p.round === round);
+            expect(prompts).toHaveLength(n);
+            for (const p of prompts) {
+              expect(p.authors).toHaveLength(2);
+              expect(p.authors[0]).not.toBe(p.authors[1]);
+            }
+            for (const a of g.s.authors) {
+              expect(prompts.filter((p) => p.authors.includes(a.id))).toHaveLength(2);
+            }
           }
-          for (const a of g.s.authors) {
-            expect(prompts.filter((p) => p.authors.includes(a.id))).toHaveLength(2);
-          }
+          const last = g.s.prompts.filter((p) => p.round === 3);
+          expect(last).toHaveLength(1);
+          expect(last[0]?.authors).toEqual(g.s.authors.map((a) => a.id));
         }
-        const last = g.s.prompts.filter((p) => p.round === 3);
-        expect(last).toHaveLength(1);
-        expect(last[0]?.authors).toEqual(g.s.authors.map((a) => a.id));
       }
-    }
-  });
+    },
+    HEAVY_TIMEOUT_MS,
+  );
 
   it("R2: with rounds '2' the game plays round 1 and Last Quip (N+1 prompts)", () => {
     const g = new Game({ players: 4, options: { rounds: "2" } });
@@ -1252,49 +1259,58 @@ describe("T11: secrecy", () => {
     );
   });
 
-  it("T11: no view leaks another viewer's hidden values across whole bot games (solo and team)", () => {
-    for (const seats of [makeSeats(5), teamSeats(6, ["t1", "t2", "t3"])]) {
-      for (const room of [{}, { moderation: "reveal-review" as const }]) {
-        const module = createQuipClash(room);
-        const moderated = new Set<string>();
-        let leaks: string[] = [];
-        const sim = simulateGame(module, {
-          seed: 7,
-          players: seats,
-          content: () => content(),
-          onStep: ({ state, effects, runner }) => {
-            for (const e of effects) if (e.type === "moderate") moderated.add(e.preview);
-            if (leaks.length === 0) leaks = findLeaks(module, state, runner.players, { moderated });
-          },
-        });
-        expect(sim.ended).toBe(true);
-        expect(leaks).toEqual([]);
+  it(
+    "T11: no view leaks another viewer's hidden values across whole bot games (solo and team)",
+    () => {
+      for (const seats of [makeSeats(5), teamSeats(6, ["t1", "t2", "t3"])]) {
+        for (const room of [{}, { moderation: "reveal-review" as const }]) {
+          const module = createQuipClash(room);
+          const moderated = new Set<string>();
+          let leaks: string[] = [];
+          const sim = simulateGame(module, {
+            seed: 7,
+            players: seats,
+            content: () => content(),
+            onStep: ({ state, effects, runner }) => {
+              for (const e of effects) if (e.type === "moderate") moderated.add(e.preview);
+              if (leaks.length === 0)
+                leaks = findLeaks(module, state, runner.players, { moderated });
+            },
+          });
+          expect(sim.ended).toBe(true);
+          expect(leaks).toEqual([]);
+        }
       }
-    }
-  });
+    },
+    HEAVY_TIMEOUT_MS,
+  );
 });
 
 describe("T12: bots", () => {
-  it("T12: bots finish a full game for N=3..8 in team and non-team mode", () => {
-    for (let n = 3; n <= 8; n++) {
-      const variants = [makeSeats(n)];
-      if (n >= 3)
-        variants.push(teamSeats(n, n >= 4 ? ["t1", "t2", "t3", "t4"] : ["t1", "t2", "t3"]));
-      if (n >= 6) variants.push(teamSeats(n, ["t1", "t2", "t3"]));
-      for (const seats of variants) {
-        const sim = simulateGame(logic, {
-          seed: n,
-          players: seats,
-          content: () => content(),
-          maxSteps: 400,
-        });
-        expect(sim.ended, `${n}p`).toBe(true);
-        expect(sim.illegalActions).toBe(0);
-        expect(sim.steps).toBeLessThanOrEqual(400);
-        expect(sim.result?.ranking.length).toBe(new Set(seats.map((s) => s.teamId ?? s.id)).size);
+  it(
+    "T12: bots finish a full game for N=3..8 in team and non-team mode",
+    () => {
+      for (let n = 3; n <= 8; n++) {
+        const variants = [makeSeats(n)];
+        if (n >= 3)
+          variants.push(teamSeats(n, n >= 4 ? ["t1", "t2", "t3", "t4"] : ["t1", "t2", "t3"]));
+        if (n >= 6) variants.push(teamSeats(n, ["t1", "t2", "t3"]));
+        for (const seats of variants) {
+          const sim = simulateGame(logic, {
+            seed: n,
+            players: seats,
+            content: () => content(),
+            maxSteps: 400,
+          });
+          expect(sim.ended, `${n}p`).toBe(true);
+          expect(sim.illegalActions).toBe(0);
+          expect(sim.steps).toBeLessThanOrEqual(400);
+          expect(sim.result?.ranking.length).toBe(new Set(seats.map((s) => s.teamId ?? s.id)).size);
+        }
       }
-    }
-  });
+    },
+    HEAVY_TIMEOUT_MS,
+  );
 
   it("the bot answers, sometimes presses Safety, votes and spreads hearts", () => {
     const g = new Game({ players: 4 });
