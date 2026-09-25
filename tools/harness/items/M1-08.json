@@ -1,0 +1,36 @@
+{
+  "id": "M1-08",
+  "coverage": ["packages/audio/src/**", "apps/client/src/dev/audio-gallery.tsx"],
+  "accept": [
+    {
+      "criterion": "Each SFX recipe's parameters (oscillator type, envelope ms, base note) equal a fixture table transcribed from research 03 §8.1",
+      "cmd": "pnpm exec vitest run --project @sg/audio packages/audio/test/recipes.test.ts",
+      "evidence": "packages/audio/test/fixtures/research-8-1.ts transcribes the §8.1 table value for value (research Hz before quantisation); recipes.test.ts compares every voice of all 10 recipe objects: wave type, attack/decay (or total length), start offset, base and glide note (research pitch snapped to C major pentatonic, never more than a semitone), peak, filters, the vote harmonic ratio/gain and the win sparkle count/spread"
+    },
+    {
+      "criterion": "Every pitched sound is quantized to C major pentatonic (unit test on the frequencies)",
+      "cmd": "pnpm exec vitest run --project @sg/audio packages/audio/test/pentatonic.test.ts",
+      "evidence": "planned sfx frequencies for every recipe x pitchStep -8..14 x 200 seeds (incl. glides and win sparkles), the per-hop tok step, ambience hums/crickets/bird phrases, lofi chord sets/bass/lead/drums over 400 bars, and every audio-rate oscillator frequency actually set by the sfx renderer, ambience player and lofi player (fake WebAudio) are exact pentatonic pitches (<= 0.01 cent); detune stays within +/-2 cents (sfx) and 3 cents (Rhodes chorus)"
+    },
+    {
+      "criterion": "The AudioContext suspends when the tab is hidden",
+      "cmd": "pnpm exec vitest run --project @sg/audio packages/audio/test/context.test.ts && pnpm exec vitest run --project @sg/client apps/client/test/audio-browser.test.ts -t \"suspends\"",
+      "evidence": "unit: suspend on hidden, resume on visible only after unlock, unlock while hidden stays suspended, sfx dropped while hidden; Chromium: the /dev/audio gallery's real AudioContext goes running -> suspended on visibilitychange(hidden) -> running on visible"
+    },
+    {
+      "criterion": "The package is 12 KB gz or less",
+      "cmd": "pnpm size && pnpm exec vitest run --project @sg/audio packages/audio/test/size.test.ts",
+      "evidence": "size-limit entry '@sg/audio' (12 KB, esbuild bundle of packages/audio/src/index.ts with all dependencies) plus an esbuild+gzip test asserting <= 12,000 bytes"
+    },
+    {
+      "criterion": "Music ducking works",
+      "cmd": "pnpm exec vitest run --project @sg/audio packages/audio/test/buses.test.ts && pnpm exec vitest run --project @sg/client apps/client/test/audio-browser.test.ts -t \"ducking\"",
+      "evidence": "unit: reveal duck -4 dB within 150 ms and swell back over 800 ms, streamer-safe -12 dB, nested holds (deepest wins), idempotent release, sfx/ambience untouched; Chromium OfflineAudioContext: the rendered music signal measures -4 dB (+/-0.3) during a reveal duck, -12 dB in streamer mode, and returns to 0 dB after release"
+    },
+    {
+      "criterion": "Files: context, buses, pentatonic, sfx/*, ambience/*, lofi and the /dev/audio gallery",
+      "cmd": "pnpm exec vitest run --project @sg/audio && pnpm exec vitest run --project @sg/client apps/client/test/audio-gallery.test.tsx apps/client/test/vite-config.test.ts apps/client/test/audio-browser.test.ts -t \"gallery|dev pages|client build|engine\"",
+      "evidence": "ambience beds per mode (rain lowpass 1.2 kHz + ~6 droplets/s, night hum + crickets, day birds, dusk/snow wind) with a 2.5 s crossfade; lofi ii-V-I-vi at 72-84 BPM, swing 58%, 4 seeded chord sets per mode, -38 dB hiss, 4 Hz tremolo; /dev/audio page (non-production builds only) plays every sound in Chromium with no console errors; @sg/audio's sfx is assignable to the engine's StageContext/ControllerContext sfx and its names equal SFX_NAMES"
+    }
+  ]
+}

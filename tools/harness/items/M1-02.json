@@ -1,0 +1,62 @@
+{
+  "id": "M1-02",
+  "coverage": [
+    "apps/server/src/room.ts",
+    "apps/server/src/fanout.ts",
+    "apps/server/src/games.ts",
+    "apps/server/src/scoreboard.ts",
+    "apps/server/src/playlist.ts"
+  ],
+  "accept": [
+    {
+      "criterion": "A room with the tictactoe fixture plays a full playlist of 2 games using 2 bot clients",
+      "cmd": "pnpm exec vitest run --project @sg/server apps/server/test/room.test.ts -t \"plays a full playlist of 2 games using 2 bot clients\"",
+      "evidence": "real RoomManager + room actor on a fake clock: two scripted clients play two tictactoe games from a fixed playlist through intro, game, results and scoreboard to ended"
+    },
+    {
+      "criterion": "The Scoreboard shows placement points",
+      "cmd": "pnpm exec vitest run --project @sg/server apps/server/test/room.test.ts apps/server/test/room-units.test.ts -t \"Scoreboard shows placement points|placement points 10/7/5/3/2/1|raw scoring|team rows award\"",
+      "evidence": "room snapshot standings carry 10/7/... placement points after a game; unit tests cover the 10/7/5/3/2/1-then-1 table, shared ties, raw scoring, team rows and the record round-trip"
+    },
+    {
+      "criterion": "Killing a client's socket mid-turn leads to bot takeover after the grace period",
+      "cmd": "pnpm exec vitest run --project @sg/server apps/server/test/room.test.ts -t \"bot takeover after the grace period|reconnecting participant takes the seat back|abandoned seat is released\"",
+      "evidence": "the socket of the player to move is closed; nothing happens during reconnectGraceSec, then the module's bot plays the seat; a reconnect takes the seat back; an abandoned seat is released when the game ends"
+    },
+    {
+      "criterion": "With 1 audience member and 1,000 audience members, the server calls view() for the audience the same number of times: once per step",
+      "cmd": "pnpm exec vitest run --project @sg/server apps/server/test/room.test.ts apps/server/test/room-units.test.ts -t \"1,000 audience members|coalesce into one frame per key\"",
+      "evidence": "counts audience view() calls over the same scripted game with 1 and 1,000 audience sockets (equal); the audience frame is one topic publish; several steps in one turn produce one frame per viewer key"
+    },
+    {
+      "criterion": "9 seated players and a 4-seat game: exactly 4 participants, the 5 benched players are guaranteed seats in the next game with room, and benched players get no placement points",
+      "cmd": "pnpm exec vitest run --project @sg/server apps/server/test/room.test.ts apps/server/test/room-units.test.ts -t \"9 seated players and a 4-seat game|participants: host-benched sit out\"",
+      "evidence": "4 participants, 5 benched (audience role, flagged benched in the snapshot, acts refused NOT_ALLOWED, absent from standings); the next 8-seat game includes all 5; pickParticipants unit test covers priority and overflow"
+    },
+    {
+      "criterion": "raffle 3 with a queue of 50 picks 3 distinct members, deterministic for a fixed seed",
+      "cmd": "pnpm exec vitest run --project @sg/server apps/server/test/room.test.ts apps/server/test/room-units.test.ts -t \"raffle 3 with a queue of 50|raffle and queue fill\"",
+      "evidence": "two rooms with the same seed and a 50-member queue raffle the same 3 distinct members, seated at the next game boundary; a different seed differs"
+    },
+    {
+      "criterion": "The next-game vote picks the plurality candidate; with 2 voters (below audienceMin) the playlist order is used",
+      "cmd": "pnpm exec vitest run --project @sg/server apps/server/test/room.test.ts apps/server/test/room-units.test.ts -t \"next-game vote picks the plurality candidate|with 2 voters|next-game vote takes the plurality\"",
+      "evidence": "audience-vote playlist: 3 unplayed candidates, 15 s poll; plurality wins with enough voters; 2 voters fall back to playlist order; ties and zero votes unit-tested"
+    },
+    {
+      "criterion": "Pausing for 30 s and resuming leaves the remaining input time unchanged (±50 ms)",
+      "cmd": "pnpm exec vitest run --project @sg/server apps/server/test/room.test.ts -t \"pausing for 30 s and resuming|pause freezes the intro card\"",
+      "evidence": "the runner's input deadline minus now is measured before pause and after a 30 s BRB and resume: equal within 50 ms; the intro card timer also freezes"
+    },
+    {
+      "criterion": "A Stage socket never receives a frame containing a host-view-only field (frame grep test)",
+      "cmd": "pnpm exec vitest run --project @sg/server apps/server/test/room.test.ts -t \"Stage socket never receives a frame\"",
+      "evidence": "every frame the host's Stage socket receives during a game with moderation is grepped for the fixture's host-only marker and for modq: none; the host-panel socket does receive them"
+    },
+    {
+      "criterion": "Behaviour: host commands, forceAdvance, fillBots/bench, review-wait timeout, snapshots every 20 actions or 10 s, stream/streamEach/private effects, patch vs full view",
+      "cmd": "pnpm exec vitest run --project @sg/server apps/server/test/room.test.ts apps/server/test/room-units.test.ts",
+      "evidence": "room actor lifecycle, moderation, snapshots/restore, anti-snipe and fan-out unit tests (patch with seq, full view above 60%, binary frames routing)"
+    }
+  ]
+}

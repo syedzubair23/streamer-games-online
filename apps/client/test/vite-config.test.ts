@@ -7,8 +7,10 @@ describe("client build pages (SPEC §14: /dev/scenario outside production only)"
     expect(pageInputs("scenario", "/x/")).toEqual({
       main: "/x/index.html",
       "dev/scenario": "/x/dev/scenario.html",
+      "dev/audio": "/x/dev/audio.html",
     });
     expect(Object.keys(pageInputs("development"))).toContain("dev/scenario");
+    expect(Object.keys(pageInputs("development"))).toContain("dev/audio");
   });
 
   it("builds harness bundles into their own directory", () => {

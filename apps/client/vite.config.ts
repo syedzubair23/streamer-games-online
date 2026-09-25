@@ -7,6 +7,8 @@ import { defineConfig } from "vite";
  * port 8787 (SPEC §9.2). M1-09 adds the two entry points (`stage`, `controller`)
  * and the chunk naming contract documented in the root `.size-limit.cjs`.
  *
+ * `/dev/audio` (the `@sg/audio` gallery, M1-08) is a dev page too, built alongside it.
+ *
  * `/dev/scenario` (SPEC §14) is a separate page (`dev/scenario.html`). It exists in dev and in
  * every non-production build and is left out of the production build. The harness builds it with
  * `--mode scenario` into `artifacts/tmp/scenario-client` (git-ignored, and outside `dist/`, which
@@ -15,10 +17,13 @@ import { defineConfig } from "vite";
 const SERVER = process.env.SG_SERVER_URL ?? "http://localhost:8787";
 const root = fileURLToPath(new URL(".", import.meta.url));
 
-/** The HTML pages of a build: the app, plus the dev scenario page outside production. */
+/** The HTML pages of a build: the app, plus the dev pages (scenario, audio) outside production. */
 export function pageInputs(mode: string, base = root): Record<string, string> {
   const pages: Record<string, string> = { main: `${base}index.html` };
-  if (mode !== "production") pages["dev/scenario"] = `${base}dev/scenario.html`;
+  if (mode !== "production") {
+    pages["dev/scenario"] = `${base}dev/scenario.html`;
+    pages["dev/audio"] = `${base}dev/audio.html`; // the @sg/audio gallery (M1-08)
+  }
   return pages;
 }
 
