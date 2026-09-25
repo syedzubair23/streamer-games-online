@@ -8,11 +8,15 @@
     ".": "./src/index.ts",
     "./logic": "./src/logic/index.ts",
     "./client": "./src/client/index.ts",
-    "./scenarios": "./src/scenarios.ts"
+    "./scenarios": "./src/scenarios.ts",
+    "./preview": "./src/preview/track-preview.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p .",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "tracks:author": "node --import tsx test/author-tracks.ts",
+    "tracks:check": "node --import tsx test/track-lab.ts check",
+    "tracks:preview": "node --import tsx test/track-lab.ts preview"
   },
   "dependencies": {
     "@preact/signals": "^2.11.2",
