@@ -327,15 +327,39 @@ function startAnswer(tx: Tx): void {
   }
 }
 
-/** Takes a prompt's next safety line (drawn without replacement), or undefined when none left. */
-function takeSafety(s: QcState, promptId: string): string | undefined {
-  return (s.hidden.safetyPool[promptId] as string[]).shift();
+/** The distinct safety lines other authors currently hold for a prompt. */
+function heldSafety(s: QcState, promptId: string, except: AuthorId): string[] {
+  const out: string[] = [];
+  for (const [author, ans] of Object.entries(s.hidden.answers[promptId] ?? {})) {
+    if (author !== except && ans.safety && !out.includes(ans.text)) out.push(ans.text);
+  }
+  return out;
+}
+
+/**
+ * Takes a random safety line of a prompt's pack item for `author` (R3). Each of the item's
+ * lines is always either in the (shuffled) pool or held by an answer. Lines come from the pool
+ * without replacement while any are left, so the two authors of a matchup never get the same
+ * line (no accidental JINX). Once all are held (only in Last Quip, with more than 3 takers) the
+ * line is a random one of those other authors hold, so Safety, the R13 replacement and the R14
+ * fill always get a line.
+ */
+function takeSafety(tx: Tx, promptId: string, author: AuthorId): string {
+  const pool = tx.s.hidden.safetyPool[promptId] as string[];
+  const next = pool.shift();
+  return next ?? tx.ctx.rng.pick(heldSafety(tx.s, promptId, author));
+}
+
+/** Returns an author's safety line to the pool, unless another author still holds it. */
+function returnSafety(s: QcState, promptId: string, author: AuthorId, line: string): void {
+  const pool = s.hidden.safetyPool[promptId] as string[];
+  if (!pool.includes(line) && !heldSafety(s, promptId, author).includes(line)) pool.push(line);
 }
 
 /** Clears an author's answer to a prompt: returns a safety line to the pool, drops its mod item. */
 function releaseAnswer(s: QcState, promptId: string, author: AuthorId): void {
   const prev = answerOf(s, promptId, author);
-  if (prev?.safety === true) (s.hidden.safetyPool[promptId] as string[]).push(prev.text);
+  if (prev?.safety === true) returnSafety(s, promptId, author, prev.text);
   for (const [id, item] of Object.entries(s.modItems)) {
     if (item.promptId === promptId && item.author === author) delete s.modItems[id];
   }
@@ -349,19 +373,40 @@ function fillAway(tx: Tx): boolean {
     if (!a.members.every((m) => s.away.includes(m))) continue;
     for (const p of roundPrompts(s)) {
       if (!p.authors.includes(a.id) || answerOf(s, p.id, a.id) !== undefined) continue;
-      const line = takeSafety(s, p.id);
-      if (line === undefined) continue;
-      (s.hidden.answers[p.id] as Record<AuthorId, QcAnswer>)[a.id] = {
-        text: line,
+      const answer: QcAnswer = {
+        text: takeSafety(tx, p.id, a.id),
         safety: true,
         mod: "ok",
         flagged: false,
         masked: false,
       };
+      submitAnswer(tx, p.id, a.id, answer, a.members[0] as PlayerId);
       changed = true;
     }
   }
   return changed;
+}
+
+/**
+ * Stores a submitted answer (typed, Safety Quip, or the R14 bot's safety quip). Under
+ * reveal-review every submitted answer is queued for review with a `moderate` fx (R13).
+ */
+function submitAnswer(
+  tx: Tx,
+  promptId: string,
+  author: AuthorId,
+  answer: QcAnswer,
+  ownerId: PlayerId,
+): void {
+  const { s } = tx;
+  const review = s.room.moderation === "reveal-review";
+  const stored: QcAnswer = { ...answer, mod: review ? "pending" : "ok" };
+  (s.hidden.answers[promptId] as Record<AuthorId, QcAnswer>)[author] = stored;
+  if (!review) return;
+  s.modSeq += 1;
+  const itemId = `m${s.modSeq}`;
+  s.modItems[itemId] = { promptId, author };
+  tx.fx.push({ type: "moderate", itemId, kind: "text", ownerId, preview: stored.text });
 }
 
 function closePredict(tx: Tx): void {
@@ -498,6 +543,9 @@ function startVote(tx: Tx): void {
       closesAtMs,
     },
   });
+  // R6/R11: no connected eligible voter is left (e.g. the only voter is away), so the players'
+  // vote is already complete. The platform still holds the audience poll for its minimum window.
+  if (voteComplete(s)) endVote(tx);
 }
 
 /**
@@ -661,12 +709,14 @@ function endGame(tx: Tx): void {
 
 // ---- Moderation (R13) ---------------------------------------------------------------------------
 
-/** A rejected (or timed-out) answer becomes a safety quip marked "edited by host", or blank. */
-function rejectAnswer(s: QcState, promptId: string, author: AuthorId): void {
-  const answers = s.hidden.answers[promptId] as Record<AuthorId, QcAnswer>;
-  const line = takeSafety(s, promptId);
-  if (line === undefined) delete answers[author];
-  else answers[author] = { text: line, safety: true, mod: "edited", flagged: false, masked: false };
+/** A rejected (or timed-out) answer becomes a safety quip marked "edited by host" (R13). */
+function rejectAnswer(tx: Tx, promptId: string, author: AuthorId): void {
+  const answers = tx.s.hidden.answers[promptId] as Record<AuthorId, QcAnswer>;
+  const prev = answers[author];
+  // Draw first: a rejected safety line goes back afterwards, so its replacement differs.
+  const text = takeSafety(tx, promptId, author);
+  if (prev?.safety === true) returnSafety(tx.s, promptId, author, prev.text);
+  answers[author] = { text, safety: true, mod: "edited", flagged: false, masked: false };
 }
 
 function rejectPendingCurrent(tx: Tx): void {
@@ -675,7 +725,7 @@ function rejectPendingCurrent(tx: Tx): void {
   for (const [id, item] of Object.entries(s.modItems)) {
     if (item.promptId !== p.id) continue;
     delete s.modItems[id];
-    rejectAnswer(s, p.id, item.author);
+    rejectAnswer(tx, p.id, item.author);
     revealAnswer(s, p.id, item.author);
   }
 }
@@ -803,7 +853,7 @@ export function onModeration(
   if (approved) {
     const answers = s.hidden.answers[item.promptId] as Record<AuthorId, QcAnswer>;
     answers[item.author] = { ...(answers[item.author] as QcAnswer), mod: "ok" };
-  } else rejectAnswer(s, item.promptId, item.author);
+  } else rejectAnswer(tx, item.promptId, item.author);
   if (s.revealed[item.promptId] !== undefined) revealAnswer(s, item.promptId, item.author);
   if (s.phase === "review-wait" && !pendingIn(s, currentPrompt(s))) decide(tx);
   return done(tx);
@@ -887,15 +937,9 @@ export function onAction(state: QcState, action: QcAction, ctx: ActionCtx): Step
       if (action.type === "answer") {
         const clean = cleanAnswer(action.text, state.room.contentFilter);
         if (clean === null) return illegal(state);
-        const review = state.room.moderation === "reveal-review";
-        answer = { ...clean, safety: false, mod: review ? "pending" : "ok" };
+        answer = { ...clean, safety: false, mod: "ok" };
       } else {
-        const pool = state.hidden.safetyPool[prompt.id] ?? [];
-        if (
-          !state.options.safetyQuip ||
-          state.safetyUsed[author.id] === state.round ||
-          pool.length === 0
-        ) {
+        if (!state.options.safetyQuip || state.safetyUsed[author.id] === state.round) {
           return illegal(state);
         }
         answer = { text: "", safety: true, mod: "ok", flagged: false, masked: false };
@@ -904,22 +948,10 @@ export function onAction(state: QcState, action: QcAction, ctx: ActionCtx): Step
       const { s } = tx;
       releaseAnswer(s, prompt.id, author.id);
       if (answer.safety) {
-        answer.text = takeSafety(s, prompt.id) as string;
+        answer.text = takeSafety(tx, prompt.id, author.id);
         s.safetyUsed[author.id] = s.round;
       }
-      (s.hidden.answers[prompt.id] as Record<AuthorId, QcAnswer>)[author.id] = answer;
-      if (answer.mod === "pending") {
-        s.modSeq += 1;
-        const itemId = `m${s.modSeq}`;
-        s.modItems[itemId] = { promptId: prompt.id, author: author.id };
-        tx.fx.push({
-          type: "moderate",
-          itemId,
-          kind: "text",
-          ownerId: ctx.actor.id,
-          preview: answer.text,
-        });
-      }
+      submitAnswer(tx, prompt.id, author.id, answer, ctx.actor.id);
       if (answerComplete(s)) endAnswer(tx);
       return done(tx);
     }

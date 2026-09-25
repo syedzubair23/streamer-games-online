@@ -128,8 +128,11 @@ function votableSlots(state: QcState, author: AuthorId): string[] {
 }
 
 /**
- * The bot (SPEC §9.3): answers its next open prompt (15% of the time with a Safety Quip when
- * one is available), then votes at random; Last Quip hearts go to random other cards.
+ * The bot (SPEC §9.3): answers its next open prompt (15% of the time with a Safety Quip while
+ * an unused line is left), then votes at random; Last Quip hearts go to random other cards.
+ * Like {@link freshAnswer}, it never makes two authors hold the same hidden text: the rules
+ * allow a reused line (R3), but the engine's secrecy check cannot tell a shared text from a
+ * leak (docs/engine-requests.md ER-008).
  */
 export function bot(state: QcState, player: PlayerId, rng: Rng): QcAction | null {
   if (state.away.includes(player)) return null;
@@ -161,7 +164,8 @@ export function bot(state: QcState, player: PlayerId, rng: Rng): QcAction | null
 
 /**
  * `legalActions` (SPEC §9.3: a representative sample for text games): one sample answer per
- * own prompt plus Safety Quip where allowed; both matchup votes; for Last Quip every
+ * own prompt plus Safety Quip where allowed and an unused line is left (see {@link bot});
+ * both matchup votes; for Last Quip every
  * all-hearts-on-one-card allocation plus one spread allocation.
  */
 export function legalActions(state: QcState, player: PlayerId): QcAction[] {

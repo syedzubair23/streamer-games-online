@@ -66,7 +66,7 @@ export interface QcOptions {
 
 /**
  * The room settings the rules need (SPEC §7 `RoomConfig`). The engine's `SetupContext` does not
- * carry them yet (docs/engine-requests.md ER-005); see `room.ts`.
+ * carry them yet (docs/engine-requests.md ER-006); see `room.ts`.
  */
 export type QcRoomSettings = Pick<RoomConfig, "contentFilter" | "moderation" | "audienceMin">;
 

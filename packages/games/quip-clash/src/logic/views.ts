@@ -278,11 +278,8 @@ function youView(s: QcState, player: PlayerId): QcYouView | null {
           };
         })
     : [];
-  const safetyLeft =
-    answering &&
-    s.options.safetyQuip &&
-    s.safetyUsed[author.id] !== s.round &&
-    prompts.some((p) => (s.hidden.safetyPool[p.id] ?? []).length > 0);
+  // A prompt's safety pool refills when empty, so a line is always there (R3).
+  const safetyLeft = answering && s.options.safetyQuip && s.safetyUsed[author.id] !== s.round;
   const onScreen = promptShown(s) ? currentPrompt(s) : null;
   const inMatchup = s.round !== 3 && onScreen !== null && onScreen.authors.includes(author.id);
   let ownSlots: string[] = [];

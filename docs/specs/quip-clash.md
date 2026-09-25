@@ -214,7 +214,7 @@ Pack item: `{ id, text: "The worst thing to hear from your dentist: ___", safety
 - Votes name answer **slots** (`A`/`B`; Last Quip `c1..c8`), not author ids: the views table hides authorship until `results`.
 - Stage/audience see vote **counts** only (`votesCast`/`votersEligible`) and ballots from `results`; who may vote would reveal the authors.
 - Room settings (`moderation`, `contentFilter`, `audienceMin`) come from `ctx.room` (ER-006) or `createQuipClash(room)`; default room otherwise.
-- Safety lines are drawn without replacement per prompt (an overwritten one goes back). In Last Quip with more than 3 takers Safety is unavailable, and a rejected answer with no line left is blank. Safety quips skip review (curated content).
+- Safety lines are drawn without replacement per prompt (an overwritten or rejected one goes back unless another author holds it), so matchups never get an accidental JINX. Once all 3 are out (Last Quip, more than 3 takers) a random line another author holds is reused, so Safety, the R13 replacement and the R14 fill always get a line. Safety quips (R14 fills too) are reviewed like any answer (R13). Bots use Safety only while an unused line is left (ER-008).
 - After the players' vote ends the game waits up to 15 s for the audience result (the runner holds early closes), then scores without chat.
 - Too few prompts: stays in `intro` with `error` and no timer; `forceAdvance` ends it with an empty ranking. `skipItem` is unused.
 - R14 safety fill is done by the game (timer 10 s before the deadline); `bot()` returns null for away seats.

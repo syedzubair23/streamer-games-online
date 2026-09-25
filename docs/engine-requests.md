@@ -95,3 +95,13 @@ Rules:
 - **Proposed API:** none; keep the same assertion without a real game: `expect(() => assembleGame("chess", {}, {}, null)).toThrow(/no logic yet.*Mx-01/)` (an empty logic module, independent of build progress).
 - **Local stub:** none possible (engine-owned test). Blocks merging M2-01 until applied.
 - **Resolution:**
+
+### ER-008 Secrecy check flags two owners holding the same text
+- **From:** M2-01 (quip-clash builder)
+- **Package:** @sg/engine (`packages/engine/src/testing/contract.ts`, `findLeaks`)
+- **Status:** open
+- **Need:** a hidden string owned by B is reported as leaked to A when A's own hidden value is the same text (A sees only its own answer). Quip Clash R3 lets more than 3 Last Quip authors use Safety Quip on one prompt with 3 lines, so equal texts are legal.
+- **Why:** the secrecy fuzz and `findLeaks` cannot tell a shared text from a leak; the quip-clash bot and `legalActions` avoid reused lines only to keep the check meaningful.
+- **Proposed API:** none; in `findLeaks`, skip a string secret for a viewer when the same value is also a secret that viewer owns.
+- **Local stub:** `packages/games/quip-clash/src/logic/bot.ts` offers Safety only while an unused line is left; the rule itself (and its tests) allows reuse.
+- **Resolution:**

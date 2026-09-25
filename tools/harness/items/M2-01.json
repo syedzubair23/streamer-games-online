@@ -19,7 +19,7 @@
     {
       "criterion": "G3 rule tests: logic.test.ts passes 100% with branch coverage on logic/** of at least 90%",
       "cmd": "cd packages/games/quip-clash && pnpm exec vitest run test/logic.test.ts --reporter=json --outputFile=../../../artifacts/tmp/verify/M2-01-g3.json --coverage.enabled --coverage.provider=v8 \"--coverage.include=src/logic/**\" --coverage.reporter=text-summary --coverage.reportsDirectory=../../../artifacts/tmp/verify/M2-01-g3-coverage --coverage.thresholds.branches=90",
-      "evidence": "80 rule tests pass; v8 branch coverage on src/logic/** is enforced at >= 90% by the vitest threshold (94.7% branches, 99.9% lines at merge)"
+      "evidence": "83 rule tests pass; v8 branch coverage on src/logic/** is enforced at >= 90% by the vitest threshold (95.4% branches, 99.9% lines at merge)"
     },
     {
       "criterion": "G3 naming: every numbered rule (R#) and test case (T#) in docs/specs/quip-clash.md has a test named with its number",

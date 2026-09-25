@@ -1004,11 +1004,16 @@ describe("R13 / T10: moderation", () => {
     g.moderate(mod?.itemId as string, true);
     expect(g.s).toBe(s);
     expect(g.view({ role: "host" }).host?.review).toHaveLength(1);
-    // Safety quips are curated content: no review.
+    // A Safety Quip is a submitted answer too: it is queued for review like any other.
     const other = roundPrompts(g.s).find((x) => x.authors.includes(author) && x.id !== p.id);
     const before = g.effects.length;
     g.ok(author, { type: "safety", promptId: other?.id as string });
-    expect(effectsOf(g.since(before), "moderate")).toHaveLength(0);
+    const line = g.s.hidden.answers[other?.id as string]?.[author];
+    expect(line).toMatchObject({ safety: true, mod: "pending" });
+    expect(effectsOf(g.since(before), "moderate")).toEqual([
+      expect.objectContaining({ kind: "text", ownerId: author, preview: line?.text }),
+    ]);
+    expect(g.view({ role: "host" }).host?.review).toHaveLength(2);
   });
 
   it("T10: a pending answer blocks show-answers; approval reveals it and the vote opens", () => {
@@ -1074,7 +1079,7 @@ describe("R13 / T10: moderation", () => {
     expect(g.s.phase).toBe("vote");
   });
 
-  it("R13: in Last Quip pending answers wait after show-all; with no safety line left a rejection blanks", () => {
+  it("R13: R3: in Last Quip every author can use Safety and a rejection is always a safety quip", () => {
     const g = new Game({ players: 5, room: { moderation: "reveal-review" } });
     g.until("answer");
     for (let i = 0; i < 400 && !(g.s.phase === "answer" && g.s.round === 3); i++) {
@@ -1084,22 +1089,51 @@ describe("R13 / T10: moderation", () => {
       else g.step();
     }
     const p = currentPrompt(g.s);
-    // Three authors take the prompt's three safety lines; the other two type (pending).
+    // Three authors take the prompt's three safety lines; authors 4 and 5 still get one (R3).
     for (const a of ["p1", "p2", "p3"]) g.ok(a, { type: "safety", promptId: p.id });
     expect(g.s.hidden.safetyPool[p.id]).toEqual([]);
-    expect(g.view({ role: "player", id: "p4" }).you?.safetyLeft).toBe(false);
-    expect(g.act("p4", { type: "safety", promptId: p.id }).err).toBe("ILLEGAL");
-    g.answerAll();
+    const safetyFor = (a: string) => {
+      expect(g.view({ role: "player", id: a }).you?.safetyLeft).toBe(true);
+      g.ok(a, { type: "safety", promptId: p.id });
+      const line = g.s.hidden.answers[p.id]?.[a];
+      expect(line?.safety).toBe(true);
+      expect(SAFETY.has(line?.text as string)).toBe(true);
+      expect(g.act(a, { type: "safety", promptId: p.id }).err).toBe("ILLEGAL");
+    };
+    safetyFor("p4");
+    // p4 overwrites its (shared) line; the pool gets nothing another author still holds.
+    g.ok("p4", { type: "answer", promptId: p.id, text: "typed after all" });
+    expect(g.s.hidden.safetyPool[p.id]).toEqual([]);
+    safetyFor("p5");
     expect(g.s.phase).toBe("show-all");
     g.step();
     expect(g.s.phase).toBe("review-wait");
-    const items = Object.keys(g.s.modItems);
-    expect(items).toHaveLength(2);
-    g.moderate(items[0] as string, false);
+    const items = Object.entries(g.s.modItems);
+    expect(items).toHaveLength(5);
+    const typed = items.find(([, it]) => it.author === "p4")?.[0] as string;
+    for (const [id] of items) if (id !== typed) g.moderate(id, true);
     expect(g.s.phase).toBe("review-wait");
-    g.moderate(items[1] as string, true);
+    // With every line out, the rejected answer still becomes a safety quip, marked edited.
+    g.moderate(typed, false);
+    expect(g.s.hidden.answers[p.id]?.["p4"]).toMatchObject({ safety: true, mod: "edited" });
+    expect(SAFETY.has(g.s.hidden.answers[p.id]?.["p4"]?.text as string)).toBe(true);
+    expect(g.s.revealed[p.id]?.edited).toContain("p4");
     expect(g.s.phase).toBe("vote");
-    expect(g.s.order).toHaveLength(4);
+    expect(g.s.order).toHaveLength(5);
+  });
+
+  it("R13: a rejected Safety Quip is replaced by a different safety line", () => {
+    const g = moderated();
+    const p = roundPrompts(g.s)[0] as QcState["prompts"][number];
+    const author = p.authors[0] as string;
+    g.ok(author, { type: "safety", promptId: p.id });
+    const first = g.s.hidden.answers[p.id]?.[author]?.text as string;
+    const [itemId] = Object.keys(g.s.modItems);
+    g.moderate(itemId as string, false);
+    const after = g.s.hidden.answers[p.id]?.[author];
+    expect(after).toMatchObject({ safety: true, mod: "edited" });
+    expect(after?.text).not.toBe(first);
+    expect(g.s.hidden.safetyPool[p.id]).toContain(first);
   });
 });
 
@@ -1145,6 +1179,43 @@ describe("R14: disconnects", () => {
     g.leave(v3);
     expect(g.s.closing).toBe(true);
     expect(bot(g.s, v3, createRng(1))).toBeNull();
+  });
+
+  it("R6: R14: a vote with no connected eligible voter closes as it opens", () => {
+    const g = new Game({ players: 3 });
+    g.until("answer").answerAll();
+    g.until("show-answers");
+    const voter = g.s.authors.find((a) => !currentPrompt(g.s).authors.includes(a.id))?.id;
+    g.leave(voter as string);
+    const at = g.effects.length;
+    g.step();
+    expect(g.s.phase).toBe("vote");
+    expect(g.s.closing).toBe(true);
+    expect(effectsOf(g.since(at), "audience.open")).toHaveLength(1);
+    // The players' vote is over; the runner still holds the audience poll for its window.
+    expect(effectsOf(g.since(at), "audience.close")).toHaveLength(0);
+    g.wait(8_000);
+    expect(effectsOf(g.since(at), "audience.close").map((e) => e.pollId)).toEqual(["vote-r1-m1"]);
+    g.audience("vote-r1-m1", { A: 2, B: 1 });
+    expect(g.s.phase).toBe("results");
+  });
+
+  it("R14: in Last Quip every away author gets a safety quip, even with the lines all taken", () => {
+    const g = toRound3(new Game({ players: 6 }));
+    const p = currentPrompt(g.s);
+    for (const a of ["p1", "p2", "p3"]) g.ok(a, { type: "safety", promptId: p.id });
+    g.ok("p4", { type: "answer", promptId: p.id, text: "typed last quip" });
+    g.leave("p5");
+    g.leave("p6");
+    g.now = g.timerAt(TIMER.away) as number;
+    g.wait(0);
+    for (const a of ["p5", "p6"]) {
+      const ans = g.s.hidden.answers[p.id]?.[a];
+      expect(ans?.safety).toBe(true);
+      expect(SAFETY.has(ans?.text as string)).toBe(true);
+    }
+    expect(g.s.phase).toBe("show-all");
+    expect(g.s.order).toHaveLength(6);
   });
 
   it("R14: fewer than 3 connected authors for 30 s prompts the host; forceAdvance ends the game", () => {
