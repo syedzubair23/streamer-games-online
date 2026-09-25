@@ -1,0 +1,51 @@
+{
+  "id": "M9-00",
+  "coverage": ["packages/games/marble-rally/src/logic/physics/**"],
+  "accept": [
+    {
+      "criterion": "A deterministic fixed-point 2D circle vs segment/arc solver lives in packages/games/marble-rally/src/logic/physics/* (integer state, exact JSON round-trip, spec response constants, broadphase independent of history)",
+      "cmd": "pnpm exec vitest run --project @sg/game-marble-rally packages/games/marble-rally/test/physics.test.ts -t \"fixed-point helpers|compileTrack|bodies|solver behaviour|zone events\"",
+      "evidence": "isqrt/idiv/roundNorm exact; compileTrack fixed units, 1/4096 normals, arc caps, grid index, validation; Int32 bodies round-trip exactly through JSON; free fall -3/tick^2 over 2 substeps, speed cap < 96, wall e = 5/8 with v_t/16 friction, pair e = 3/4 with exact momentum, equal overlap split, pegs/caps/arcs, stamp wrap and buffer history do not change results, heaps flow on 10 degree ramps; gate/finish/boost events"
+    },
+    {
+      "criterion": "Unit tests check determinism across 3 runs (spec T1)",
+      "cmd": "pnpm exec vitest run --project @sg/game-marble-rally packages/games/marble-rally/test/physics.test.ts -t \"T1:\"",
+      "evidence": "500 marbles on the test track with a seeded schedule of nudges, shakes and wind: 3 runs (the third serialised to JSON text and restored into a fresh solver at tick 1,800) give byte-identical bodies and event logs after 3,600 ticks"
+    },
+    {
+      "criterion": "No marble tunnels through a segment at the speed cap (spec T2)",
+      "cmd": "pnpm exec vitest run --project @sg/game-marble-rally packages/games/marble-rally/test/physics.test.ts -t \"T2:\"",
+      "evidence": "10k random shots at the speed cap against segments, pegs and arcs never cross; a crowd piling onto a zero-thickness floor never pushes a marble through"
+    },
+    {
+      "criterion": "Unit tests check energy sanity (spec T3)",
+      "cmd": "pnpm exec vitest run --project @sg/game-marble-rally packages/games/marble-rally/test/physics.test.ts -t \"T3:|energy sources\"",
+      "evidence": "g = 0 closed box: kinetic energy never rises on any tick; with gravity, total mechanical energy never rises by more than 1 unit per marble per tick; boosts and one-tick adds are the only sources"
+    },
+    {
+      "criterion": "500 marbles step at 60 Hz in 4 ms or less per step on the dev machine, including broadphase (spec T11)",
+      "cmd": "pnpm exec vitest run --project @sg/game-marble-rally packages/games/marble-rally/test/physics.test.ts -t \"T11:\"",
+      "evidence": "physics-bench.ts in a plain Node process, 3 runs x 1,200 steps per scene: race ~0.8 ms mean (p99 ~1.5 ms), 500-marble pile ~0.35 ms mean (p99 ~0.6 ms)"
+    },
+    {
+      "criterion": "G1 typecheck: tsc --noEmit on packages/games/marble-rally has 0 errors",
+      "cmd": "pnpm exec tsc --noEmit -p packages/games/marble-rally",
+      "evidence": "the package (physics, tests, bench) typechecks on its own project"
+    },
+    {
+      "criterion": "G2 lint: eslint on the package has 0 errors and 0 warnings (Math.random/Date banned in logic/**)",
+      "cmd": "pnpm exec eslint packages/games/marble-rally --max-warnings 0",
+      "evidence": "the package passes the repo eslint config including the logic/** determinism bans"
+    },
+    {
+      "criterion": "G3 (solver part): the physics tests pass 100% with branch coverage on src/logic/physics/** of at least 90%",
+      "cmd": "cd packages/games/marble-rally && pnpm exec vitest run test/physics.test.ts --coverage.enabled --coverage.provider=v8 \"--coverage.include=src/logic/physics/**\" --coverage.reporter=text-summary --coverage.reportsDirectory=../../../artifacts/tmp/verify/M9-00-g3-coverage --coverage.thresholds.branches=90",
+      "evidence": "31 tests pass; v8 branch coverage on src/logic/physics/** enforced at >= 90% by the vitest threshold (96.5% at handoff); the rest of logic/** (rules R1-R*) is M9-01's"
+    },
+    {
+      "criterion": "G13 docs: the spec's Builder notes are 20 lines or fewer and the handoff is 40 lines or fewer",
+      "cmd": "pnpm exec tsx -e \"(async()=>{const fs=await import('node:fs');const s=await import('./tools/harness/src/scenarios/spec.ts');const g=await import('./tools/harness/src/games.ts');const t=g.gameTarget(process.cwd(),'marble-rally');const spec=s.parseGameSpec(fs.readFileSync(t.spec,'utf8'));const h=fs.readFileSync('artifacts/handoff/M9-00.md','utf8').trimEnd().split(String.fromCharCode(10)).length;console.log('builder notes '+spec.builderNotes.length+' lines, M9-00 handoff '+h+' lines');if(spec.builderNotes.length===0||spec.builderNotes.length>20||h>40)process.exit(1)})()\"",
+      "evidence": "Builder notes present and <= 20 lines in docs/specs/marble-rally.md; artifacts/handoff/M9-00.md <= 40 lines"
+    }
+  ]
+}
