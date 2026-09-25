@@ -164,6 +164,30 @@ describe("@sg/audio in Chromium", () => {
     await page.close();
   }, 60_000);
 
+  it("the lofi vinyl hiss renders at −38 dBFS RMS, lowpassed (research 03 §8.2)", async () => {
+    const { page } = await openGallery();
+    const res = await page.evaluate(async () => {
+      type Lib = typeof AudioLib;
+      const { lib } = (window as unknown as { __SG_AUDIO__: { lib: Lib } }).__SG_AUDIO__;
+      const rate = 48_000;
+      const ctx = new OfflineAudioContext(1, rate * 3, rate);
+      lib.createHiss(ctx, ctx.destination, 0);
+      const d = (await ctx.startRendering()).getChannelData(0);
+      let all = 0;
+      let hi = 0;
+      for (let i = 1; i < d.length; i++) {
+        const v = d[i] ?? 0;
+        all += v * v;
+        hi += (v - (d[i - 1] ?? 0)) ** 2;
+      }
+      return { rmsDb: 10 * Math.log10(all / (d.length - 1)), hiRatio: hi / all };
+    });
+    expect(Math.abs(res.rmsDb - -38)).toBeLessThan(0.25);
+    // Band-limited to ~3 kHz at 48 kHz: the diff/energy ratio sits far under white noise's 2.
+    expect(res.hiRatio).toBeLessThan(0.2);
+    await page.close();
+  }, 60_000);
+
   it("rendered sfx are audible, never clip, and the bus keeps them under 7 kHz", async () => {
     const { page } = await openGallery();
     const res = await page.evaluate(async () => {

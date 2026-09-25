@@ -2,7 +2,7 @@
  * The generative lofi loop (research 03 §8.2 option A, SPEC §13.7): a 4-bar ii–V–I–vi
  * progression in Rhodes-ish voicings (sine + detuned triangle through a 4 Hz tremolo), a bass,
  * a sparse pentatonic lead, a noise/sine kick and snare, swung hats (58%) at 72–84 BPM, a vinyl
- * crackle (sparse clicks + lowpassed hiss at −38 dB) and a mode-dependent "tape" lowpass.
+ * crackle (sparse clicks + lowpassed hiss rendered at −38 dBFS RMS) and a mode-dependent "tape" lowpass.
  *
  * **Pentatonic voicings.** The pentatonic rule covers every pitched sound, so the progression
  * keeps its functions (roots D, G, C, A) but voices each chord with C major pentatonic tones
@@ -18,7 +18,7 @@ import { createRng, type AmbientMode, type Rng } from "@sg/shared";
 import { dbToGain } from "./buses.ts";
 import { noteFreq, type PentatonicNote } from "./pentatonic.ts";
 import { createScheduler, type SchedulerOptions } from "./scheduler.ts";
-import { noiseSource } from "./sfx/noise.ts";
+import { noiseBuffer, noiseSource } from "./sfx/noise.ts";
 
 /** Harmonic function of a chord in the progression. */
 export type ChordFn = "ii" | "V" | "I" | "vi";
@@ -77,8 +77,72 @@ export const CHORD_SETS: readonly ChordSet[] = [
 export const SWING = 0.58;
 /** Tempo range (research 03 §8.2). */
 export const BPM_RANGE = { min: 72, max: 84 } as const;
-/** Vinyl hiss level (research 03 §8.2). */
+/** Vinyl hiss level (research 03 §8.2): the RMS of the rendered hiss, in dBFS. */
 export const HISS_DB = -38;
+/** The hiss is pink noise lowpassed at this cutoff (a soft, dark vinyl bed). */
+export const HISS_LOWPASS_HZ = 3000;
+
+const hissCache = new WeakMap<BaseAudioContext, AudioBuffer>();
+
+/**
+ * The vinyl hiss buffer of `ctx`: the shared pink noise, lowpassed at {@link HISS_LOWPASS_HZ}
+ * (RBJ biquad, Q 0.707, run over the loop twice so it wraps without a click) and normalised to
+ * unit RMS, so a {@link HISS_DB} gain after it renders the hiss at exactly −38 dBFS RMS.
+ */
+export function hissBuffer(ctx: BaseAudioContext): AudioBuffer {
+  const cached = hissCache.get(ctx);
+  if (cached) return cached;
+  const pink = noiseBuffer(ctx, "pink").getChannelData(0);
+  const n = pink.length;
+  const w0 = (2 * Math.PI * HISS_LOWPASS_HZ) / ctx.sampleRate;
+  const alpha = Math.sin(w0) / (2 * Math.SQRT1_2);
+  const cos = Math.cos(w0);
+  const a0 = 1 + alpha;
+  const b0 = (1 - cos) / 2 / a0;
+  const b1 = (1 - cos) / a0;
+  const a1 = (-2 * cos) / a0;
+  const a2 = (1 - alpha) / a0;
+  const out = new Float32Array(n);
+  let x1 = 0,
+    x2 = 0,
+    y1 = 0,
+    y2 = 0;
+  // Pass 1 settles the filter state on the loop's tail; pass 2 writes, so sample 0 follows n−1.
+  for (let pass = 0; pass < 2; pass++)
+    for (let i = 0; i < n; i++) {
+      const x = pink[i] as number;
+      const y = b0 * x + b1 * x1 + b0 * x2 - a1 * y1 - a2 * y2;
+      x2 = x1;
+      x1 = x;
+      y2 = y1;
+      y1 = y;
+      if (pass === 1) out[i] = y;
+    }
+  let sum = 0;
+  for (const v of out) sum += v * v;
+  const scale = 1 / Math.sqrt(sum / n || 1);
+  const buf = ctx.createBuffer(1, n, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < n; i++) data[i] = (out[i] as number) * scale;
+  hissCache.set(ctx, buf);
+  return buf;
+}
+
+/** Starts the looping vinyl hiss at `when` into `out`, at {@link HISS_DB} dBFS RMS. */
+export function createHiss(
+  ctx: BaseAudioContext,
+  out: AudioNode,
+  when: number,
+): { source: AudioBufferSourceNode; gain: GainNode } {
+  const source = ctx.createBufferSource();
+  source.buffer = hissBuffer(ctx);
+  source.loop = true;
+  const gain = ctx.createGain();
+  gain.gain.value = dbToGain(HISS_DB);
+  source.connect(gain).connect(out);
+  source.start(when);
+  return { source, gain };
+}
 
 /** Per-mode style: base tempo and tape lowpass. */
 export const MODE_STYLE: Readonly<Record<AmbientMode, { bpm: number; tapeHz: number }>> = {
@@ -213,14 +277,8 @@ export function createLofi(ctx: BaseAudioContext, out: AudioNode, o: LofiOptions
   tremDepth.gain.value = 0.15;
   trem.connect(tremDepth).connect(rhodes.gain);
   trem.start(t0);
-  const hiss = noiseSource(ctx, "pink", t0, true);
-  const hissLp = ctx.createBiquadFilter();
-  hissLp.type = "lowpass";
-  hissLp.frequency.value = 3000;
-  const hissGain = ctx.createGain();
-  hissGain.gain.value = dbToGain(HISS_DB);
-  hiss.connect(hissLp).connect(hissGain).connect(fade);
-  const fixed: AudioNode[] = [fade, tape, rhodes, trem, tremDepth, hiss, hissLp, hissGain];
+  const { source: hiss, gain: hissGain } = createHiss(ctx, fade, t0);
+  const fixed: AudioNode[] = [fade, tape, rhodes, trem, tremDepth, hiss, hissGain];
 
   const env = (t: number, peak: number, attack: number, dur: number, into: AudioNode): GainNode => {
     const g = ctx.createGain();
@@ -335,22 +393,35 @@ export function createLofi(ctx: BaseAudioContext, out: AudioNode, o: LofiOptions
   const queue: Queued[] = [];
   const scheduler = createScheduler(
     ctx,
-    (_from, to) => {
-      while (barStart < to) {
+    (from, to) => {
+      const nextBar = (): void => {
         if (pending) {
           mode = pending;
           pending = null;
           plan = modePlan(mode, seed);
-          tape.frequency.setTargetAtTime(MODE_STYLE[mode].tapeHz, barStart, 0.5);
+          tape.frequency.setTargetAtTime(MODE_STYLE[mode].tapeHz, Math.max(barStart, from), 0.5);
         }
+      };
+      // After a stall the clock may have run past whole bars: skip them (the progression keeps
+      // counting), so the missed time is never replayed in a burst.
+      for (nextBar(); barStart + (4 * 60) / plan.bpm <= from; nextBar()) {
+        barStart += (4 * 60) / plan.bpm;
+        bar++;
+      }
+      while (barStart < to) {
+        nextBar();
         const beatS = 60 / plan.bpm;
         const chords = CHORD_SETS[plan.order[Math.floor(bar / 4) % 4] as number] as ChordSet;
-        for (const e of lofiBar(chords, bar, rng))
-          queue.push({ t: barStart + e.beat * beatS, e, beatS });
+        for (const e of lofiBar(chords, bar, rng)) {
+          const t = barStart + e.beat * beatS;
+          if (t >= from) queue.push({ t, e, beatS });
+        }
         bar++;
         barStart += 4 * beatS;
       }
       queue.sort((a, b) => a.t - b.t);
+      // Events the clock already passed (queued before a stall) are dropped, not played late.
+      while (queue.length > 0 && (queue[0] as Queued).t < from) queue.shift();
       while (queue.length > 0 && (queue[0] as Queued).t < to) play(queue.shift() as Queued);
     },
     { aheadS: 0.2, ...o.scheduler },

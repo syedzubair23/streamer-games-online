@@ -4,11 +4,14 @@ import {
   BPM_RANGE,
   CHORD_SETS,
   HISS_DB,
+  HISS_LOWPASS_HZ,
   MODE_STYLE,
   PROGRESSION,
   SWING,
   createLofi,
   dbToGain,
+  hissBuffer,
+  noiseBuffer,
   lofiBar,
   modePlan,
   noteFreq,
@@ -97,6 +100,54 @@ describe("lofi player", () => {
     const fade = ctx.of(FakeGain).find((g) => g.outputs[0] === out) as FakeGain;
     expect(fade.gain.valueAt(0.05)).toBeLessThan(0.001);
     expect(fade.gain.valueAt(1.55)).toBeCloseTo(1, 6);
+  });
+
+  it("the hiss buffer is the pink noise lowpassed and normalised to unit RMS (−38 dBFS after its gain)", () => {
+    const ctx = new FakeAudioContext();
+    ctx.sampleRate = 48_000;
+    const buf = hissBuffer(ctx.asAudio);
+    expect(hissBuffer(ctx.asAudio)).toBe(buf);
+    const d = buf.getChannelData(0);
+    const pink = noiseBuffer(ctx.asAudio, "pink").getChannelData(0);
+    expect(d.length).toBe(pink.length);
+    const rms = (a: Float32Array): number => Math.sqrt(a.reduce((s, v) => s + v * v, 0) / a.length);
+    expect(rms(d)).toBeCloseTo(1, 6);
+    expect(20 * Math.log10(rms(d) * dbToGain(HISS_DB))).toBeCloseTo(-38, 6);
+    // Lowpassed: sample-to-sample differences (a high-frequency measure) are much smaller than
+    // in the unfiltered pink noise scaled to the same RMS.
+    const diffRms = (a: Float32Array, k: number): number => {
+      let s = 0;
+      for (let i = 1; i < a.length; i++) s += ((a[i]! - a[i - 1]!) * k) ** 2;
+      return Math.sqrt(s / (a.length - 1));
+    };
+    expect(diffRms(d, 1)).toBeLessThan(0.6 * diffRms(pink, 1 / rms(pink)));
+    // Loops without a click: the wrap step is no larger than a typical step.
+    expect(Math.abs(d[0]! - d[d.length - 1]!)).toBeLessThan(4 * diffRms(d, 1));
+    expect(HISS_LOWPASS_HZ).toBe(3000);
+  });
+
+  it("skips the missed time after a main-thread stall instead of playing it in a burst", () => {
+    const { ctx, timers, lofi } = setup("dusk");
+    run(ctx, timers, 2);
+    const before = ctx.of(FakeOscillator).length;
+    const barS = (4 * 60) / lofi.bpm;
+    // The clock runs 9 s ahead with no timer ticks (a stalled main thread), then one tick.
+    ctx.advance(11);
+    timers.tick();
+    const late = ctx
+      .of(FakeOscillator)
+      .slice(before)
+      .filter((o) => o.startTime !== null && o.startTime < 11 - 1e-9);
+    expect(late).toEqual([]);
+    // The progression kept counting through the gap: bars up to the new horizon.
+    expect(lofi.bar).toBe(Math.ceil((11 + 0.2 - 0.05) / barS - 1e-9));
+    // And it carries on playing after the gap.
+    run(ctx, timers, 11 + barS);
+    const after = ctx
+      .of(FakeOscillator)
+      .slice(before)
+      .filter((o) => o.startTime !== null && o.startTime >= 11);
+    expect(after.length).toBeGreaterThan(10);
   });
 
   it("plays bars at the mode tempo, rotating chord sets every 4 bars", () => {
