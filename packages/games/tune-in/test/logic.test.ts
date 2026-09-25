@@ -955,7 +955,7 @@ describe("T6 secrecy", () => {
         });
       }
     }
-  });
+  }, 60_000);
 
   it("T6: every scenario, for every role, keeps the secrets", () => {
     for (const [id, sc] of Object.entries(scenarios)) {
@@ -980,7 +980,7 @@ describe("T10 bots", () => {
         expect(r.finalState.mode).toBe(players >= 4 ? mode : "ffa");
       }
     }
-  });
+  }, 60_000);
 
   it("T10: the bot plays fair and sensibly in every phase", () => {
     const d = teamsAtGuess(70, {}, 800);

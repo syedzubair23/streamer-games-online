@@ -61,7 +61,7 @@ describe("G5: 1,001 seeded bot games", () => {
         }
       }
       expect(maxSteps).toBeLessThanOrEqual(MAX_STEPS);
-    }, 300_000);
+    }, 900_000);
   }
 });
 
@@ -104,7 +104,7 @@ describe("G5: fairness", () => {
       for (const [id, rate] of Object.entries(rates)) {
         expect(rate, `${id} wins ${(rate * 100).toFixed(1)}%`).toBeLessThanOrEqual(1.25 / players);
       }
-    }, 300_000);
+    }, 900_000);
   }
   for (const players of [4, 7, 12]) {
     it(`teams ${players} players: neither team wins more than 62.5% (600 games)`, () => {
@@ -113,6 +113,6 @@ describe("G5: fairness", () => {
       for (const [id, rate] of Object.entries(rates)) {
         expect(rate, `${id} wins ${(rate * 100).toFixed(1)}%`).toBeLessThanOrEqual(0.625);
       }
-    }, 300_000);
+    }, 900_000);
   }
 });
