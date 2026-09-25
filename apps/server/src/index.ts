@@ -2,19 +2,37 @@
  * @packageDocumentation
  * @sg/server: Authoritative game server: uWebSockets.js/ws transports, sessions, room actors, audience aggregation, moderation and storage.
  *
- * {@link createServer} wires config, store, room manager, HTTP routes and a transport into one
- * listening server; `bin.ts` is the process entry around it.
+ * {@link createServer} wires config, store, room manager, the room actor (game registry,
+ * content packs), HTTP routes and a transport into one listening server; `bin.ts` is the
+ * process entry around it.
  */
+import { createAudienceAggregator } from "./audience/aggregator.ts";
+import { BanList } from "./bans.ts";
 import type { Clock, ServerConfig } from "./config.ts";
+import { GameRegistry, PackLibrary } from "./games.ts";
 import { createHttpHandler } from "./http.ts";
+import { createModeration } from "./moderation.ts";
+import { createRoomActorFactory, type RoomActorOptions } from "./room.ts";
 import { RoomManager, type DriverFactory, type JoinGuard } from "./room-manager.ts";
 import { MemoryStore, type Store } from "./store/memory.ts";
 import type { Transport, TransportFactory, TransportOptions } from "./transport/types.ts";
 
+export * from "./audience/aggregator.ts";
+export * from "./audience/leaderboard.ts";
+export * from "./audience/polls/index.ts";
+export * from "./audience/reactions.ts";
+export * from "./audience/seeds.ts";
+export * from "./bans.ts";
 export * from "./codes.ts";
 export * from "./config.ts";
+export * from "./fanout.ts";
+export * from "./games.ts";
 export * from "./http.ts";
+export * from "./moderation.ts";
+export * from "./playlist.ts";
+export * from "./room.ts";
 export * from "./room-manager.ts";
+export * from "./scoreboard.ts";
 export * from "./session.ts";
 export * from "./store/memory.ts";
 export * from "./transport/types.ts";
@@ -28,7 +46,17 @@ export interface CreateServerOptions {
   /** Defaults to a {@link MemoryStore}. (`STORE=sqlite` arrives with M10-03.) */
   store?: Store;
   clock?: Clock;
+  /** Replaces the room actor entirely (tests of the bare manager). */
   driver?: DriverFactory;
+  /** Game modules; default: every game's `@sg/game-<id>/logic` entry, preloaded at start. */
+  games?: GameRegistry;
+  /** Content packs; default: `content/packs` of this repo. */
+  packs?: PackLibrary;
+  /**
+   * Room actor tuning (seeds, phase lengths, audience/moderation ports, ban hook). An `onBan`
+   * here runs after the server's own {@link BanList} has recorded the ban.
+   */
+  actor?: Omit<RoomActorOptions, "manager" | "games" | "packs">;
   guards?: JoinGuard[];
   /** Random source for room codes. */
   random?: (max: number) => number;
@@ -43,6 +71,8 @@ export interface RunningServer {
   manager: RoomManager;
   transport: Transport;
   store: Store;
+  /** The server's ban list (its guard refuses banned tokens and IP hashes with `BANNED`). */
+  bans: BanList;
   /** Stops listening, closes every socket and timer. Idempotent. */
   close(): Promise<void>;
 }
@@ -60,10 +90,33 @@ export async function createServer(o: CreateServerOptions): Promise<RunningServe
     throw new Error("STORE=sqlite needs the SqliteStore (M10-03); use STORE=memory for now");
   const store = o.store ?? new MemoryStore();
   const holder: { manager: RoomManager | null } = { manager: null };
+  const managerRef = (): RoomManager => {
+    if (holder.manager === null) throw new Error("server not ready");
+    return holder.manager;
+  };
+  const bans = new BanList();
+  let driver = o.driver;
+  if (driver === undefined) {
+    const games = o.games ?? new GameRegistry();
+    await games.preload();
+    const onBan = o.actor?.onBan;
+    driver = createRoomActorFactory({
+      // The AudienceAggregator (M1-03) and Moderation (M1-04) are the production ports.
+      audience: createAudienceAggregator(),
+      moderation: createModeration({ bans }),
+      ...o.actor,
+      onBan: (room, session) => {
+        bans.ban(room, session);
+        onBan?.(room, session);
+      },
+      manager: managerRef,
+      games,
+      packs: o.packs ?? PackLibrary.load(),
+    });
+  }
   const http = createHttpHandler({
     get manager(): RoomManager {
-      if (holder.manager === null) throw new Error("server not ready");
-      return holder.manager;
+      return managerRef();
     },
     config,
     transport: config.transport,
@@ -73,8 +126,8 @@ export async function createServer(o: CreateServerOptions): Promise<RunningServe
     config,
     store,
     ...(o.clock ? { clock: o.clock } : {}),
-    ...(o.driver ? { driver: o.driver } : {}),
-    ...(o.guards ? { guards: o.guards } : {}),
+    driver,
+    guards: [bans.guard, ...(o.guards ?? [])],
     ...(o.random ? { random: o.random } : {}),
     http,
   });
@@ -102,6 +155,7 @@ export async function createServer(o: CreateServerOptions): Promise<RunningServe
     manager,
     transport,
     store,
+    bans,
     close() {
       closing ??= (async () => {
         manager.shutdown();
