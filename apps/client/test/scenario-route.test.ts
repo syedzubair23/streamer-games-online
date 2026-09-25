@@ -69,7 +69,7 @@ describe("scenario game map", () => {
   });
 
   it("explains which roadmap item a game is waiting for", async () => {
-    await expect(loadScenarioGame("quip-clash")).rejects.toThrow(/no logic yet.*Mx-01/);
+    expect(() => assembleGame("chess", {}, {}, null)).toThrow(/no logic yet.*Mx-01/);
     await expect(loadScenarioGame("pong")).rejects.toThrow(/unknown game "pong"/);
     expect(() => assembleGame("tictactoe", { logic: tictactoe }, { nothing: 1 }, null)).toThrow(
       /no scenarios yet/,
