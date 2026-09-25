@@ -198,3 +198,14 @@ type TnAction = { type: "answer"; choice: 0|1|2|3 } | { type: "lie"; text: strin
 - All wording is original. Verification is per ROADMAP M4-02: every item fact-checked by a second agent, then a 10% re-check with 0 errors allowed.
 
 ## Builder notes
+- M4-01 (Classic) lives in `src/logic/` (module, rules, draw, state, views, bot, fallback). M4-01b adds Bluff (R9–R13, T6–T8, T11), the `bluff`/`mixed` mode choices and the `bluff-pick`/`bluff-reveal` scenarios.
+- Phases: `showdown` is the 12 s predict phase, then `showdown-answer` and `showdown-verdict`. After an early end the phase stays `answer` with `answerClosed` and waits (≤ 14 s after opening) for the quiz result, so the reveal has the audience bars.
+- Speed window = `timing.input(base) − timing.input(0)`; stream delay = `timing.input(0)`. timerScale 0 turns the speed bonus off (host view `hostNote`).
+- Team mode = every seat on a room team and 2+ non-empty teams. Each lock is a vote; members who locked score (own time and streak) when the team answer is right; team score = member sum; `score` effects and the ranking use team ids. Showdown and lifeline stay individual.
+- R5 tie-break uses `totalAnswerMs` (a missed answer counts its full window). Both right in the exact same ms: the higher-placed player loses.
+- The lifeline's two removed options are drawn when its question starts, so a host `skipItem` re-draws them.
+- Deal: unused pack items, then the 48 built-in `FALLBACK_QUESTIONS` (include them in the M4-02 fact-check), then used items. Unplayed items leave the state at `final`, so the room marks only played ids used.
+- Content: the back-to-back rule needs several `category` values per selected pack set; a pack with a single category repeats it.
+- Scenario `scoreboard` ("one player Steamed") cannot occur: Steamed starts after the Q4 break and ends before Q8. The steam chip shows in `answering` / `steamed-answering`.
+- G14 (M4-05): pass the exported `involves` to the pacing run (player idle ≈ 31 s). Median duration is 4.6–6.3 min against estMinutes [8, 15] (early ends): needs a spec decision.
+- `audienceMin` is the default 5 until ER-002; a platform `counted` flag (ER-005) wins when present.
