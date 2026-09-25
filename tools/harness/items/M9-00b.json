@@ -1,0 +1,59 @@
+{
+  "id": "M9-00b",
+  "coverage": [
+    "packages/games/marble-rally/src/logic/tracks/**",
+    "packages/games/marble-rally/src/preview/**"
+  ],
+  "accept": [
+    {
+      "criterion": "3 tracks (pencil-drop, cup-cascade, book-stack-switchback) ship as JSON segment lists that validate and compile: 3 gates in order, a finish near the bottom, a start tray for 1,000 marbles, every collider drawn by one visual piece, integer geometry inside the world",
+      "cmd": "pnpm exec vitest run --project @sg/game-marble-rally packages/games/marble-rally/test/tracks.test.ts -t \"shipped tracks|start tray|compileCourse validation|parseTrackDef\"",
+      "evidence": "tracks.test.ts: ids match the spec's host option, compileCourse checks (gates forward and in order, finish after gate 3, tray >= 1000 slots that touch nothing, piece coverage, centreline), design-rule checks (kickers >= 30 deg, coasts <= 600, drop gaps >= 400), validation errors for every malformed field"
+    },
+    {
+      "criterion": "The track JSON is exactly what the authoring source produces (no hand drift)",
+      "cmd": "cd packages/games/marble-rally && node --import tsx test/author-tracks.ts --check",
+      "evidence": "test/author-tracks.ts regenerates all three files through the repo prettier config and compares them byte for byte"
+    },
+    {
+      "criterion": "Each track is tuned so a typical race lasts 60-100 s with at least 60% of marbles finishing and no guaranteed-stuck spots, checked by 200 simulated races per track (spec Content)",
+      "cmd": "cd packages/games/marble-rally && node --import tsx test/track-lab.ts check 200 --out ../../../artifacts/verify/M9-00b-tracks.json --cache",
+      "evidence": "the real solver plus R4 checkpoints, R5 nudges (every other race) and R6 kicks/DNF, 200-500 entrants per race: median race and >= 80% of races in 60-100 s, >= 60% finishing in every race, 0 gate skips, 0 marbles outside the world; 200 marbles at rest along each path all reach the finish; report in artifacts/verify/M9-00b-tracks.json (fingerprinted; --cache re-judges an identical-input report instead of re-simulating)"
+    },
+    {
+      "criterion": "Race progress (R4) is the distance along each track's authored centreline, 0-10000, integer, windowed so a marble never snaps to a later level",
+      "cmd": "pnpm exec vitest run --project @sg/game-marble-rally packages/games/marble-rally/test/tracks.test.ts -t \"trackProgress|race tuning constants\"",
+      "evidence": "monotone along every centreline from 0 to 10000, window bound per tick, integer and deterministic anywhere in the world; R5/R6 constants match the spec"
+    },
+    {
+      "criterion": "Real races run end to end on every track (smoke) and a resting marble is kicked free",
+      "cmd": "pnpm exec vitest run --project @sg/game-marble-rally packages/games/marble-rally/test/tracks.test.ts -t \"real races|track check harness\"",
+      "evidence": "120 marbles with nudges per track: all 3 gates before the finish, >= 60% finishing, deterministic by seed; a sealed marble DNFs at 12 s"
+    },
+    {
+      "criterion": "The preview renderer draws a track from its JSON as a deterministic standalone SVG, with overlays, taking every colour from the caller's palette",
+      "cmd": "pnpm exec vitest run --project @sg/game-marble-rally packages/games/marble-rally/test/tracks.test.ts -t \"preview renderer\" && cd packages/games/marble-rally && node --import tsx test/track-lab.ts preview",
+      "evidence": "one element per collider, 3 gates, finish, centreline, tray slots, marbles (stopped ones dimmed), spots, escaped notes, arcs and boosts; no colour literal reaches the SVG; SVGs written to artifacts/tracks/"
+    },
+    {
+      "criterion": "G1 typecheck: tsc --noEmit on packages/games/marble-rally has 0 errors",
+      "cmd": "pnpm exec tsc --noEmit -p packages/games/marble-rally",
+      "evidence": "tracks, preview, tools and tests typecheck on the package project"
+    },
+    {
+      "criterion": "G2 lint: eslint on the package has 0 errors and 0 warnings (logic/** stays pure, boundaries hold)",
+      "cmd": "pnpm exec eslint packages/games/marble-rally --max-warnings 0",
+      "evidence": "the track JSON lives under logic/ so the server-side logic may import it"
+    },
+    {
+      "criterion": "Tests cover the new code: src/logic/tracks/** and src/preview/** at >= 90% branches",
+      "cmd": "cd packages/games/marble-rally && pnpm exec vitest run test/tracks.test.ts --maxWorkers=2 --coverage.enabled --coverage.provider=v8 \"--coverage.include=src/logic/tracks/**\" \"--coverage.include=src/preview/**\" --coverage.reporter=text-summary --coverage.reportsDirectory=../../../artifacts/tmp/verify/M9-00b-coverage --coverage.thresholds.branches=90 --coverage.thresholds.lines=95",
+      "evidence": "v8 coverage thresholds enforced by vitest"
+    },
+    {
+      "criterion": "G13 docs: the spec's Builder notes are 20 lines or fewer and the handoff is 40 lines or fewer",
+      "cmd": "pnpm exec tsx -e \"(async()=>{const fs=await import('node:fs');const s=await import('./tools/harness/src/scenarios/spec.ts');const g=await import('./tools/harness/src/games.ts');const t=g.gameTarget(process.cwd(),'marble-rally');const spec=s.parseGameSpec(fs.readFileSync(t.spec,'utf8'));const h=fs.readFileSync('artifacts/handoff/M9-00b.md','utf8').trimEnd().split(String.fromCharCode(10)).length;console.log('builder notes '+spec.builderNotes.length+' lines, M9-00b handoff '+h+' lines');if(spec.builderNotes.length===0||spec.builderNotes.length>20||h>40)process.exit(1)})()\"",
+      "evidence": "Builder notes in docs/specs/marble-rally.md; artifacts/handoff/M9-00b.md"
+    }
+  ]
+}
