@@ -1,0 +1,56 @@
+{
+  "id": "M1-03",
+  "coverage": ["apps/server/src/audience/**"],
+  "accept": [
+    {
+      "criterion": "One vote per audId, which can be changed until close (a quiz vote locks on the first answer)",
+      "cmd": "pnpm exec vitest run --project @sg/server --maxWorkers=2 apps/server/test/audience/aggregator.test.ts -t \"one vote per audId\"",
+      "evidence": "vote/predict/dial ballots are replaced by a member's later input and frozen at close; a quiz member's second answer is ignored; invalid options are dropped"
+    },
+    {
+      "criterion": "Tallies go out at no more than 4 Hz, and reactions every 500 ms",
+      "cmd": "pnpm exec vitest run --project @sg/server --maxWorkers=2 apps/server/test/audience/aggregator.test.ts apps/server/test/audience/units.test.ts apps/server/test/audience/audience-bots.test.ts -t \"no more than 4 Hz|batches counts every 500 ms|200 audience bots\"",
+      "evidence": "10 s of a vote change every 10 ms yields <= 41 tally frames, each >= 250 ms apart, and none when nothing changes; 1,000 reactions over 3 s go out as 6 batches >= 500 ms apart with every count preserved; the bot run checks tally spacing per poll"
+    },
+    {
+      "criterion": "A guess poll matches accept[] after normalisation, and the accept values never appear in any outgoing frame (the test greps serialized output)",
+      "cmd": "pnpm exec vitest run --project @sg/server --maxWorkers=2 apps/server/test/audience/aggregator.test.ts apps/server/test/audience/audience-bots.test.ts -t \"guess poll matches accept|200 audience bots\"",
+      "evidence": "accents, case, punctuation and spacing fold to the answer; Levenshtein 1 on a 5+ letter answer is only a private 'close' cue; 1.5 s cooldown and 32-char cap; every serialized frame (unit rig, and every bot/player/Stage socket in the bot run) is grepped for the answers, the guess texts and the accept key"
+    },
+    {
+      "criterion": "A dial poll produces a 50-bin histogram",
+      "cmd": "pnpm exec vitest run --project @sg/server --maxWorkers=2 apps/server/test/audience/aggregator.test.ts apps/server/test/audience/units.test.ts -t \"dial poll produces a 50-bin histogram|dial bins\"",
+      "evidence": "live tallies and the result carry exactly the 50 bins 0..49 over 0..1000, with the mean; out-of-range and non-integer values are dropped; resolve scores the tightest band"
+    },
+    {
+      "criterion": "predict pays out pari-mutuel, and a balance never drops below 100",
+      "cmd": "pnpm exec vitest run --project @sg/server --maxWorkers=2 apps/server/test/audience/aggregator.test.ts apps/server/test/audience/units.test.ts apps/server/test/audience/audience-bots.test.ts -t \"pari-mutuel|never drops below 100|200 audience bots\"",
+      "evidence": "pool 600 / winning pool 200 pays +200 net per winner, -100 per loser; resolving twice pays once; 20 straight losses end at exactly 100; no winner backed = refund; proportional split and pool conservation unit-tested; 200 bots all stay >= 100"
+    },
+    {
+      "criterion": "Below audienceMin, the flag says the vote doesn't count",
+      "cmd": "pnpm exec vitest run --project @sg/server --maxWorkers=2 apps/server/test/audience/aggregator.test.ts apps/server/test/audience/audience-bots.test.ts -t \"below audienceMin|200 audience bots\"",
+      "evidence": "4 voters with audienceMin 5: the game's result and the pollEnd frame carry counted=false; 5 voters: counted=true; the bot run's game sees counted=true for all 8 polls"
+    },
+    {
+      "criterion": "Stream delay is added to closesAtMs for closeOn: \"deadline\" polls; closeOn: \"event\" polls ignore it and discard inputs received after the close event",
+      "cmd": "pnpm exec vitest run --project @sg/server --maxWorkers=2 apps/server/test/audience/aggregator.test.ts apps/server/test/audience/audience-bots.test.ts -t \"stream delay is added|200 audience bots\"",
+      "evidence": "streamDelaySec 3: the announced closesAtMs is +3 s and the poll closes exactly then; an event poll keeps its closesAtMs, never closes on the deadline, and inputs after the close (same instant or later) are counted as late and dropped; room polls are not delayed twice"
+    },
+    {
+      "criterion": "A hideLive poll broadcasts only total until close (frame grep: no per-option tallies before pollEnd)",
+      "cmd": "pnpm exec vitest run --project @sg/server --maxWorkers=2 apps/server/test/audience/aggregator.test.ts apps/server/test/audience/audience-bots.test.ts -t \"hideLive poll broadcasts only total|200 audience bots\"",
+      "evidence": "every tally frame of a hideLive poll has empty tallies and the running total; the serialized frames before pollEnd never contain an option id; pollEnd carries the full distribution"
+    },
+    {
+      "criterion": "Audience sockets are limited to 5 msg/s",
+      "cmd": "pnpm exec vitest run --project @sg/server --maxWorkers=2 apps/server/test/audience/audience-bots.test.ts -t \"limited to 5 msg/s\"",
+      "evidence": "through the real RoomManager: a burst of 20 audience messages delivers 5 to the aggregator, then ~5/s; a player socket in the same room gets its higher limit"
+    },
+    {
+      "criterion": "Bot test: 200 seeded audience bots play one poll of every kind through a real room",
+      "cmd": "pnpm exec vitest run --project @sg/server --maxWorkers=2 apps/server/test/audience/audience-bots.test.ts -t \"200 audience bots\"",
+      "evidence": "vote, predict, quiz, dial, guess, tap, hideLive vote and an event-closed vote each open, tally and close; predict/quiz/dial resolve with personal pollEnd 'you' frames; leaderboard top 5 ranked"
+    }
+  ]
+}

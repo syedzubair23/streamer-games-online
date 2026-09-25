@@ -6,6 +6,7 @@
  * content packs), HTTP routes and a transport into one listening server; `bin.ts` is the
  * process entry around it.
  */
+import { createAudienceAggregator } from "./audience/aggregator.ts";
 import type { Clock, ServerConfig } from "./config.ts";
 import { GameRegistry, PackLibrary } from "./games.ts";
 import { createHttpHandler } from "./http.ts";
@@ -14,6 +15,11 @@ import { RoomManager, type DriverFactory, type JoinGuard } from "./room-manager.
 import { MemoryStore, type Store } from "./store/memory.ts";
 import type { Transport, TransportFactory, TransportOptions } from "./transport/types.ts";
 
+export * from "./audience/aggregator.ts";
+export * from "./audience/leaderboard.ts";
+export * from "./audience/polls/index.ts";
+export * from "./audience/reactions.ts";
+export * from "./audience/seeds.ts";
 export * from "./codes.ts";
 export * from "./config.ts";
 export * from "./fanout.ts";
@@ -84,6 +90,8 @@ export async function createServer(o: CreateServerOptions): Promise<RunningServe
     const games = o.games ?? new GameRegistry();
     await games.preload();
     driver = createRoomActorFactory({
+      // The AudienceAggregator (M1-03) is the production audience port.
+      audience: createAudienceAggregator(),
       ...o.actor,
       manager: managerRef,
       games,

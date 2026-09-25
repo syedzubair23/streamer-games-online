@@ -65,3 +65,13 @@ Rules:
 - **Proposed API:** `GameRunner.playerJoin(seat, now)` → optional `GameModule.onPlayerJoin?(state, seat, ctx)`; the runner adds the seat when the hook accepts it.
 - **Local stub:** none possible; joiners stay audience until the next game (handoff "known limits").
 - **Resolution:**
+
+### ER-005 Audience result flag, leaderboard and stake in the protocol
+- **From:** M1-03 (AudienceAggregator builder)
+- **Package:** @sg/shared (`packages/shared/src/protocol.ts`, `room.ts`), @sg/engine (`game-module.ts`)
+- **Status:** open
+- **Need:** typed fields for what the aggregator already sends or keeps: `counted: boolean` on `PollResult` / `PublicPollResult`; the audience top 5 on `RoomSnapshot` plus each member's own rank; the host-configurable `predict` stake on `RoomConfig`.
+- **Why:** SPEC §4 "Minimum audience" (the flag), §5 "Audience leaderboard" (Scoreboard top 5, own rank on the phone), §4 `predict` ("100 Seeds, host-configurable").
+- **Proposed API:** `PollResult.counted?: boolean` (same on `PublicPollResult`); `RoomSnapshot.audienceTop?: { audId; name; score; place }[]` and `Me.audienceRank?: number`; `RoomConfig.predictStake: number` (default 100, 10..1000).
+- **Local stub:** `apps/server/src/audience/aggregator.ts` sends `counted` as an extra field (`AudiencePollResult`); `Leaderboard.top(5)` / `rowOf(id)` hold the ranking; `AggregatorOptions.predictStake` holds the stake.
+- **Resolution:**
