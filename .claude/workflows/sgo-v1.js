@@ -19,7 +19,8 @@ const ROOT = 'E:/Game/streamer-games-online'
 const WT = 'E:/Game/sgo-wt'
 const CAP = (args && args.cap) || 7
 const MAX_ROUNDS = 5
-const skip = new Set((args && args.skipDone) || [])   // ids already done on main (for resume)
+const skip = new Set((args && args.skipDone) || [])
+const RESUME = (args && args.resume) || {}   // id -> {round, fixFirst}: continue an interrupted review loop without exceeding MAX_ROUNDS total   // ids already done on main (for resume)
 
 // ---------- item graph ----------
 const I = []
@@ -142,7 +143,7 @@ const TRIAGERES = {
 let mainLock = Promise.resolve()
 const onMain = fn => { const p = mainLock.then(fn, fn); mainLock = p.catch(() => {}); return p }
 
-const disputes = []
+const disputes = (args && args.disputes) || []
 const state = {}          // id -> pending|running|done|blocked|error|skipped
 const reasons = {}
 
@@ -159,12 +160,17 @@ function recordBlocked(it, reason) {
   return onMain(() => agent(`${HOUSE}\n\nIn ${ROOT} (main): mark roadmap item ${it.id} as blocked using ONLY \`pnpm progress set ${it.id} status=blocked blockedReason="..."\` (see \`pnpm progress --help\`), with this reason: ${JSON.stringify(reason.slice(0, 400))}. Then \`pnpm progress render\` and commit progress.json + PROGRESS.md as "${it.id}: blocked". Leave the worktree ${wtPath(it)} and branch item/${it.id} in place for later. Reply with one line.`, { label: `block:${it.id}`, phase: 'Merge', effort: 'low' }))
 }
 
-async function reviewLoop(it, label) {
-  let criticRounds = 0
-  for (let round = 1; round <= MAX_ROUNDS; round++) {
-    const verifyP = agent(`${HOUSE}\n\n${WT_RULES(it)}\n\nYou are a FRESH, INDEPENDENT, HARSH FUNCTIONAL VERIFIER for ${spec(it)}\nYou did not build it; trust nothing the builder claims. In the worktree, re-run every Accept check and every applicable DoD gate yourself (typecheck, lint, tests, the item's verify command / pnpm verify:game for game items, perf/bundle budgets, scenario registration). Read the code for faked/stubbed/hard-coded behaviour, tests that assert nothing, skipped tests, weakened lint/rules, missing files from the "Files" list, deviations from SPEC. Default pass=false if anything required is missing or unverified. Do not modify source code (you may write artifacts). Give concrete, actionable issues.`,
+async function reviewLoop(it, startRound) {
+  const r0 = startRound || 1
+  let criticRounds = it.visual ? r0 - 1 : 0
+  for (let round = r0; round <= MAX_ROUNDS; round++) {
+    const myDisputes = disputes.filter(d => d.id === it.id)
+    const disputeNote = myDisputes.length ? `
+The builder DISPUTED these earlier issues, citing the docs (SPEC/DOD/specs win over reviewer taste). For each, check the cited doc: if the doc supports the builder, do NOT count it against the item; if the doc does not, re-raise it and say why:
+${JSON.stringify(myDisputes.map(d => ({ issue: d.issue, reason: d.reason })))}` : ''
+    const verifyP = agent(`${HOUSE}\n\n${WT_RULES(it)}\n\nYou are a FRESH, INDEPENDENT, HARSH FUNCTIONAL VERIFIER for ${spec(it)}\nYou did not build it; trust nothing the builder claims. In the worktree, re-run every Accept check and every applicable DoD gate yourself (typecheck, lint, tests, the item's verify command / pnpm verify:game for game items, perf/bundle budgets, scenario registration). Read the code for faked/stubbed/hard-coded behaviour, tests that assert nothing, skipped tests, weakened lint/rules, missing files from the "Files" list, deviations from SPEC. Default pass=false if anything required is missing or unverified. Do not modify source code (you may write artifacts). Give concrete, actionable issues.${disputeNote}`,
       { label: `verify:${it.id}#${round}`, phase: 'Verify', schema: VERDICT })
-    const criticP = it.visual ? agent(`${HOUSE}\n\n${WT_RULES(it)}\n\nYou are a FRESH, BRUTALLY HARSH VISUAL + UX CRITIC (AAA cozy-game art director) for ${spec(it)}\nFollow docs/critic/CRITIC_PROMPT.md and docs/critic/RUBRIC.md exactly (thresholds, ★ items, blind A/B where specified, stream-sim 720p review, all 5 ambient modes, desktop + phone viewports, reduced motion). Capture evidence with the harness in the worktree (scenario route + pnpm screenshot/contact-sheet/clips tooling from M0-05; if an item predates some tooling, write a small Playwright script using the installed chromium). LOOK at every image with the Read tool. Compare against docs/references/_style (and _style/golden once it exists). Judge motion from clips/frame sequences, not assumptions. Any rubric item under its threshold = fail. Write your report to artifacts/critic/${it.id}/round-${round}.json in the worktree conforming to docs/critic/report.schema.json and commit it on branch item/${it.id} ("${it.id}: critic round ${round}"). Do not modify source code. Default to fail when in doubt.`,
+    const criticP = it.visual ? agent(`${HOUSE}\n\n${WT_RULES(it)}\n\nYou are a FRESH, BRUTALLY HARSH VISUAL + UX CRITIC (AAA cozy-game art director) for ${spec(it)}\nFollow docs/critic/CRITIC_PROMPT.md and docs/critic/RUBRIC.md exactly (thresholds, ★ items, blind A/B where specified, stream-sim 720p review, all 5 ambient modes, desktop + phone viewports, reduced motion). Capture evidence with the harness in the worktree (scenario route + pnpm screenshot/contact-sheet/clips tooling from M0-05; if an item predates some tooling, write a small Playwright script using the installed chromium). LOOK at every image with the Read tool. Compare against docs/references/_style (and _style/golden once it exists). Judge motion from clips/frame sequences, not assumptions. Any rubric item under its threshold = fail. Write your report to artifacts/critic/${it.id}/round-${round}.json in the worktree conforming to docs/critic/report.schema.json and commit it on branch item/${it.id} ("${it.id}: critic round ${round}"). Do not modify source code. Default to fail when in doubt. Never fail an item for complying with a value or rule the SPEC/DOD/game spec fixes (e.g. SPEC §13 tokens); raise doc conflicts as issues for the human instead of as failures.${disputeNote}`,
       { label: `critic:${it.id}#${round}`, phase: 'Critic', schema: VERDICT }) : Promise.resolve({ pass: true, score: 10, issues: [], evidence: 'no visuals' })
     const [v, c] = await Promise.all([verifyP, criticP])
     if (it.visual) criticRounds++
@@ -240,13 +246,24 @@ async function runItem(it) {
     if (disputes.length) log(`Disputed critic issues: ${JSON.stringify(disputes.slice(-15))}`)
     return { status: 'done' }
   }
-  const b = await build(it)
+  const res = RESUME[it.id]
+  if (res && res.fixFirst) {
+    const f = await agent(`${HOUSE}
+
+${WT_RULES(it)}
+
+You are the BUILDER fixing ${spec(it)}
+The previous fix round was interrupted. Read the latest rejected critic report artifacts/critic/${it.id}/round-${res.round - 1}.json in the worktree (and re-run the item's checks to find any functional failures). Fix every issue at the root cause, re-run the checks, update artifacts/verify/${it.id}.json and artifacts/handoff/${it.id}.md, commit on item/${it.id}. You may dispute an issue only if it contradicts SPEC/DOD/the game spec (give the exact doc reference).`, { label: `fix:${it.id}#${res.round - 1}r`, phase: 'Fix', schema: FIXRES })
+    if (!f) return { status: 'error', reason: 'resume fixer failed' }
+    for (const d of f.disputed) disputes.push({ id: it.id, round: res.round - 1, ...d })
+  }
+  const b = res ? 'resumed' : await build(it)
   if (!b) return { status: 'error', reason: 'builder failed' }
   if (it.kind === 'trivia-content') {
     const ok = await triviaQA(it)
     if (!ok) return { status: 'blocked', reason: 'trivia fact-check / 10% re-check did not reach 0 errors in 3 attempts' }
   }
-  const rv = await reviewLoop(it)
+  const rv = await reviewLoop(it, res ? res.round : 1)
   if (rv.status !== 'pass') return rv
   const m = await mergeItem(it, rv.rounds, rv.criticRounds)
   if (!m) return { status: 'error', reason: 'merger failed' }
