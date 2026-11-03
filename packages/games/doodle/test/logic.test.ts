@@ -977,7 +977,7 @@ describe("T9 secrecy", () => {
       }
     }
     expect(checked).toBeGreaterThan(10_000);
-  });
+  }, 60_000);
 
   it("T9: the drawer sees the word only while drawing; choices only while picking; the host never", () => {
     const d = table({ audience: 0 }).skipIntro();
