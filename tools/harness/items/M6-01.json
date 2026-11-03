@@ -1,0 +1,50 @@
+{
+  "id": "M6-01",
+  "coverage": [
+    "packages/games/odd-one-out/src/logic/**",
+    "packages/games/odd-one-out/src/bot.ts",
+    "packages/games/odd-one-out/src/scenarios.ts"
+  ],
+  "accept": [
+    {
+      "criterion": "G1 typecheck: tsc --noEmit on packages/games/odd-one-out has 0 errors",
+      "cmd": "pnpm exec tsc --noEmit -p packages/games/odd-one-out",
+      "evidence": "the odd-one-out package (logic, bot, scenarios, tests) typechecks on its own project"
+    },
+    {
+      "criterion": "G2 lint: eslint on the package has 0 errors and 0 warnings (Math.random/Date banned in logic/**)",
+      "cmd": "pnpm exec eslint packages/games/odd-one-out --max-warnings 0",
+      "evidence": "the package passes the repo eslint config, including the logic/** determinism bans and cross-game import rules"
+    },
+    {
+      "criterion": "G3 rule tests: logic.test.ts passes 100% with branch coverage on logic/** of at least 90%",
+      "cmd": "cd packages/games/odd-one-out && pnpm exec vitest run test/logic.test.ts --reporter=json --outputFile=../../../artifacts/tmp/verify/M6-01-g3.json --coverage.enabled --coverage.provider=v8 \"--coverage.include=src/logic/**\" --coverage.reporter=text-summary --coverage.reportsDirectory=../../../artifacts/tmp/verify/M6-01-g3-coverage --coverage.thresholds.branches=90",
+      "evidence": "95 rule tests pass; v8 branch coverage on src/logic/** is enforced at >= 90% by the vitest threshold (96.3% branches, 100% lines at build)"
+    },
+    {
+      "criterion": "G3 naming: every numbered rule (R#) and test case (T#) in docs/specs/odd-one-out.md has a test named with its number",
+      "cmd": "pnpm exec tsx -e \"(async()=>{const fs=await import('node:fs');const s=await import('./tools/harness/src/scenarios/spec.ts');const spec=s.parseGameSpec(fs.readFileSync('docs/specs/odd-one-out.md','utf8'));const r=JSON.parse(fs.readFileSync('artifacts/tmp/verify/M6-01-g3.json','utf8'));const names=r.testResults.flatMap(f=>f.assertionResults.map(a=>a.fullName));const m=s.missingNumberedTests([...spec.rules,...spec.tests],names);console.log(spec.rules.length+' rules, '+spec.tests.length+' cases, '+names.length+' tests, missing: ['+m.join(',')+']');if(m.length>0||spec.rules.length===0||r.numFailedTests>0)process.exit(1)})()\"",
+      "evidence": "uses the harness's own parseGameSpec + missingNumberedTests (the verify:game G3 check) over the G3 run's test names: 11 rules (R1-R11) and 11 cases (T1-T11), none missing"
+    },
+    {
+      "criterion": "G4 contract suite: determinism, serialize round-trip, 200-game secrecy fuzz, termination, 1,000-payload parseAction fuzz, illegal actions are no-ops",
+      "cmd": "pnpm exec vitest run --project @sg/game-odd-one-out packages/games/odd-one-out/test/contract.test.ts",
+      "evidence": "runContractSuite over the odd-one-out module for 6 option presets (both variants, forced odd counts, 1-3 clue passes, 2-8 rounds, audience secret off) plus the family filter, a seated host and timerScale 0"
+    },
+    {
+      "criterion": "G5 bot simulation: 1,000+ seeded games over every player count and option preset, 0 exceptions, 0 illegal actions, all end within max steps, invariants every step, fairness",
+      "cmd": "pnpm exec vitest run --project @sg/game-odd-one-out packages/games/odd-one-out/test/sim.test.ts",
+      "evidence": "1,000 bot games over 4-10 players x 6 presets x 4 room variants (default, family, host seated, timerScale 0) with the spec invariants after every step, plus the 1.25/N fairness bound per N over the sim games and 160 x (N-1) bot-takeover playouts per N"
+    },
+    {
+      "criterion": "Scenario builders: every scenario in the spec's Scenarios table is registered in scenarios.ts with the spec's hero animation",
+      "cmd": "pnpm exec tsx -e \"(async()=>{const fs=await import('node:fs');const s=await import('./tools/harness/src/scenarios/spec.ts');const g=await import('./tools/harness/src/games.ts');const mf=await import('./tools/harness/src/scenarios/manifest.ts');const t=g.gameTarget(process.cwd(),'odd-one-out');const spec=s.parseGameSpec(fs.readFileSync(t.spec,'utf8'));const reg=await mf.loadRegistry(process.cwd(),t);const m=mf.buildManifest(t,spec,reg);console.log(spec.scenarios.length+' spec scenarios, '+reg.length+' registered, problems: '+JSON.stringify(m.problems));if(m.problems.length>0||spec.scenarios.length===0)process.exit(1)})()\"",
+      "evidence": "the harness buildManifest (G6's registry half) reports 0 problems: 8 spec scenarios registered (plus reveal-roles-odd and midgame); rendering them is G6 in M6-05"
+    },
+    {
+      "criterion": "G13 docs: the spec's Builder notes are 20 lines or fewer and the handoff is 40 lines or fewer",
+      "cmd": "pnpm exec tsx -e \"(async()=>{const fs=await import('node:fs');const s=await import('./tools/harness/src/scenarios/spec.ts');const g=await import('./tools/harness/src/games.ts');const t=g.gameTarget(process.cwd(),'odd-one-out');const spec=s.parseGameSpec(fs.readFileSync(t.spec,'utf8'));const h=fs.readFileSync('artifacts/handoff/M6-01.md','utf8').trimEnd().split(String.fromCharCode(10)).length;console.log('builder notes '+spec.builderNotes.length+' lines, M6-01 handoff '+h+' lines');if(spec.builderNotes.length===0||spec.builderNotes.length>20||h>40)process.exit(1)})()\"",
+      "evidence": "Builder notes present and <= 20 lines in docs/specs/odd-one-out.md; artifacts/handoff/M6-01.md <= 40 lines"
+    }
+  ]
+}
