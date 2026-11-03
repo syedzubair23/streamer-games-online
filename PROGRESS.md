@@ -3,7 +3,7 @@
 > Generated from `progress.json` by `pnpm progress render`. Do not edit by hand:
 > change status with `pnpm progress set <id> status=<status>` (see CLAUDE.md).
 
-**74 items:** todo 57 · done 15 · blocked 2
+**74 items:** todo 55 · done 17 · blocked 2
 
 ## M0 (6/6 done)
 
@@ -42,21 +42,21 @@
 | M2-05 | quip-clash: Verify & critic | todo | 0/5 | - | - |  |
 | M2-06 | quip-clash: Golden promotion | todo | 0/5 | - | - |  |
 
-## M3 `tune-in` (0/5 done)
+## M3 `tune-in` (1/5 done)
 
 | ID | Item | Status | Critic | Owner | Updated | Notes |
 |---|---|---|---|---|---|---|
-| M3-01 | tune-in: Logic | todo | - | - | - |  |
+| M3-01 | tune-in: Logic | **done** | - | merger | 2026-10-06 22:30Z | Merged to main; verify:item green at 66e89c6. Handoff: artifacts/handoff/M3-01.md |
 | M3-02 | tune-in: Content | todo | - | - | - |  |
 | M3-03 | tune-in: Stage | todo | 0/5 | - | - |  |
 | M3-04 | tune-in: Controller | todo | 0/5 | - | - |  |
 | M3-05 | tune-in: Verify & critic | todo | 0/5 | - | - |  |
 
-## M4 `trivia-night` (0/6 done)
+## M4 `trivia-night` (1/6 done)
 
 | ID | Item | Status | Critic | Owner | Updated | Notes |
 |---|---|---|---|---|---|---|
-| M4-01 | trivia-night: Logic | todo | - | - | - |  |
+| M4-01 | trivia-night: Logic | **done** | - | merger | 2026-10-06 22:30Z | Merged to main; verify:item green at 66e89c6. Handoff: artifacts/handoff/M4-01.md |
 | M4-01b | trivia-night: Bluff mode logic | todo | - | - | - |  |
 | M4-02 | trivia-night: Content | todo | - | - | - |  |
 | M4-03 | trivia-night: Stage | todo | 0/5 | - | - |  |

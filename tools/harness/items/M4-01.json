@@ -1,0 +1,50 @@
+{
+  "id": "M4-01",
+  "coverage": [
+    "packages/games/trivia-night/src/logic/**",
+    "packages/games/trivia-night/src/bot.ts",
+    "packages/games/trivia-night/src/scenarios.ts"
+  ],
+  "accept": [
+    {
+      "criterion": "G1 typecheck: tsc --noEmit on packages/games/trivia-night has 0 errors",
+      "cmd": "pnpm exec tsc --noEmit -p packages/games/trivia-night",
+      "evidence": "the trivia-night package (logic, bot, scenarios, tests) typechecks on its own project"
+    },
+    {
+      "criterion": "G2 lint: eslint on the package has 0 errors and 0 warnings (Math.random/Date banned in logic/**)",
+      "cmd": "pnpm exec eslint packages/games/trivia-night --max-warnings 0",
+      "evidence": "the package passes the repo eslint config, including the logic/** determinism bans and cross-game import rules"
+    },
+    {
+      "criterion": "G3 rule tests: logic.test.ts passes 100% with branch coverage on logic/** of at least 90%",
+      "cmd": "cd packages/games/trivia-night && pnpm exec vitest run test/logic.test.ts --reporter=json --outputFile=../../../artifacts/tmp/verify/M4-01-g3.json --coverage.enabled --coverage.provider=v8 \"--coverage.include=src/logic/**\" --coverage.reporter=text-summary --coverage.reportsDirectory=../../../artifacts/tmp/verify/M4-01-g3-coverage --coverage.thresholds.branches=90",
+      "evidence": "52 rule tests pass; v8 branch coverage on src/logic/** is enforced at >= 90% by the vitest threshold (91.5% at build)"
+    },
+    {
+      "criterion": "G3 naming: every Classic rule (R1-R8, R14) and Classic test case (T1-T5, T9, T10, T12, T13) of docs/specs/trivia-night.md has a test named with its number; only the Bluff ids of M4-01b (R9-R13, T6-T8, T11) may be missing",
+      "cmd": "pnpm exec tsx -e \"(async()=>{const fs=await import('node:fs');const s=await import('./tools/harness/src/scenarios/spec.ts');const spec=s.parseGameSpec(fs.readFileSync('docs/specs/trivia-night.md','utf8'));const r=JSON.parse(fs.readFileSync('artifacts/tmp/verify/M4-01-g3.json','utf8'));const names=r.testResults.flatMap(f=>f.assertionResults.map(a=>a.fullName));const m=s.missingNumberedTests([...spec.rules,...spec.tests],names);const bluff=['R9','R10','R11','R12','R13','T6','T7','T8','T11'];const bad=m.filter(id=>!bluff.includes(id));console.log(spec.rules.length+' rules, '+spec.tests.length+' cases, '+names.length+' tests, missing (M4-01b Bluff): ['+m.join(',')+'], missing Classic: ['+bad.join(',')+']');if(bad.length>0||spec.rules.length===0||r.numFailedTests>0)process.exit(1)})()\"",
+      "evidence": "uses the harness's own parseGameSpec + missingNumberedTests (the verify:game G3 check) over the G3 run's test names; the only missing ids are Bluff mode's, which ROADMAP assigns to M4-01b"
+    },
+    {
+      "criterion": "G4 contract suite: determinism, serialize round-trip, 200-game secrecy fuzz, termination, 1,000-payload parseAction fuzz, illegal actions are no-ops",
+      "cmd": "pnpm exec vitest run --project @sg/game-trivia-night packages/games/trivia-night/test/contract.test.ts",
+      "evidence": "runContractSuite over the trivia-night module for 7 option presets at 1/3/6/10 players, plus timerScale 0"
+    },
+    {
+      "criterion": "G5 bot simulation: 1,000+ seeded games over every player count and option preset, 0 exceptions, 0 illegal actions, all end within 1,500 steps, invariants every step, fairness",
+      "cmd": "pnpm exec vitest run --project @sg/game-trivia-night packages/games/trivia-night/test/sim.test.ts",
+      "evidence": "1,050 bot games over 1-10 players x 7 presets plus team-mode games, spec invariants after every step, and the 1.25/N fairness bound for 2-10 players"
+    },
+    {
+      "criterion": "Scenario builders: every Classic scenario in the spec's Scenarios table is registered in scenarios.ts with the spec's hero animation (bluff-pick and bluff-reveal belong to M4-01b)",
+      "cmd": "pnpm exec tsx -e \"(async()=>{const fs=await import('node:fs');const s=await import('./tools/harness/src/scenarios/spec.ts');const g=await import('./tools/harness/src/games.ts');const mf=await import('./tools/harness/src/scenarios/manifest.ts');const t=g.gameTarget(process.cwd(),'trivia-night');const spec=s.parseGameSpec(fs.readFileSync(t.spec,'utf8'));const reg=await mf.loadRegistry(process.cwd(),t);const m=mf.buildManifest(t,spec,reg);const later=['bluff-pick','bluff-reveal'];const bad=m.problems.filter(p=>!later.some(id=>p.includes(id)));console.log(spec.scenarios.length+' spec scenarios, '+reg.length+' registered, problems: '+JSON.stringify(m.problems)+', Classic problems: '+JSON.stringify(bad));if(bad.length>0||spec.scenarios.length===0)process.exit(1)})()\"",
+      "evidence": "the harness buildManifest (G6's registry half): the 7 Classic spec scenarios are registered with matching anims (plus 9 extras) and the perf script anims flip/reveal/steam/win all resolve; rendering them is G6 in M4-05"
+    },
+    {
+      "criterion": "G13 docs: the spec's Builder notes are 20 lines or fewer and the handoff is 40 lines or fewer",
+      "cmd": "pnpm exec tsx -e \"(async()=>{const fs=await import('node:fs');const s=await import('./tools/harness/src/scenarios/spec.ts');const g=await import('./tools/harness/src/games.ts');const t=g.gameTarget(process.cwd(),'trivia-night');const spec=s.parseGameSpec(fs.readFileSync(t.spec,'utf8'));const h=fs.readFileSync('artifacts/handoff/M4-01.md','utf8').trimEnd().split(String.fromCharCode(10)).length;console.log('builder notes '+spec.builderNotes.length+' lines, M4-01 handoff '+h+' lines');if(spec.builderNotes.length===0||spec.builderNotes.length>20||h>40)process.exit(1)})()\"",
+      "evidence": "Builder notes present and <= 20 lines in docs/specs/trivia-night.md; artifacts/handoff/M4-01.md <= 40 lines"
+    }
+  ]
+}
