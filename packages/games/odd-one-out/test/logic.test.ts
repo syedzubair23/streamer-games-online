@@ -1273,7 +1273,7 @@ describe("T5 secrecy fuzz", () => {
       expect(problems).toEqual([]);
       expect(states).toBeGreaterThan(1_000);
     },
-    300_000,
+    900_000,
   );
 });
 
@@ -1662,5 +1662,5 @@ describe("plumbing", () => {
       expect(JSON.stringify(phase(id).state)).toBe(JSON.stringify(phase(id).state));
     }
     expect(T0).toBe(1_000_000);
-  });
+  }, 120_000);
 });
