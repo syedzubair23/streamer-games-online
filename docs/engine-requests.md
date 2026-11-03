@@ -105,3 +105,13 @@ Rules:
 - **Proposed API:** none; in `findLeaks`, skip a string secret for a viewer when the same value is also a secret that viewer owns.
 - **Local stub:** `packages/games/quip-clash/src/logic/bot.ts` offers Safety only while an unused line is left; the rule itself (and its tests) allows reuse.
 - **Resolution:**
+
+### ER-012 Seated host flag (and the room's content filter) in SetupContext
+- **From:** M6-01 (odd-one-out logic builder)
+- **Package:** @sg/engine (`packages/engine/src/game-module.ts`, `runner.ts`)
+- **Status:** open
+- **Need:** game logic must know whether the host also holds a player seat, so the host-panel view can drop the secret; and the room's `contentFilter` for clues (same need as ER-006).
+- **Why:** `docs/specs/odd-one-out.md` R11, Views table ("host panel (host not seated)") and edge case "The host is seated: the host dock shows 'You are playing — secrets hidden'"; R3 (`filterText` at the room level).
+- **Proposed API:** `SetupContext.room.hostSeated: boolean` next to ER-006's `room` fields, filled by the room from whether the host member holds one of the game's seats.
+- **Local stub:** `packages/games/odd-one-out/src/logic/room.ts` reads an optional `ctx.room.hostSeated` / `ctx.room.contentFilter`; `createOddOneOut({ hostSeated, contentFilter })` pins them. Default: not seated (secret shown on the host panel), `standard` filter.
+- **Resolution:**

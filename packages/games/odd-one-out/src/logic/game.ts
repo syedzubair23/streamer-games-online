@@ -9,7 +9,7 @@
  * Every reducer works on a copy of the (frozen) state and returns it with its effects; illegal
  * input returns the original state and an `illegal` fx (SPEC §9.3 rule 6). The one module timer
  * (`phase`) always ends the current phase or clue turn; `deadline` mirrors it (null when no timer
- * runs, i.e. an input phase at timerScale 0).
+ * runs, i.e. an input phase at timerScale 0; the ended match keeps the podium's last deadline).
  *
  * @module
  */
@@ -454,7 +454,6 @@ export function gameResult(s: OooState): GameResult {
 }
 
 function endGame(tx: Tx, result: GameResult): void {
-  tx.s.deadline = null;
   tx.fx.push({ type: "end", result });
 }
 

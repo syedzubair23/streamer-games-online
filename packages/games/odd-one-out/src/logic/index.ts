@@ -2,7 +2,7 @@
  * Server-safe logic entry for `@sg/game-odd-one-out/logic` (SPEC §9.2): the Odd One Out
  * `GameModule` (`docs/specs/odd-one-out.md`), pure and deterministic.
  *
- * - `logic`: the module the platform runs (room settings from the setup context, ER-006/ER-009).
+ * - `logic`: the module the platform runs (room settings from the setup context, ER-006/ER-012).
  * - `createOddOneOut(room)`: the same module with pinned room settings (clue filter level,
  *   seated host), for tests, scenarios and the server until those engine requests land.
  *
