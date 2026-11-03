@@ -131,7 +131,7 @@ describe("G5: bot simulation", () => {
     }
     expect(problems).toEqual([]);
     expect(maxSteps).toBeLessThanOrEqual(MAX_STEPS);
-  }, 900_000);
+  }, 3_600_000);
 
   it("fairness: no seat wins more than 1.25 / N of the games at any player count", () => {
     for (let n = 4; n <= 10; n++) {
@@ -174,5 +174,5 @@ describe("G5: bot simulation", () => {
     }
     expect(wins.size).toBe(7);
     expect(over).toEqual([]);
-  }, 900_000);
+  }, 3_600_000);
 });

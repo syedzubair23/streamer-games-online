@@ -22,6 +22,22 @@ const LINES: readonly QuickLine[] = [0, 1, 2, 3, 4, 5, 6, 7];
 const LAST_RESORT = "hmm";
 
 /**
+ * Bank phrase → its one-word clue, or null when it can't be one. The result depends only on the
+ * phrase, so this never changes a bot's choice; it saves the profanity matcher, which dominates
+ * bot turns otherwise. The phrases come from content packs, so the cache stays small.
+ */
+const CLEAN_CLUES = new Map<string, string | null>();
+
+function cleanClue(phrase: string): string | null {
+  const known = CLEAN_CLUES.get(phrase);
+  if (known !== undefined) return known;
+  const clue = toClue(phrase);
+  const clean = clue !== null && !hasProfanity(clue) ? clue : null;
+  CLEAN_CLUES.set(phrase, clean);
+  return clean;
+}
+
+/**
  * Candidate clues for `player` in priority order (R10): unused clue-bank clues (regular players
  * only), then unused generic clues, then the fallbacks. A regular player never offers a clue
  * that says the secret; nobody repeats a clue already on the table while fresh ones remain.
@@ -31,8 +47,8 @@ export function clueCandidates(s: OooState, player: PlayerId): string[] {
   const given = new Set(s.clues.map((c) => clueKey(c.text)));
   const usable = (list: readonly string[]): string[] =>
     list
-      .map(toClue)
-      .filter((c): c is string => c !== null && !hasProfanity(c))
+      .map(cleanClue)
+      .filter((c): c is string => c !== null)
       .filter((c) => odd || !says(c, s.hidden.secret));
   const fresh = (list: readonly string[]): string[] =>
     usable(list).filter((c) => !given.has(clueKey(c)));

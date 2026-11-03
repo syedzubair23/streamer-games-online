@@ -115,3 +115,13 @@ Rules:
 - **Proposed API:** `SetupContext.room.hostSeated: boolean` next to ER-006's `room` fields, filled by the room from whether the host member holds one of the game's seats.
 - **Local stub:** `packages/games/odd-one-out/src/logic/room.ts` reads an optional `ctx.room.hostSeated` / `ctx.room.contentFilter`; `createOddOneOut({ hostSeated, contentFilter })` pins them. Default: not seated (secret shown on the host panel), `standard` filter.
 - **Resolution:**
+
+### ER-013 Full test run executes every game's tests twice
+- **From:** M6-01 (odd-one-out logic builder)
+- **Package:** root `vitest.workspace.ts`
+- **Status:** open
+- **Need:** each game's test files should run once in `pnpm test` and verify's P3.
+- **Why:** the P3 report lists every `packages/games/*/test/*` file twice; `packages/*` appears to match the `packages/games` directory as a project on top of `packages/games/*`. The doubled load makes the slow suites time out at the default worker count: unrelated tests in marble-rally, quip-clash, apps/server and tools/harness failed that way, plus marble-rally's T11 performance bound.
+- **Proposed API:** none; exclude `packages/games` from the `packages/*` glob.
+- **Local stub:** none. Run P3 with `VITEST_MAX_WORKERS=4` until this lands; the odd-one-out contract and sim suites carry long explicit timeouts.
+- **Resolution:**

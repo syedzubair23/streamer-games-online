@@ -31,7 +31,7 @@ const base = {
   presets: PRESETS,
   maxSteps: 1_000,
   sim: { involves },
-  timeoutMs: 600_000,
+  timeoutMs: 3_600_000,
 };
 
 describe("default room", () => {
