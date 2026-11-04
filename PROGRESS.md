@@ -3,7 +3,7 @@
 > Generated from `progress.json` by `pnpm progress render`. Do not edit by hand:
 > change status with `pnpm progress set <id> status=<status>` (see CLAUDE.md).
 
-**74 items:** todo 55 · done 17 · blocked 2
+**74 items:** todo 54 · done 18 · blocked 2
 
 ## M0 (6/6 done)
 
@@ -75,11 +75,11 @@
 | M5-05 | doodle: Verify & critic | todo | 0/5 | - | - |  |
 | M5-06 | doodle: Stroke pipeline | todo | - | - | - |  |
 
-## M6 `odd-one-out` (0/5 done)
+## M6 `odd-one-out` (1/5 done)
 
 | ID | Item | Status | Critic | Owner | Updated | Notes |
 |---|---|---|---|---|---|---|
-| M6-01 | odd-one-out: Logic | todo | - | - | - |  |
+| M6-01 | odd-one-out: Logic | **done** | - | claude | 2026-11-03 21:58Z | Green at fe07629 with SG_FFMPEG and VITEST_MAX_WORKERS=4; plain verify fails until ER-013 lands. Disputed for M6-05: audience poll gap, 4-player length. |
 | M6-02 | odd-one-out: Content | todo | - | - | - |  |
 | M6-03 | odd-one-out: Stage | todo | 0/5 | - | - |  |
 | M6-04 | odd-one-out: Controller | todo | 0/5 | - | - |  |

@@ -178,3 +178,12 @@ Player idle exception: during the clue pass, a player waits for up to (N−1) ×
 - Everything is rated all.
 
 ## Builder notes
+- M6-01 logic: `packages/games/odd-one-out/src/logic/**`; fixture content in `src/fixtures.ts` (real packs: M6-02).
+- ContentAccess exists only in `setup`, so every round's card is dealt then into `hidden.deck` (no repeated secret; unused categories/pairs first).
+- Undercover (R1/R2): a pair whose two words are secrets of one category uses that category; else the pair's `category` name with `options: [a, b]`. Undercover needs the `ooo-pairs` pack, or the game stays in `intro` with `error`.
+- R3: a clue also needs one letter or digit (so it never looks like the "…" pass). Family filter: a flagged clue is refused with a private `clue-rejected` cue; standard: kept with `flagged`.
+- R4: "matches" = equals or contains after normalisation, for regular and odd clues alike; an Undercover odd one's clue saying their own word never counts, saying the real secret scores +3.
+- R6: a vote is final once cast; the deciding ballots (revote if any) earn the R7 +1.
+- R7 Undercover catch uses outcome `caught`; `roundResult.secret` is named `word` (a `secret` key would mark it hidden for the contract fuzz).
+- Host seated / room filter: ER-006 + ER-012; stub `createOddOneOut({ hostSeated, contentFilter })`.
+- Open for M6-05 (G14): the predict closes at vote start, so vote → accuse-reveal → last-guess → round-result → next reveal runs ~35–42 s with no audience poll (limit 30 s), and 4-player timed-bot games run ~8.5 min vs `estMinutes [10, 14]`. Needs a spec decision (e.g. close the bet at accuse-reveal).

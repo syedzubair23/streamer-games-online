@@ -259,9 +259,16 @@ describe("ffmpeg for clips", () => {
     const cache = join(d, "cache", "ffmpeg-1");
     mkdirSync(cache, { recursive: true });
     writeFileSync(join(cache, "ffmpeg-linux"), "");
-    expect(findFfmpeg({ PLAYWRIGHT_BROWSERS_PATH: join(d, "cache") }, "linux")).toBe(
+    const env = { PLAYWRIGHT_BROWSERS_PATH: join(d, "cache") };
+    expect(findFfmpeg(env, "linux", () => true)).toBe(join(cache, "ffmpeg-linux"));
+    // A newer build without VP8 is passed over for an older one that has it.
+    const newer = join(d, "cache", "ffmpeg-2");
+    mkdirSync(newer);
+    writeFileSync(join(newer, "ffmpeg-linux"), "");
+    expect(findFfmpeg(env, "linux", (p) => p !== join(newer, "ffmpeg-linux"))).toBe(
       join(cache, "ffmpeg-linux"),
     );
+    expect(findFfmpeg(env, "linux", () => false)).toBeNull();
   });
 
   it("encodes JPEG frames into a VP8 WebM of the right length", async () => {
