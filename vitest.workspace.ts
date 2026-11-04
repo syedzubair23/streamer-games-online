@@ -9,7 +9,8 @@
 import type { TestProjectConfiguration } from "vitest/config";
 
 export const workspace: TestProjectConfiguration[] = [
-  "packages/*",
+  // `packages/games` is a folder of projects, not a project: matching it runs every game twice.
+  "packages/!(games)",
   "packages/games/*",
   "apps/*",
   "tools/*",
