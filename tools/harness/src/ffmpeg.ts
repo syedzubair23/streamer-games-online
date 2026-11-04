@@ -5,7 +5,8 @@
  * real-time recording of SwiftShader would show its stalls, not the game's motion).
  *
  * The binary is found in this order: `SG_FFMPEG`, the ffmpeg Playwright installs next to its
- * browsers (`npx playwright install ffmpeg`), then `ffmpeg` on the PATH.
+ * browsers (`npx playwright install ffmpeg`), then `ffmpeg` on the PATH. Only `SG_FFMPEG` is taken
+ * on trust; the others must have the VP8 encoder, which some Playwright builds (VP9 only) lack.
  *
  * @module
  */
@@ -33,10 +34,20 @@ export function playwrightCacheDirs(
 
 const BINARIES = ["ffmpeg-win64.exe", "ffmpeg-linux", "ffmpeg-mac", "ffmpeg.exe", "ffmpeg"];
 
-/** Resolves an ffmpeg executable, or null when none is available. */
+/** True when this ffmpeg can encode VP8, as {@link encodeJpegFrames} needs. */
+export function hasVp8Encoder(ffmpeg: string): boolean {
+  const res = spawnSync(ffmpeg, ["-hide_banner", "-encoders"], {
+    stdio: ["ignore", "pipe", "ignore"],
+    encoding: "utf8",
+  });
+  return res.status === 0 && /^\s*V\S*\s+libvpx\s/m.test(res.stdout);
+}
+
+/** Resolves an ffmpeg executable that can encode clips, or null when none is available. */
 export function findFfmpeg(
   env: NodeJS.ProcessEnv = process.env,
   platform = process.platform,
+  canEncode: (ffmpeg: string) => boolean = hasVp8Encoder,
 ): string | null {
   const explicit = env["SG_FFMPEG"];
   if (explicit !== undefined && explicit !== "" && existsSync(explicit)) return explicit;
@@ -49,15 +60,10 @@ export function findFfmpeg(
     for (const d of ffDirs)
       for (const bin of BINARIES) {
         const p = join(dir, d, bin);
-        if (existsSync(p)) return p;
+        if (existsSync(p) && canEncode(p)) return p;
       }
   }
-  try {
-    execFileSync("ffmpeg", ["-version"], { stdio: "ignore" });
-    return "ffmpeg";
-  } catch {
-    return null;
-  }
+  return canEncode("ffmpeg") ? "ffmpeg" : null;
 }
 
 /** Parses "Duration: 00:00:05.04" from ffmpeg's stderr, in seconds (null when absent). */
