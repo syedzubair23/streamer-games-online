@@ -3,7 +3,7 @@
 > Generated from `progress.json` by `pnpm progress render`. Do not edit by hand:
 > change status with `pnpm progress set <id> status=<status>` (see CLAUDE.md).
 
-**74 items:** todo 54 · done 18 · blocked 2
+**74 items:** todo 53 · done 19 · blocked 2
 
 ## M0 (6/6 done)
 
@@ -63,11 +63,11 @@
 | M4-04 | trivia-night: Controller | todo | 0/5 | - | - |  |
 | M4-05 | trivia-night: Verify & critic | todo | 0/5 | - | - |  |
 
-## M5 `doodle` (0/7 done)
+## M5 `doodle` (1/7 done)
 
 | ID | Item | Status | Critic | Owner | Updated | Notes |
 |---|---|---|---|---|---|---|
-| M5-01 | doodle: Logic | todo | - | - | - |  |
+| M5-01 | doodle: Logic | **done** | - | claude | 2026-11-04 06:33Z | Green at 1998956 with plain settings after ER-013; T9 secrecy test has an explicit 60 s timeout. ER-010 and ER-011 open. |
 | M5-01b | doodle: Telephone mode logic | todo | - | - | - |  |
 | M5-02 | doodle: Content | todo | - | - | - |  |
 | M5-03 | doodle: Stage | todo | 0/5 | - | - |  |
